@@ -1,6 +1,6 @@
 # ai-git-ignore-strategy
 
-針對各類 AI 代理工具 (Claude Code / Antigravity / Cursor / Codex / Gemini) 建立 .gitignore 最佳實務的四階段審查流程，並延伸處理跨平台行尾（LF / CRLF）正規化。
+針對各類 AI 代理工具 (Claude Code / Antigravity / GitHub Copilot / Codex / Cursor / Gemini) 建立 .gitignore 最佳實務的五階段審查流程，並延伸處理跨平台行尾（LF / CRLF）正規化。
 
 ## 適用情境
 
@@ -10,39 +10,43 @@
 - git status 每次都出現幽靈異動（0 byte diff）
 - .sh 腳本在 Linux 端噴 `\r: command not found`
 
-## 四個版本差異
+## 五個版本差異
 
 | 版本 | 對應工具 | 工具呼叫語法 |
 | :--- | :--- | :--- |
 | `antigravity/SKILL.md` | Google Antigravity | `view_file` / `list_dir` / `run_command` |
 | `claude/SKILL.md` | Claude Code | `Read` / `Glob` / `Grep` / `Bash` / `Edit` |
 | `vscode/SKILL.md` | GitHub Copilot (VS Code) | `read_file` / `list_dir` / `grep_search` / `run_in_terminal` / `replace_string_in_file` |
+| `codex/SKILL.md` | Codex | `functions.shell_command` / `multi_tool_use.parallel` / `apply_patch` / sandbox escalation |
 | `generic/SKILL.md` | 工具無關 | 描述為「讀檔工具」「shell 執行工具」等抽象名稱 |
 
-四版內容結構一致（五階段流程 + 標準範本 + 救援指令），僅在工具名稱、呼叫語法、YAML frontmatter 觸發描述上做微調。
+五版內容結構一致（五階段流程 + 標準範本 + 救援指令），並依各工具的檔案讀取、shell 執行、編輯、權限提升與安裝位置做微調。Codex 版特別補上 `~/.codex/skills/`、`apply_patch`、精準 staging、Windows PowerShell 與 sandbox escalation 操作規則。
 
 ## 安裝
 
-從 repo 根目錄執行 `install.sh` 或 `install.ps1`，並傳入 skill 名稱：
+從 repo 根目錄執行 `install.sh` 或 `install.ps1`，並傳入工具模式。此 repo 目前只有 `ai-git-ignore-strategy`，因此指定工具模式就會安裝這個 skill 的對應版本：
 
 ```bash
 # Linux / macOS / WSL
-./install.sh ai-git-ignore-strategy          # 自動偵測已安裝的 AI 工具
-./install.sh ai-git-ignore-strategy claude   # 僅安裝 Claude 版
-./install.sh ai-git-ignore-strategy antigravity
+./install.sh              # 自動偵測已安裝的 AI 工具
+./install.sh claude       # 僅安裝 Claude 版
+./install.sh antigravity  # 僅安裝 Antigravity 版
+./install.sh codex        # 僅安裝 Codex 版
 ```
 
 ```powershell
 # Windows
-.\install.ps1 ai-git-ignore-strategy
-.\install.ps1 ai-git-ignore-strategy claude
+.\install.ps1
+.\install.ps1 claude
+.\install.ps1 codex
 ```
 
 安裝完成後，於對應 AI 工具中喚起：
 
 - **Claude Code**：在對話中輸入 `/ai-git-ignore-strategy` 或自然語言觸發（「幫我審查 gitignore」）
 - **Antigravity**：skill 會在 YAML 描述的觸發字出現時自動載入
+- **Codex**：放在 `~/.codex/skills/ai-git-ignore-strategy/SKILL.md` 後，由 YAML 描述中的 gitignore / repo hygiene 關鍵字自動觸發
 
 ## 維護者備註
 
-修改此 skill 時，請同步更新三個版本（或至少更新 `generic/` 並重新同步到另外兩個）。詳細規範見 repo 根目錄的 `CONTRIBUTING.md`。
+修改此 skill 時，請同步更新工具專用版本（或至少更新 `generic/` 後再移植到各工具版本）。詳細規範見 repo 根目錄的 `CONTRIBUTING.md`。

@@ -5,6 +5,7 @@
 #   ./install.sh                 # auto-detect installed AI tools and install all matching variants
 #   ./install.sh claude          # only install claude/ variant to ~/.claude/skills/
 #   ./install.sh antigravity     # only install antigravity/ variant to ~/.gemini/antigravity/skills/
+#   ./install.sh codex           # only install codex/ variant to ~/.codex/skills/
 #   ./install.sh generic         # install generic/ variant to all detected AI tool dirs (fallback)
 #   ./install.sh --help          # show this help
 #
@@ -28,6 +29,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILLS_DIR="$SCRIPT_DIR/skills"
 CLAUDE_TARGET="$HOME/.claude/skills"
 ANTIGRAVITY_TARGET="$HOME/.gemini/antigravity/skills"
+CODEX_TARGET="$HOME/.codex/skills"
 
 MODE="${1:-auto}"
 
@@ -40,15 +42,18 @@ show_help() {
 # ---- detection ------------------------------------------------------
 has_claude=false
 has_antigravity=false
+has_codex=false
 [[ -d "$HOME/.claude" ]]                  && has_claude=true
 [[ -d "$HOME/.gemini/antigravity" ]]      && has_antigravity=true
+[[ -d "$HOME/.codex" ]]                   && has_codex=true
 
 info "偵測到的 AI 工具："
 $has_claude      && ok "Claude Code       → $CLAUDE_TARGET"      || warn "Claude Code       → 未偵測到 ~/.claude"
 $has_antigravity && ok "Antigravity       → $ANTIGRAVITY_TARGET" || warn "Antigravity       → 未偵測到 ~/.gemini/antigravity"
+$has_codex       && ok "Codex             → $CODEX_TARGET"       || warn "Codex             → 未偵測到 ~/.codex"
 
-if ! $has_claude && ! $has_antigravity; then
-  err "沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code 或 Antigravity。"
+if ! $has_claude && ! $has_antigravity && ! $has_codex; then
+  err "沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity 或 Codex。"
   exit 1
 fi
 
@@ -76,7 +81,7 @@ install_skill_variant() {
 
 # ---- install all skills to a given tool -----------------------------
 install_all_for_tool() {
-  local tool="$1"        # antigravity | claude
+  local tool="$1"        # antigravity | claude | codex
   local target="$2"
   local force_variant="${3:-}"   # if set, forces this variant (e.g. "generic")
 
@@ -108,6 +113,7 @@ case "$MODE" in
   auto|"")
     $has_claude      && install_all_for_tool "claude"      "$CLAUDE_TARGET"
     $has_antigravity && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET"
+    $has_codex       && install_all_for_tool "codex"       "$CODEX_TARGET"
     ;;
   claude)
     if ! $has_claude; then err "未偵測到 ~/.claude/"; exit 1; fi
@@ -117,9 +123,14 @@ case "$MODE" in
     if ! $has_antigravity; then err "未偵測到 ~/.gemini/antigravity/"; exit 1; fi
     install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET"
     ;;
+  codex)
+    if ! $has_codex; then err "未偵測到 ~/.codex/"; exit 1; fi
+    install_all_for_tool "codex" "$CODEX_TARGET"
+    ;;
   generic)
     $has_claude      && install_all_for_tool "claude"      "$CLAUDE_TARGET"      "generic"
     $has_antigravity && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET" "generic"
+    $has_codex       && install_all_for_tool "codex"       "$CODEX_TARGET"       "generic"
     ;;
   *)
     err "未知選項：$MODE"

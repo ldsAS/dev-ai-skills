@@ -1,16 +1,16 @@
 # dev-ai-skills
 
-> 集中管理跨 AI 代理工具（Antigravity、Claude Code、Cursor⋯⋯）的 **Skills** 技能庫。
+> 集中管理跨 AI 代理工具（Antigravity、Claude Code、GitHub Copilot、Codex、Cursor⋯⋯）的 **Skills** 技能庫。
 >
-> 每個 skill 同時提供 **三個版本**：`antigravity/`（Gemini / Antigravity 專用）、`claude/`（Claude Code 專用）、`generic/`（工具無關的通用版本，供其他 AI 工具 fallback）。
+> 每個 skill 依工具提供專用版本：`antigravity/`（Gemini / Antigravity 專用）、`claude/`（Claude Code 專用）、`vscode/`（GitHub Copilot / VS Code 專用）、`codex/`（Codex 專用）、`generic/`（工具無關的通用版本，供其他 AI 工具 fallback）。
 
 ---
 
 ## 📦 目前提供的技能
 
-| 技能 | 用途 | 三版本狀態 |
+| 技能 | 用途 | 版本狀態 |
 | :--- | :--- | :---: |
-| [`ai-git-ignore-strategy`](./skills/ai-git-ignore-strategy/) | Git 追蹤審查與 `.gitignore` / `.gitattributes` 最佳實務 | ✅ / ✅ / ✅ |
+| [`ai-git-ignore-strategy`](./skills/ai-git-ignore-strategy/) | Git 追蹤審查與 `.gitignore` / `.gitattributes` 最佳實務 | Antigravity / Claude / VS Code / Codex / Generic |
 
 ---
 
@@ -28,6 +28,7 @@ cd dev-ai-skills
 # 只裝某一個工具的版本
 ./install.sh claude        # 只裝 Claude 版到 ~/.claude/skills/
 ./install.sh antigravity   # 只裝 Antigravity 版到 ~/.gemini/antigravity/skills/
+./install.sh codex         # 只裝 Codex 版到 ~/.codex/skills/
 ./install.sh generic       # 只裝 generic 版（鋪到所有偵測到的 AI 工具，作為 fallback）
 ```
 
@@ -43,6 +44,7 @@ cd dev-ai-skills
 # 指定工具
 .\install.ps1 claude
 .\install.ps1 antigravity
+.\install.ps1 codex
 .\install.ps1 generic
 ```
 
@@ -56,6 +58,7 @@ cd dev-ai-skills
 | :--- | :--- |
 | Claude Code | `~/.claude/skills/<skill-name>/` |
 | Antigravity | `~/.gemini/antigravity/skills/<skill-name>/` |
+| Codex | `~/.codex/skills/<skill-name>/` |
 
 > 💡 如果某 AI 工具**沒有**對應版本（例如一個 skill 只寫了 generic 版），安裝器會自動把 generic 版鋪給該工具作為 fallback。
 
@@ -85,6 +88,8 @@ dev-ai-skills/
     │   ├── README.md
     │   ├── antigravity/SKILL.md
     │   ├── claude/SKILL.md
+    │   ├── codex/SKILL.md
+    │   ├── vscode/SKILL.md
     │   └── generic/SKILL.md
     └── (未來新增的 skill...)
 ```

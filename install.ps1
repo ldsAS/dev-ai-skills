@@ -8,6 +8,7 @@
   Supported AI tools:
     - Claude Code  : $env:USERPROFILE\.claude\skills\
     - Antigravity  : $env:USERPROFILE\.gemini\antigravity\skills\
+    - Codex        : $env:USERPROFILE\.codex\skills\
 
   Behaviour: COPY mode (not symlink). Re-run after git pull to sync updates.
 
@@ -15,17 +16,19 @@
   auto         (default) Install each skill's tool-specific variant to all detected AI tools
   claude       Only install claude/ variant to ~/.claude/skills/
   antigravity  Only install antigravity/ variant to ~/.gemini/antigravity/skills/
+  codex        Only install codex/ variant to ~/.codex/skills/
   generic      Install generic/ variant to all detected AI tool dirs (fallback)
 
 .EXAMPLE
   .\install.ps1
   .\install.ps1 claude
+  .\install.ps1 codex
   .\install.ps1 generic
 #>
 
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('auto', 'claude', 'antigravity', 'generic')]
+    [ValidateSet('auto', 'claude', 'antigravity', 'codex', 'generic')]
     [string]$Mode = 'auto'
 )
 
@@ -36,6 +39,7 @@ $ScriptDir         = Split-Path -Parent $MyInvocation.MyCommand.Path
 $SkillsDir         = Join-Path $ScriptDir 'skills'
 $ClaudeTarget      = Join-Path $env:USERPROFILE '.claude\skills'
 $AntigravityTarget = Join-Path $env:USERPROFILE '.gemini\antigravity\skills'
+$CodexTarget       = Join-Path $env:USERPROFILE '.codex\skills'
 
 function Write-Info  { param($msg) Write-Host "[info] $msg" -ForegroundColor Cyan }
 function Write-Ok    { param($msg) Write-Host "[ ok ] $msg" -ForegroundColor Green }
@@ -45,13 +49,15 @@ function Write-Err2  { param($msg) Write-Host "[err ] $msg" -ForegroundColor Red
 # ---- detection ------------------------------------------------------
 $HasClaude      = Test-Path (Join-Path $env:USERPROFILE '.claude')
 $HasAntigravity = Test-Path (Join-Path $env:USERPROFILE '.gemini\antigravity')
+$HasCodex       = Test-Path (Join-Path $env:USERPROFILE '.codex')
 
 Write-Info '偵測到的 AI 工具：'
 if ($HasClaude)      { Write-Ok    "Claude Code       → $ClaudeTarget" }      else { Write-Warn2 'Claude Code       → 未偵測到 ~/.claude' }
 if ($HasAntigravity) { Write-Ok    "Antigravity       → $AntigravityTarget" } else { Write-Warn2 'Antigravity       → 未偵測到 ~/.gemini/antigravity' }
+if ($HasCodex)       { Write-Ok    "Codex             → $CodexTarget" }       else { Write-Warn2 'Codex             → 未偵測到 ~/.codex' }
 
-if (-not $HasClaude -and -not $HasAntigravity) {
-    Write-Err2 '沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code 或 Antigravity。'
+if (-not $HasClaude -and -not $HasAntigravity -and -not $HasCodex) {
+    Write-Err2 '沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity 或 Codex。'
     exit 1
 }
 
@@ -80,7 +86,7 @@ function Install-SkillVariant {
 # ---- install all skills for a given tool ----------------------------
 function Install-AllForTool {
     param(
-        [string]$Tool,            # antigravity | claude
+        [string]$Tool,            # antigravity | claude | codex
         [string]$Target,
         [string]$ForceVariant = ''
     )
@@ -107,6 +113,7 @@ switch ($Mode) {
     'auto' {
         if ($HasClaude)      { Install-AllForTool -Tool 'claude'      -Target $ClaudeTarget }
         if ($HasAntigravity) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTarget }
+        if ($HasCodex)       { Install-AllForTool -Tool 'codex'       -Target $CodexTarget }
     }
     'claude' {
         if (-not $HasClaude) { Write-Err2 '未偵測到 ~/.claude/'; exit 1 }
@@ -116,9 +123,14 @@ switch ($Mode) {
         if (-not $HasAntigravity) { Write-Err2 '未偵測到 ~/.gemini/antigravity/'; exit 1 }
         Install-AllForTool -Tool 'antigravity' -Target $AntigravityTarget
     }
+    'codex' {
+        if (-not $HasCodex) { Write-Err2 '未偵測到 ~/.codex/'; exit 1 }
+        Install-AllForTool -Tool 'codex' -Target $CodexTarget
+    }
     'generic' {
         if ($HasClaude)      { Install-AllForTool -Tool 'claude'      -Target $ClaudeTarget      -ForceVariant 'generic' }
         if ($HasAntigravity) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTarget -ForceVariant 'generic' }
+        if ($HasCodex)       { Install-AllForTool -Tool 'codex'       -Target $CodexTarget       -ForceVariant 'generic' }
     }
 }
 
