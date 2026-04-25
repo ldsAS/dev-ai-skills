@@ -29,12 +29,17 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
    ```bash
    git status
    git ls-files | head -100         # 已追蹤清單
-   git diff --stat                   # 了解實際變動量
+   git diff --stat                   # 內容 diff 量
+   git diff --summary                # 抓 mode-only / rename-only 變動（stat 看不到）
    git log --oneline -10             # 最近的 commit 風格
    ```
 3. 將未提交／已追蹤的檔案分類整理成表格，欄位包含：**檔案路徑、所在目錄、推測用途、是否已被追蹤、diff 大小**。
 
-> 💡 **識別「假異動」**：如果 `git diff --stat` 顯示某檔案 `0 insertions, 0 deletions` 但又被標為 modified，通常是 CRLF/LF 行尾雜訊或 file mode 變動（755→644）。這類問題請交由**第五階段：跨平台行尾正規化**處理，不要當成內容變更。
+> 💡 **識別「假異動」**：`git diff --stat` 顯示 `0 insertions, 0 deletions` 卻被標為 modified，有兩種可能：
+> - **(a) 行尾雜訊**（CRLF ↔ LF 自動轉換）— 實際內容沒差、只是換行符不同。
+> - **(b) file mode 漂移**（如 `100644 → 100755`）— `git diff --summary` 會直接列 `mode change 100644 => 100755 <file>`。
+>
+> 兩者都是環境雜訊，分別交由 **第五階段 5a (Line Endings) / 5b (File Mode)** 處理，**不要當成內容變更**，更不可與功能變更混進同一個 commit。
 
 ### 第二階段：逐一審查 (Review)
 
@@ -113,13 +118,17 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 3. 若有需要透過 CLI 重新安裝的技能，用對應工具在 `DEPLOY.md` 補上安裝步驟。
 4. 若有靜態快照要改成連結（如 PDF → Notion），在 `README.md` 或 `DEPLOY.md` 新增參考連結區塊。
 5. 建議用 `git add <files>` 選擇性加入暫存（**不要**輕易 `git add .` 以免誤加）。
-6. 提交前**再次提醒開發者**檢視 `git status`，確認暫存區符合預期後才 commit。
-7. **Commit 策略**：若同時有「內容變更」和「純格式正規化」（LF 轉換 / mode 變更），**拆成兩個 commit**，避免格式噪音淹沒真正的功能變更。
+6. 提交前**再次提醒開發者**檢視 `git status` 與 `git diff --cached --summary`，確認暫存區符合預期才 commit。若 `--cached --summary` 出現 `mode change` 或 rename-only 條目，屬於環境雜訊，**不可混入功能 commit** — 拆到第五階段的獨立 commit。
+7. **Commit 策略**：若同時有「內容變更」和「環境雜訊」（LF 轉換 / file mode 漂移 / rename-only），**拆成多個 commit** 並依類型分組，避免雜訊淹沒真正的功能變更。
 8. **Push 必須明確授權**：即使 commit 完成，也**必須等開發者同意** (`請 push` / `好的 push`) 才推遠端。
 
-### 第五階段：跨平台行尾正規化（Line Endings）
+### 第五階段：跨平台環境雜訊正規化（Line Endings & File Mode）
 
-開發環境常見「Linux VM + Windows SSHFS 掛載」或「Windows 開發但部署到 Linux」的組合。Git 預設會依 `core.autocrlf` 在 checkout/commit 時轉換行尾，造成：
+開發環境常見「Linux VM + Windows SSHFS 掛載」或「Windows 開發但部署到 Linux」的組合，會產生兩種跟內容無關的 git diff 雜訊：**行尾轉換** 與 **file mode 漂移**。兩者都必須獨立處理，嚴禁混入功能 commit。
+
+#### 5a. 行尾正規化（Line Endings）
+
+Git 預設會依 `core.autocrlf` 在 checkout/commit 時轉換行尾，造成：
 
 - `git status` 每次都滿江紅（0 byte 幽靈異動）
 - Merge conflict 發生在純行尾差異
@@ -129,7 +138,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 ```bash
 git diff --stat | grep ' | *0$'   # 找 0 byte 修改的檔案
 ```
-若有多個 0 byte diff 的文字檔，就是行尾問題。
+若多個 0 byte diff 文字檔 `git diff` 又看不到 hunk，就是行尾問題。
 
 **解法**：在專案根目錄建立 `.gitattributes`：
 
@@ -164,6 +173,51 @@ git commit -m "chore: 導入 .gitattributes 強制 LF，正規化既有文字檔
 ```
 
 > ⚠️ **Renormalize 會造成大量 diff**：所有曾經以 CRLF 存在的檔案都會顯示「整檔重寫」。這是預期行為，不是 bug。**務必拆成獨立 commit**，與內容變更分開。
+
+#### 5b. 檔案權限漂移（File Mode on SSHFS / cross-platform）
+
+**症狀**：`git diff --stat` 每行顯示 `0 insertions, 0 deletions`、`git diff` 看不到任何 hunk，但 `git diff --summary` 出現大量 `mode change 100644 => 100755 <file>`。內容完全沒動，只有執行權限翻了。
+
+**成因（最常見）**：Windows client 透過 **SSHFS** 掛載 Linux 目錄後，經 Windows 側的編輯器（VS Code、Notepad、任何 AI 工具）寫檔，SSHFS 的 `fmask`/`umask` 預設會把 Linux 側檔案翻成 `0755`。這是 mount 層行為，Git 本身沒做錯任何事。
+
+**檢測**：
+
+```bash
+git diff --summary | grep "mode change"   # 抓所有 mode 漂移
+git config --get core.fileMode             # 查目前設定（預設 true）
+```
+
+**三種解法**（由重到輕，挑一個）：
+
+1. **🥇 Repo 層關閉 mode 追蹤（首選，最乾淨）**
+
+   ```bash
+   git config core.fileMode false
+   ```
+
+   只影響當前 repo，不是 global。關掉後 git 完全不追蹤 exec bit，SSHFS 怎麼翻都沒事。
+
+   > ⚠️ **Trade-off**：`.sh` / shebang 腳本的 exec bit 不再由 Git 傳承。部署端（或新 clone）必須由 `DEPLOY.md` 明確記錄 `chmod +x <script>` 步驟，否則部署後會遇到 `Permission denied`。
+
+2. **🥈 單檔 index 修正**
+
+   ```bash
+   git update-index --chmod=-x <file>       # 從 index 取消 exec bit（保留 working tree 實體 mode）
+   git update-index --chmod=+x <file>       # 加上 exec bit
+   ```
+
+   只改 git index 的記錄，不動 working tree。適合少量檔案、或想保留 mode 追蹤的情境。
+
+3. **🥉 Working tree 批次修回**
+
+   ```bash
+   find . -type f \( -name '*.py' -o -name '*.md' -o -name '*.html' -o -name '*.json' \) -exec chmod 644 {} \;
+   chmod +x scripts/*.sh                   # 該是執行檔的補回來
+   ```
+
+   治標不治本，下次 SSHFS 寫檔又會翻。通常只在前兩招都不方便時才用。
+
+**SSHFS 源頭解法（進階）**：若能控制 mount 選項，`sshfs ... -o idmap=user,umask=022,fmask=133` 可以鎖 fmask=644。但 Windows 側多數情境（WinFsp / SSHFS-Win）改不動這個參數，直接走 `core.fileMode false` 最實際。
 
 ---
 
@@ -235,6 +289,12 @@ certs/
 ```
 
 > ⚠️ **此範本僅為起點**。是否需要白名單 (`!`) 放行特定 skills 資料夾、是否需要排除 `design-system/` 等，皆必須經過「逐一審查」流程後再決定。切勿直接複製貼上後就認為萬事大吉。
+
+> 🪟 **Windows + SSHFS 開發者必讀**：如果開發環境是 Windows 透過 SSHFS 掛載 Linux VM（或反過來），**clone repo 後第一件事請跑**：
+> ```bash
+> git config core.fileMode false
+> ```
+> 否則 SSHFS 會把你寫過的檔案 mode 翻成 `0755`，每次 commit 都會有幽靈 `mode change` diff 偷混進來。詳見第五階段 5b。
 
 ---
 
