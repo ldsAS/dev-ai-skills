@@ -76,8 +76,8 @@ Create a concise report with these groups before changing rules unless the user 
 ### Ignore Or Untrack
 
 - Local AI workspaces and caches: `.agent/`, `.claude/`, `.codex/`, `.gemini/`, `.cursor/`, `.github/prompts/`, except confirmed project skills.
-- Runtime logs: `*.log`, `*.jsonl`, such as `audit_log.jsonl`, `line_notify.log`, `cron.log`, `holiday.log`.
-- Runtime state: `last_run.txt`, `last_holiday_scan.txt`, `last_download_run.txt`, `*.pid`, `*.lock`.
+- Runtime logs: `*.log` (auto-rotating, no version control value).
+- Runtime state files overwritten on each run: `last_run.txt`, `last_*.txt`. They keep `git status` permanently dirty.
 - Secrets: `.env`, `.env.*` except `!.env.example`, `*.pem`, `*.key`, `credentials.json`, `certs/`.
 - Dependencies/build output: `venv/`, `.venv/`, `node_modules/`, `__pycache__/`, `dist/`, `build/`, `target/`.
 - Large generated/binary artifacts unless intentionally tracked through Git LFS or as deployment references.
@@ -208,14 +208,12 @@ Thumbs.db
 .cursor/
 .github/prompts/
 
-# Runtime logs and local state
+# Runtime logs (auto-rotating, no version control value)
 *.log
-*.jsonl
-*.pid
-*.lock
+
+# Runtime state (overwritten on each run, do not commit)
 last_run.txt
-last_holiday_scan.txt
-last_download_run.txt
+last_*.txt
 ```
 
 If project-owned Codex skills should be tracked, use an allowlist instead of ignoring all `.codex/`:
@@ -226,6 +224,8 @@ If project-owned Codex skills should be tracked, use an allowlist instead of ign
 !.codex/skills/<project-skill>/
 !.codex/skills/<project-skill>/**
 ```
+
+> ⚠️ The `!` whitelist only takes effect when the parent directory uses a wildcard form. `.codex/` ignores the whole directory wholesale, so `!.codex/skills/` would have **no effect** — Git never descends into an ignored directory. You must use `.codex/*` (with the trailing `*`) paired with `!.codex/skills/` for the allowlist to work. The same rule applies to `.claude/`, `.gemini/`, and any other AI agent folder you want to partially track.
 
 ## File Mode Drift
 
@@ -255,7 +255,7 @@ If AI workspace or runtime log files are already tracked:
 
 ```powershell
 git rm -r --cached .agent .claude .codex .gemini .cursor .github/prompts
-git rm --cached *.log *.jsonl
+git rm --cached *.log
 git add .gitignore .gitattributes
 git diff --cached --stat
 git diff --cached --summary

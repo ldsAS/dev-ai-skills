@@ -54,13 +54,16 @@ cd dev-ai-skills
 
 安裝器是 **Copy 模式**（不是 symlink） — 更新 repo 後需要重跑 `install.sh` / `install.ps1` 才會把新版本鋪到 AI 工具的 skills 目錄。
 
-| AI 工具 | Skills 目標目錄 |
-| :--- | :--- |
-| Claude Code | `~/.claude/skills/<skill-name>/` |
-| Antigravity | `~/.gemini/antigravity/skills/<skill-name>/` |
-| Codex | `~/.codex/skills/<skill-name>/` |
+| AI 工具 | Skills 目標目錄 | 自動安裝 |
+| :--- | :--- | :---: |
+| Claude Code | `~/.claude/skills/<skill-name>/` | ✅ |
+| Antigravity | `~/.gemini/antigravity/skills/<skill-name>/` | ✅ |
+| Codex | `~/.codex/skills/<skill-name>/` | ✅ |
+| GitHub Copilot (VS Code) | 無單一固定目錄；依專案放在 `.github/copilot-instructions.md` 或 prompts 目錄 | ❌（需手動部署） |
 
 > 💡 如果某 AI 工具**沒有**對應版本（例如一個 skill 只寫了 generic 版），安裝器會自動把 generic 版鋪給該工具作為 fallback。
+>
+> ⚠️ **VS Code Copilot 不支援自動安裝**：Copilot 沒有像 `~/.claude/skills/` 這種使用者層級的單一 skills 目錄，安裝器不處理 `vscode/` 變體。若要使用 vscode 版內容，請手動把 `skills/<skill-name>/vscode/SKILL.md` 的內容貼進專案的 `.github/copilot-instructions.md`，或專案約定的 prompts 目錄。
 
 ---
 
