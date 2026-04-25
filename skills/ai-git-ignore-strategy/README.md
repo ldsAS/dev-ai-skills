@@ -20,7 +20,7 @@
 | `codex/SKILL.md` | Codex | `functions.shell_command` / `multi_tool_use.parallel` / `apply_patch` / sandbox escalation |
 | `generic/SKILL.md` | 工具無關 | 描述為「讀檔工具」「shell 執行工具」等抽象名稱 |
 
-四個繁中版本（Antigravity / Claude / VS Code / Generic）採共通的「五階段流程 + 三色分類 + 標準範本 + 救援指令」結構，依各工具的檔案讀取、shell 執行、編輯、權限提升與安裝位置做微調。Codex 版以英文撰寫並改用 `Diagnose / Classify / Execute / Rescue` 章節結構（搭配 `apply_patch`、`multi_tool_use.parallel`、sandbox escalation 等 Codex 特有規則），內容範圍對齊但不逐節平行。
+五版內容結構一致（五階段流程 + 三色分類 + 標準範本 + 救援指令），並依各工具的檔案讀取、shell 執行、編輯、權限提升與安裝位置做微調。Codex 版額外納入 `apply_patch`、`multi_tool_use.parallel`、sandbox escalation 等 Codex 特有操作規則，並全程使用 PowerShell 範例（Windows + SSHFS 友善）。
 
 ## 安裝
 
