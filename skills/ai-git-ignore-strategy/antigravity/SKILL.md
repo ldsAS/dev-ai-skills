@@ -1,6 +1,6 @@
 ---
 name: ai-git-ignore-strategy
-description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Code, Cursor, Codex, Gemini 等) 的 .gitignore 最佳實務，防止專案庫被 AI 對話紀錄與暫存撐爆；同時正確保留設計藍圖、部署參考、備份資料檔與團隊 AI 指令檔。也負責跨平台（Linux VM ↔ Windows SSHFS）行尾正規化與 .gitattributes 設定。當使用者要求「檢核 gitignore」「整理 repo」「commit 前審查」「清理 AI 追蹤紀錄」「行尾 CRLF 問題」時觸發。
+description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Code, Codex, Cursor, Gemini 等) 的 .gitignore 最佳實務，防止專案庫被 AI 對話紀錄與暫存撐爆；同時正確保留設計藍圖、部署參考、備份資料檔與團隊 AI 指令檔。也負責跨平台（Linux VM ↔ Windows SSHFS）行尾正規化與 .gitattributes 設定。當使用者要求「檢核 gitignore」「整理 repo」「commit 前審查」「清理 AI 追蹤紀錄」「行尾 CRLF 問題」時觸發。
 ---
 
 # AI 工作區 Git 管控最佳實務 (AI Git Ignore Strategy)
