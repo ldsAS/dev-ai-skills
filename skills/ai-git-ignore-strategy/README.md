@@ -10,15 +10,16 @@
 - git status 每次都出現幽靈異動（0 byte diff）
 - .sh 腳本在 Linux 端噴 `\r: command not found`
 
-## 三個版本差異
+## 四個版本差異
 
 | 版本 | 對應工具 | 工具呼叫語法 |
 | :--- | :--- | :--- |
 | `antigravity/SKILL.md` | Google Antigravity | `view_file` / `list_dir` / `run_command` |
 | `claude/SKILL.md` | Claude Code | `Read` / `Glob` / `Grep` / `Bash` / `Edit` |
+| `vscode/SKILL.md` | GitHub Copilot (VS Code) | `read_file` / `list_dir` / `grep_search` / `run_in_terminal` / `replace_string_in_file` |
 | `generic/SKILL.md` | 工具無關 | 描述為「讀檔工具」「shell 執行工具」等抽象名稱 |
 
-三版內容結構一致（五階段流程 + 標準範本 + 救援指令），僅在工具名稱、呼叫語法、YAML frontmatter 觸發描述上做微調。
+四版內容結構一致（五階段流程 + 標準範本 + 救援指令），僅在工具名稱、呼叫語法、YAML frontmatter 觸發描述上做微調。
 
 ## 安裝
 
