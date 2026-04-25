@@ -1,6 +1,6 @@
 ---
 name: ai-git-ignore-strategy
-description: 建立並套用針對各式 AI 代理工具 (Claude Code, Antigravity, Cursor, Codex, Gemini 等) 的 .gitignore 最佳實務，防止專案庫被 AI 對話紀錄與暫存撐爆；同時正確保留設計藍圖、部署參考、備份資料檔與團隊 AI 指令檔。也負責跨平台（Linux VM ↔ Windows SSHFS）行尾正規化與 .gitattributes 設定。當使用者要求「檢核 gitignore」「整理 repo」「commit 前審查」「清理 AI 追蹤紀錄」「行尾 CRLF 問題」時觸發。
+description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Code, Codex, Cursor, Gemini 等) 的 .gitignore 最佳實務，防止專案庫被 AI 對話紀錄與暫存撐爆；同時正確保留設計藍圖、部署參考、備份資料檔與團隊 AI 指令檔。也負責跨平台（Linux VM ↔ Windows SSHFS）行尾正規化與 .gitattributes 設定。當使用者要求「檢核 gitignore」「整理 repo」「commit 前審查」「清理 AI 追蹤紀錄」「行尾 CRLF 問題」時觸發。
 ---
 
 # AI 工作區 Git 管控最佳實務 (AI Git Ignore Strategy)
@@ -200,25 +200,44 @@ git commit -m "chore: 導入 .gitattributes 強制 LF，正規化既有文字檔
 
 **成因（最常見）**：Windows client 透過 **SSHFS** 掛載 Linux 目錄後，經 Windows 側的編輯器（VS Code、Notepad、任何 AI 工具）寫檔，SSHFS 的 `fmask`/`umask` 預設會把 Linux 側檔案翻成 `0755`。這是 mount 層行為，Git 本身沒做錯任何事。
 
+**檢測**：用 `run_in_terminal` 執行：
+
+```bash
+git diff --summary | grep "mode change"   # 抓所有 mode 漂移
+git config --get core.fileMode             # 查目前設定（預設 true）
+```
+
 **三種解法**（由重到輕，挑一個）：
 
 1. **🥇 Repo 層關閉 mode 追蹤（首選，最乾淨）**
+
    ```bash
    git config core.fileMode false
    ```
-   > ⚠️ **Trade-off**：`.sh` / shebang 腳本的 exec bit 不再由 Git 傳承。部署端必須由 `DEPLOY.md` 明確記錄 `chmod +x <script>` 步驟。
+
+   只影響當前 repo，不是 global。關掉後 git 完全不追蹤 exec bit，SSHFS 怎麼翻都沒事。
+
+   > ⚠️ **Trade-off**：`.sh` / shebang 腳本的 exec bit 不再由 Git 傳承。部署端（或新 clone）必須由 `DEPLOY.md` 明確記錄 `chmod +x <script>` 步驟，否則部署後會遇到 `Permission denied`。
 
 2. **🥈 單檔 index 修正**
+
    ```bash
-   git update-index --chmod=-x <file>
-   git update-index --chmod=+x <file>
+   git update-index --chmod=-x <file>       # 從 index 取消 exec bit（保留 working tree 實體 mode）
+   git update-index --chmod=+x <file>       # 加上 exec bit
    ```
 
-3. **🥉 Working tree 批次修回（治標）**
+   只改 git index 的記錄，不動 working tree。適合少量檔案、或想保留 mode 追蹤的情境。
+
+3. **🥉 Working tree 批次修回**
+
    ```bash
-   find . -type f \( -name '*.py' -o -name '*.md' \) -exec chmod 644 {} \;
-   chmod +x scripts/*.sh
+   find . -type f \( -name '*.py' -o -name '*.md' -o -name '*.html' -o -name '*.json' \) -exec chmod 644 {} \;
+   chmod +x scripts/*.sh                   # 該是執行檔的補回來
    ```
+
+   治標不治本，下次 SSHFS 寫檔又會翻。通常只在前兩招都不方便時才用。
+
+**SSHFS 源頭解法（進階）**：若能控制 mount 選項，`sshfs ... -o idmap=user,umask=022,fmask=133` 可以鎖 fmask=644。但 Windows 側多數情境（WinFsp / SSHFS-Win）改不動這個參數，直接走 `core.fileMode false` 最實際。
 
 ---
 
@@ -319,7 +338,7 @@ git commit -m "chore: 清理 AI 追蹤紀錄並套用最佳化 gitignore 規則"
 ### `.gitignore` 常見語法
 
 | 語法 | 含義 | 範例 |
-| :--- | :--- |
+| :--- | :--- | :--- |
 | `folder/` | 忽略整個資料夾 | `.gemini/` |
 | `*.ext` | 忽略特定副檔名 | `*.log` |
 | `folder/*` | 忽略資料夾內容（但保留資料夾本身） | `.agent/*` |
