@@ -1,31 +1,31 @@
 ---
 name: ai-git-ignore-strategy
-description: Review, design, fix, or clean up Git tracking rules for Codex workspaces, including .gitignore, .gitattributes, AI agent folders, local Codex skills, runtime logs, line-ending noise, file mode drift, and commit-before-push hygiene. Use when the user asks in Chinese or English to "檢核 gitignore", "整理 repo", "commit 前審查", "清理 AI 追蹤紀錄", "行尾 CRLF 問題", "0 byte diff", "file mode 漂移", or similar Git hygiene requests while working in Codex.
+description: 建立、檢核並修正 Codex 工作中的 Git 追蹤規則，包含 .gitignore、.gitattributes、AI agent folders、本機 Codex skills、runtime logs、line-ending noise、file mode drift 與 commit-before-push hygiene。當使用者要求「檢核 gitignore」「整理 repo」「commit 前審查」「清理 AI 追蹤紀錄」「行尾 CRLF 問題」「0 byte diff」「file mode 漂移」或類似 Git hygiene 任務時觸發。
 ---
 
-# AI Git Ignore Strategy for Codex
+# AI 工作區 Git 管控最佳實務 for Codex
 
-Use this skill when the user asks Codex to inspect or fix `.gitignore`, `.gitattributes`, repo cleanliness, AI agent workspaces, runtime logs, line-ending drift, file mode drift, or commit hygiene before pushing.
+使用者要求 Codex 檢查或修正 `.gitignore`、`.gitattributes`、repo 乾淨度、AI 工作區、本機 skills、runtime logs、行尾漂移、file mode 漂移或 commit 前 hygiene 時，使用此技能。
 
-Core principle: do not blindly ignore everything that looks AI-generated. Read or list it first, infer its purpose, then separate project assets from local session/cache data.
+核心原則：不要粗暴地把所有「看起來像 AI 產物」的檔案一律忽略。必須先讀取或列示、推斷用途，再把專案資產與本機 session/cache 資料分開處理。
 
-## Codex Operating Rules
+## Codex 操作規則
 
-- Prefer `rg` / `rg --files` for search. Fall back only if unavailable.
-- Use `multi_tool_use.parallel` for independent reads such as `git status`, `git diff`, `Get-Content`, `rg`, and directory listings.
-- Use `apply_patch` for edits inside the current writable workspace.
-- If the target repo root, `.git` directory, or installed skill folder is outside the sandbox, use `functions.shell_command` with `sandbox_permissions: "require_escalated"` and a clear justification.
-- If an important command fails because of sandbox or network restrictions, rerun the same command with escalation instead of working around the approval flow.
-- Do not use `git add .` unless the entire worktree has been reviewed and the user explicitly agrees. Stage exact paths.
-- Never revert unrelated user changes. Work with dirty trees; identify unrelated runtime or user changes separately.
-- Push only when the user clearly asks for it in the current task.
-- On Windows + SSHFS projects, treat mode-only diffs as environment noise until proven otherwise.
+- 優先用 `rg` / `rg --files` 搜尋；不可用時再 fallback。
+- 對彼此獨立的讀取動作使用 `multi_tool_use.parallel`，例如 `git status`、`git diff`、`Get-Content`、`rg`、目錄列示。
+- 在目前可寫 workspace 內手動編輯檔案時使用 `apply_patch`。
+- 如果目標 repo root、`.git` 目錄或已安裝的 skill folder 位於 sandbox 外，使用 `functions.shell_command` 並加上 `sandbox_permissions: "require_escalated"` 與清楚的 justification。
+- 如果重要指令因 sandbox 或 network restriction 失敗，使用 escalation 重跑同一指令，不要繞過審批流程。
+- 不要使用 `git add .`，除非整個 worktree 已審查且使用者明確同意。預設只 stage 精準路徑。
+- 不要 revert 與本任務無關的使用者變更。遇到 dirty tree 時，先區分本任務變更、runtime 變更與其他使用者變更。
+- 只有使用者在當前任務明確要求 push 時才 push。
+- 在 Windows + SSHFS 專案中，mode-only diff 先視為環境雜訊，直到確認不是內容變更。
 
-Codex user skills normally live at `$env:USERPROFILE\.codex\skills\<skill-name>\SKILL.md` on Windows, or `~/.codex/skills/<skill-name>/SKILL.md` on Unix-like systems. Project-local `.codex/skills/` folders may be intentionally tracked only when they contain project-owned custom skills.
+Codex user skills 通常位於 Windows 的 `$env:USERPROFILE\.codex\skills\<skill-name>\SKILL.md`，或 Unix-like 系統的 `~/.codex/skills/<skill-name>/SKILL.md`。專案內的 `.codex/skills/` 只有在確認包含 project-owned custom skills 時才應追蹤。
 
-## Diagnose First
+## 第一階段：診斷 (Diagnose First)
 
-Read repo rules and Git state before changing ignore rules:
+修改 ignore 規則前，先讀取 repo 規則與 Git 狀態：
 
 ```powershell
 Get-Content .gitignore -ErrorAction SilentlyContinue
@@ -37,99 +37,101 @@ git diff --summary
 git log --oneline -10
 ```
 
-For suspicious ignored paths, check which rule applies:
+對可疑的 ignored path，確認是哪條規則生效：
 
 ```powershell
 git check-ignore -v <path>
 ```
 
-If `git status` shows many modified files but `git diff --stat` shows `0 insertions, 0 deletions`, run:
+如果 `git status` 顯示大量 modified，但 `git diff --stat` 顯示 `0 insertions, 0 deletions`，執行：
 
 ```powershell
 git diff --summary
 git config --get core.fileMode
 ```
 
-For Windows + SSHFS mode drift, compare with temporary file mode tracking disabled:
+Windows + SSHFS 的 mode drift 可用暫時關閉 file mode tracking 的方式比對：
 
 ```powershell
 git -c core.fileMode=false status --short
 git -c core.fileMode=false diff --summary
 ```
 
-If Git reports `index file corrupt`, pause and explain that the index must be repaired before normal status/diff review. Do not treat it as a normal file-change problem.
+如果 Git 回報 `index file corrupt`，先暫停並說明必須修復 index 才能正常審查 status/diff，不要把它當成一般檔案變更問題。
 
-## Classify Files
+## 第二階段：分類 (Classify Files)
 
-Create a concise report with these groups before changing rules unless the user already asked for direct execution and the classification is low risk.
+除非使用者已要求直接執行且風險很低，否則修改規則前先建立簡潔報告，分成以下三類。
 
-### Keep And Commit
+### 🟢 應該提交 (Keep And Commit)
 
-- Source code: `.py`, `.html`, `.css`, `.js`, `.ts`, `.sh`, `.bat`, `.ps1`.
-- Documentation and operations: `README.md`, `DEPLOY.md`, `docs/`, `CHANGELOG.md`.
-- Cross-platform repo policy: `.gitattributes`, `.editorconfig`, `.nvmrc`.
-- Project automation references: exported task XML, systemd service samples, Docker/CI config.
-- Project design source of truth: `design-system/MASTER.md`, relevant page overrides.
-- Team AI instructions: `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, or project-specific skill files explicitly meant to be shared.
-- Custom project skills: for example `.codex/skills/<project-skill>/SKILL.md`, only after confirming it is not merely a local installed third-party skill.
+- 專案原始碼：`.py`, `.html`, `.css`, `.js`, `.ts`, `.sh`, `.bat`, `.ps1`。
+- 文件與維運資料：`README.md`, `DEPLOY.md`, `docs/`, `CHANGELOG.md`。
+- 跨平台 repo policy：`.gitattributes`, `.editorconfig`, `.nvmrc`。
+- 專案自動化參考：Windows Task Scheduler 匯出 XML、systemd service sample、Docker / CI config。
+- 專案設計 source of truth：`design-system/MASTER.md`、有意義的 page override。
+- 團隊 AI 指令：`AGENTS.md`, `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`，或明確要共享的 project-specific skill files。
+- 客製專案 skills：例如 `.codex/skills/<project-skill>/SKILL.md`，但必須先確認它不是本機安裝的第三方 skill。
 
-### Ignore Or Untrack
+### 🔴 應該排除或取消追蹤 (Ignore Or Untrack)
 
-- Local AI workspaces and caches: `.agent/`, `.claude/`, `.codex/`, `.gemini/`, `.cursor/`, `.github/prompts/`, except confirmed project skills.
-- Runtime logs: `*.log` (auto-rotating, no version control value).
-- Runtime state files overwritten on each run: `last_run.txt`, `last_*.txt`. They keep `git status` permanently dirty.
-- Secrets: `.env`, `.env.*` except `!.env.example`, `*.pem`, `*.key`, `credentials.json`, `certs/`.
-- Dependencies/build output: `venv/`, `.venv/`, `node_modules/`, `__pycache__/`, `dist/`, `build/`, `target/`.
-- Large generated/binary artifacts unless intentionally tracked through Git LFS or as deployment references.
+- 本機 AI 工作區與 cache：`.agent/`, `.claude/`, `.codex/`, `.gemini/`, `.cursor/`, `.github/prompts/`，但 confirmed project skills 例外。
+- Runtime logs：`*.log`，通常會自動輪替或持續增長，沒有版本控制價值。
+- 每次執行會覆寫的 runtime state：`last_run.txt`, `last_*.txt`。這些會讓 `git status` 長期保持 dirty。
+- 機密：`.env`, `.env.*`，但保留 `!.env.example`；另排除 `*.pem`, `*.key`, `credentials.json`, `certs/`。
+- 依賴與 build output：`venv/`, `.venv/`, `node_modules/`, `__pycache__/`, `dist/`, `build/`, `target/`。
+- 大型 generated/binary artifacts，除非已確認要透過 Git LFS 或部署參考方式追蹤。
 
-### Ask Before Deciding
+如專案另有 `*.jsonl`、`*.pid`、`*.lock` 等 runtime 檔，先審查用途再加入，不要把特定專案的歷史檔名硬寫進通用 skill。
 
-- `.codex/skills/`, `.claude/skills/`, `.gemini/skills/`: installed third-party skill or project-owned custom skill?
-- `$env:USERPROFILE\.codex\skills\` / `~/.codex/skills/`: user-level Codex skill installation; usually do not copy this wholesale into a project repo.
-- `*.json`: runtime data or source/config such as `package.json`, `tsconfig.json`, `manifest.json`?
-- `*.json.bak`: disposable backup or only recoverable data copy referenced by deployment docs?
-- `.vscode/`: personal settings or shared `extensions.json` / `launch.json`?
-- Large PDFs, XML, exports: deployment reference or stale snapshot?
+### ⚠️ 需要跟開發者確認 (Ask Before Deciding)
 
-## Report Shape
+- `.codex/skills/`, `.claude/skills/`, `.gemini/skills/`：是本機安裝的第三方 skill，還是 project-owned custom skill？
+- `$env:USERPROFILE\.codex\skills\` / `~/.codex/skills/`：這是 user-level Codex skill installation，通常不要整包複製進專案 repo。
+- `*.json`：runtime data，還是 `package.json`, `tsconfig.json`, `manifest.json` 這類 source/config？
+- `*.json.bak`：可丟棄備份，還是 DEPLOY 文件提到的唯一可還原資料？
+- `.vscode/`：個人設定，還是團隊共享的 `extensions.json` / `launch.json`？
+- 大型 PDF、XML、export：部署參考，還是已過期的靜態快照？
 
-Use a compact table:
+## 第三階段：向開發者報告 (Report Shape)
+
+在執行任何 `.gitignore` 修改前，使用這個緊湊格式回報：
 
 ```markdown
-## Git Tracking Review
+## Git 追蹤審查報告
 
-### Keep
+### ✅ 建議提交
 | Path | Reason |
 | :--- | :--- |
 
-### Ignore Or Untrack
+### 🚫 建議排除或取消追蹤
 | Path | Reason | Action |
 | :--- | :--- | :--- |
 
-### Needs Confirmation
+### ❓ 需要確認
 | Path | Question |
 | :--- | :--- |
 ```
 
-## Execute Safely
+## 第四階段：執行 (Execute Safely)
 
-When the classification is confirmed or the user already asked for a direct safe fix:
+分類已確認，或使用者已要求直接執行安全修正後：
 
-1. Edit `.gitignore` and `.gitattributes` with minimal changes.
-2. For files already tracked but now ignored, remove from the index only:
+1. 以最小變更修改 `.gitignore` 與 `.gitattributes`。
+2. 對已被 Git 追蹤但現在要忽略的檔案，只從 index 移除、保留本機實體檔案：
 
 ```powershell
 git rm --cached <path>
 git rm --cached -r <dir>
 ```
 
-3. Stage exact files:
+3. 只 stage 精準檔案：
 
 ```powershell
 git add .gitignore .gitattributes DEPLOY.md
 ```
 
-4. Before commit, inspect staged content:
+4. commit 前檢查 staged content：
 
 ```powershell
 git status --short
@@ -138,11 +140,13 @@ git diff --cached --summary
 git diff --cached --name-only
 ```
 
-5. Split commits by concern: functional changes, ignore cleanup, line-ending normalization, and mode cleanup should not be mixed.
+5. 依 concern 拆 commit：功能變更、ignore cleanup、line-ending normalization、mode cleanup 不要混在同一個 commit。
 
-## Recommended .gitattributes
+## 第五階段：跨平台環境雜訊正規化
 
-Use LF by default for Linux-deployed projects, with CRLF retained for Windows scripts:
+### 5a. 行尾正規化 (Line Endings)
+
+Linux-deployed 專案預設使用 LF，Windows scripts 保留 CRLF：
 
 ```text
 * text=auto eol=lf
@@ -161,7 +165,7 @@ Use LF by default for Linux-deployed projects, with CRLF retained for Windows sc
 *.woff2        binary
 ```
 
-Apply normalization only as its own commit:
+只在獨立 commit 套用 normalization：
 
 ```powershell
 git add --renormalize .
@@ -170,9 +174,35 @@ git diff --cached --stat
 git commit -m "chore: normalize line endings"
 ```
 
-## Recommended .gitignore Starting Point
+`git add --renormalize .` 可能造成大量 diff，這是預期行為；必須與功能變更拆開。
 
-Adapt this, do not paste blindly:
+### 5b. 檔案權限漂移 (File Mode Drift)
+
+在 Windows + SSHFS 環境，`git diff --summary` 可能只出現 `mode change 100644 => 100755` 或反向變動。若內容未改，優先使用：
+
+```powershell
+git config core.fileMode false
+```
+
+若 `.git/config` 因權限問題不能 lock，可用暫時診斷：
+
+```powershell
+git -c core.fileMode=false status --short
+git -c core.fileMode=false diff --summary
+```
+
+少量檔案需要 index-only 修正時可用：
+
+```powershell
+git update-index --chmod=-x <file>
+git update-index --chmod=+x <file>
+```
+
+如果關閉 `core.fileMode`，請在部署文件補上必要的 `chmod +x <script>` 步驟，避免新 clone 後執行檔權限遺失。
+
+## 標準化 .gitignore 起點
+
+這是起點，不可盲貼；依審查結果調整：
 
 ```gitignore
 # Environment and secrets
@@ -216,7 +246,7 @@ last_run.txt
 last_*.txt
 ```
 
-If project-owned Codex skills should be tracked, use an allowlist instead of ignoring all `.codex/`:
+若 project-owned Codex skills 應該被追蹤，使用 allowlist，不要直接忽略整個 `.codex/`：
 
 ```gitignore
 .codex/*
@@ -225,33 +255,11 @@ If project-owned Codex skills should be tracked, use an allowlist instead of ign
 !.codex/skills/<project-skill>/**
 ```
 
-> ⚠️ The `!` whitelist only takes effect when the parent directory uses a wildcard form. `.codex/` ignores the whole directory wholesale, so `!.codex/skills/` would have **no effect** — Git never descends into an ignored directory. You must use `.codex/*` (with the trailing `*`) paired with `!.codex/skills/` for the allowlist to work. The same rule applies to `.claude/`, `.gemini/`, and any other AI agent folder you want to partially track.
+`!` 白名單只有在母目錄使用 wildcard 形式時才會生效。`.codex/` 會整包忽略資料夾，`!.codex/skills/` 將完全無效，因為 Git 不會進入已忽略的資料夾。必須使用 `.codex/*` 搭配 `!.codex/skills/`。同理適用 `.claude/`、`.gemini/` 和其他需要部分追蹤的 AI agent folder。
 
-## File Mode Drift
+## 救援指令 (Rescue Commands)
 
-On Windows + SSHFS, `git diff --summary` may show only `mode change 100644 => 100755` or the reverse. If content is unchanged, prefer:
-
-```powershell
-git config core.fileMode false
-```
-
-If `.git/config` cannot be locked because of permissions, use temporary diagnostics:
-
-```powershell
-git -c core.fileMode=false status --short
-git -c core.fileMode=false diff --summary
-```
-
-For a few files, index-only correction is acceptable:
-
-```powershell
-git update-index --chmod=-x <file>
-git update-index --chmod=+x <file>
-```
-
-## Rescue Commands
-
-If AI workspace or runtime log files are already tracked:
+如果 AI workspace 或 runtime log 已被追蹤：
 
 ```powershell
 git rm -r --cached .agent .claude .codex .gemini .cursor .github/prompts
@@ -262,4 +270,4 @@ git diff --cached --summary
 git commit -m "chore: clean AI workspace and runtime git tracking"
 ```
 
-If sensitive or huge files were already pushed, explain the risk first and ask before rewriting history with tools such as `git filter-repo`.
+如果機密或大檔已經 push 到歷史中，先說明風險並詢問，再使用 `git filter-repo` 等工具改寫歷史。
