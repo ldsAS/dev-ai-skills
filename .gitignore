@@ -1,0 +1,18 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# AI workspaces (本 repo 是管理 skills 的，不提交任何 AI 工具本機暫存)
+.agent/
+.claude/
+.codex/
+.gemini/
+.cursor/
+.github/prompts/
+
+# Test output
+*.log
