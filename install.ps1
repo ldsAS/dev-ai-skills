@@ -9,6 +9,7 @@
     - Claude Code  : $env:USERPROFILE\.claude\skills\
     - Antigravity  : $env:USERPROFILE\.gemini\antigravity\skills\
     - Codex        : $env:USERPROFILE\.codex\skills\
+    - VS Code (GitHub Copilot) : $env:USERPROFILE\.copilot\skills\
 
   Behaviour: COPY mode (not symlink). Re-run after git pull to sync updates.
 
@@ -17,18 +18,20 @@
   claude       Only install claude/ variant to ~/.claude/skills/
   antigravity  Only install antigravity/ variant to ~/.gemini/antigravity/skills/
   codex        Only install codex/ variant to ~/.codex/skills/
+  vscode       Only install vscode/ variant to ~/.copilot/skills/ (GitHub Copilot in VS Code)
   generic      Install generic/ variant to all detected AI tool dirs (fallback)
 
 .EXAMPLE
   .\install.ps1
   .\install.ps1 claude
   .\install.ps1 codex
+  .\install.ps1 vscode
   .\install.ps1 generic
 #>
 
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('auto', 'claude', 'antigravity', 'codex', 'generic')]
+    [ValidateSet('auto', 'claude', 'antigravity', 'codex', 'vscode', 'generic')]
     [string]$Mode = 'auto'
 )
 
@@ -40,6 +43,7 @@ $SkillsDir         = Join-Path $ScriptDir 'skills'
 $ClaudeTarget      = Join-Path $env:USERPROFILE '.claude\skills'
 $AntigravityTarget = Join-Path $env:USERPROFILE '.gemini\antigravity\skills'
 $CodexTarget       = Join-Path $env:USERPROFILE '.codex\skills'
+$VSCodeTarget      = Join-Path $env:USERPROFILE '.copilot\skills'
 
 function Write-Info  { param($msg) Write-Host "[info] $msg" -ForegroundColor Cyan }
 function Write-Ok    { param($msg) Write-Host "[ ok ] $msg" -ForegroundColor Green }
@@ -50,14 +54,16 @@ function Write-Err2  { param($msg) Write-Host "[err ] $msg" -ForegroundColor Red
 $HasClaude      = Test-Path (Join-Path $env:USERPROFILE '.claude')
 $HasAntigravity = Test-Path (Join-Path $env:USERPROFILE '.gemini\antigravity')
 $HasCodex       = Test-Path (Join-Path $env:USERPROFILE '.codex')
+$HasVSCode      = (Get-Command code -ErrorAction SilentlyContinue) -ne $null
 
 Write-Info '偵測到的 AI 工具：'
 if ($HasClaude)      { Write-Ok    "Claude Code       → $ClaudeTarget" }      else { Write-Warn2 'Claude Code       → 未偵測到 ~/.claude' }
 if ($HasAntigravity) { Write-Ok    "Antigravity       → $AntigravityTarget" } else { Write-Warn2 'Antigravity       → 未偵測到 ~/.gemini/antigravity' }
 if ($HasCodex)       { Write-Ok    "Codex             → $CodexTarget" }       else { Write-Warn2 'Codex             → 未偵測到 ~/.codex' }
+if ($HasVSCode)      { Write-Ok    "VS Code Copilot   → $VSCodeTarget" }      else { Write-Warn2 'VS Code Copilot   → 未偵測到 code 指令，仍可用 vscode 模式強制安裝' }
 
-if (-not $HasClaude -and -not $HasAntigravity -and -not $HasCodex) {
-    Write-Err2 '沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity 或 Codex。'
+if (-not $HasClaude -and -not $HasAntigravity -and -not $HasCodex -and -not $HasVSCode) {
+    Write-Err2 '沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity、Codex 或 VS Code。'
     exit 1
 }
 
@@ -114,6 +120,7 @@ switch ($Mode) {
         if ($HasClaude)      { Install-AllForTool -Tool 'claude'      -Target $ClaudeTarget }
         if ($HasAntigravity) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTarget }
         if ($HasCodex)       { Install-AllForTool -Tool 'codex'       -Target $CodexTarget }
+        if ($HasVSCode)      { Install-AllForTool -Tool 'vscode'      -Target $VSCodeTarget }
     }
     'claude' {
         if (-not $HasClaude) { Write-Err2 '未偵測到 ~/.claude/'; exit 1 }
@@ -126,6 +133,11 @@ switch ($Mode) {
     'codex' {
         if (-not $HasCodex) { Write-Err2 '未偵測到 ~/.codex/'; exit 1 }
         Install-AllForTool -Tool 'codex' -Target $CodexTarget
+    }
+    'vscode' {
+        # ~/.copilot/skills/ 是 VS Code Copilot 原生掃描的個人 skill 目錄
+        # 不強制要求 code 指令存在，允許手動指定路徑情境
+        Install-AllForTool -Tool 'vscode' -Target $VSCodeTarget
     }
     'generic' {
         if ($HasClaude)      { Install-AllForTool -Tool 'claude'      -Target $ClaudeTarget      -ForceVariant 'generic' }

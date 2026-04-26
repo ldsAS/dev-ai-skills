@@ -42,10 +42,11 @@ cd dev-ai-skills
 .\install.ps1
 
 # 指定工具
-.\install.ps1 claude
-.\install.ps1 antigravity
-.\install.ps1 codex
-.\install.ps1 generic
+.\.install.ps1 claude
+.\.install.ps1 antigravity
+.\.install.ps1 codex
+.\.install.ps1 vscode       # 只裝 VS Code Copilot 版到 ~/.copilot/skills/
+.\.install.ps1 generic
 ```
 
 ---
@@ -59,11 +60,11 @@ cd dev-ai-skills
 | Claude Code | `~/.claude/skills/<skill-name>/` | ✅ |
 | Antigravity | `~/.gemini/antigravity/skills/<skill-name>/` | ✅ |
 | Codex | `~/.codex/skills/<skill-name>/` | ✅ |
-| GitHub Copilot (VS Code) | 無單一固定目錄；依專案放在 `.github/copilot-instructions.md` 或 prompts 目錄 | ❌（需手動部署） |
+| GitHub Copilot (VS Code) | `~/.copilot/skills/<skill-name>/`（原生掃描路徑）| ✅ `vscode` 模式 |
 
 > 💡 如果某 AI 工具**沒有**對應版本（例如一個 skill 只寫了 generic 版），安裝器會自動把 generic 版鋪給該工具作為 fallback。
 >
-> ⚠️ **VS Code Copilot 不支援自動安裝**：Copilot 沒有像 `~/.claude/skills/` 這種使用者層級的單一 skills 目錄，安裝器不處理 `vscode/` 變體。若要使用 vscode 版內容，請手動把 `skills/<skill-name>/vscode/SKILL.md` 的內容貼進專案的 `.github/copilot-instructions.md`，或專案約定的 prompts 目錄。
+> ℹ️ **VS Code Copilot 掃描邏輯**：Copilot 原生會掃描 `~/.copilot/skills/`、`~/.agents/skills/`、`~/.claude/skills/` 三個個人層級路徑。使用 `install.ps1 vscode`（或 `auto`）會將 vscode 版裝到 `~/.copilot/skills/`，確保 Claude Code 的 `~/.claude/skills/` 保持 Claude 版，兩者互不干擾。
 
 ---
 
