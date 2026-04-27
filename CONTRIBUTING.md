@@ -99,6 +99,24 @@ ls -la ~/.codex/skills/<your-skill-name>/
 
 ---
 
+## 💻 跨平台開發注意（Windows + SSHFS contributors）
+
+本 repo 同時包含 `install.sh`（LF + exec bit）與 `install.ps1`（CRLF），若你以 **Windows 透過 SSHFS 掛載 Linux VM** 編輯本 repo，SSHFS 預設會把寫過的檔案 mode 翻成 `0755`，造成每次 commit 都有「幽靈 `mode change 100644 => 100755`」 diff（`git diff --stat` 顯示 0 insertions / 0 deletions，但 `git diff --summary` 看得到）。
+
+**Clone 後第一件事**：
+
+```bash
+git config core.fileMode false
+```
+
+只影響當前 repo，不是 global。Trade-off：`install.sh` 的 exec bit 不再由 Git 傳承，新 clone 後若要直接執行需手動 `chmod +x install.sh`（一般 contributor 用 `bash install.sh` 就不會遇到這個問題）。
+
+詳細症狀、檢測指令、其他兩種解法，請參照本 repo 提供的 [`ai-git-ignore-strategy` skill](skills/ai-git-ignore-strategy/) 第五階段 5b。
+
+> 💡 純 Windows / 純 Linux / macOS native 開發者**不需要**設這個。只有 SSHFS 跨檔案系統才會踩雷。
+
+---
+
 ## 🎨 撰寫風格建議
 
 - **優先用繁體中文**，術語與 CLI 指令保留原文
