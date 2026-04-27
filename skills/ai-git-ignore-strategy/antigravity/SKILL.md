@@ -28,12 +28,22 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 2. 用 `run_command` 執行下列指令取得當前狀態：
    ```bash
    git status
-   git ls-files | head -100         # 已追蹤清單
-   git diff --stat                   # 內容 diff 量
-   git diff --summary                # 抓 mode-only / rename-only 變動（stat 看不到）
-   git log --oneline -10             # 最近的 commit 風格
+   git ls-files | head -100                                     # 已追蹤清單
+   git ls-files --others --ignored --exclude-standard | head -50 # 實體存在但被 ignore 的檔案
+   git diff --stat                                               # 內容 diff 量
+   git diff --summary                                            # 抓 mode-only / rename-only 變動（stat 看不到）
+   git log --oneline -10                                         # 最近的 commit 風格
    ```
+   > 💡 第 3 條 (`--others --ignored`) 是反向驗證的關鍵 — 看「規則實際攔下了什麼」。若看到本該追蹤的檔案被擋（例如 seed json 被 `*.json` 誤殺），就是規則太粗暴的訊號。
 3. 將未提交／已追蹤的檔案分類整理成表格，欄位包含：**檔案路徑、所在目錄、推測用途、是否已被追蹤、diff 大小**。
+4. **跨平台訊號 fingerprint 檢查**：用 `list_dir` 或 `run_command find/ls` 偵測下列訊號，若**多個**同時命中代表此專案有跨平台部署需求，第三階段 Report 應主動提及「預防性 fileMode 提示」：
+   - 同一 repo 同時存在 `.sh` + `.ps1` (或 + `.bat` / `.cmd` / `.vbs`)
+   - 根目錄有 `Dockerfile` / `docker-compose.yml`
+   - `.gitattributes` 指定多種 `eol`（同時有 `eol=lf` 與 `eol=crlf`）
+   - `README.md` / `DEPLOY.md` 提及 VM、SSHFS、Linux VM、Tailscale、systemd
+   - 已存在的 `.gitattributes` 有 `binary` 標記混合多平台腳本
+
+   命中 0–1 項：純單一 OS 專案，跳過預防性提示；命中 2 項以上：在第三階段加入相應的 ⚠️ 建議微調項。
 
 > 💡 **識別「假異動」**：`git diff --stat` 顯示 `0 insertions, 0 deletions` 卻被標為 modified，有兩種可能：
 > - **(a) 行尾雜訊**（CRLF ↔ LF 自動轉換）— 實際內容沒差、只是換行符不同。
@@ -96,12 +106,25 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 | `last_holiday_scan.txt` | Runtime 狀態檔，每次排程執行會覆寫 |
 | `Holiday/*.pdf` | 5MB binary 大檔，且內容是 Notion 文件快照 |
 
+### ⚠️ 建議微調（非緊急）
+| 規則 / 檔案 | 現狀 | 建議 | 理由 |
+| :--- | :--- | :--- | :--- |
+| `.env` 規則 | 單一 `.env` | 改為 `.env` + `.env.*` + `!.env.example` 三件套 | 防止未來 `.env.production` 等變體被誤推 |
+| `*.json` blanket 規則 | 單行無註解 | 加註解說明意圖、列出已知敏感檔 | 避免日後被縮限為 `data/*.json` 時意外解放 |
+| `secrets.json` | 已被 `*.json` 涵蓋 | 額外 explicit 列名一次 | 廣域規則若日後縮減，敏感檔仍有 explicit 保護 |
+| 跨平台 fileMode 提示 | DEPLOY.md 無記錄 | 補上 `git config core.fileMode false` 段落 | 第一階段 fingerprint 命中跨平台訊號（Dockerfile + .sh + .ps1 共存） |
+
 ### ❓ 需要您確認的檔案
 | 檔案 | 疑問 |
 | :--- | :--- |
 | `task_info.xml` | 這是 Windows 排程匯出檔嗎？若是，建議保留作為部署參考 |
 | `holiday_data.json.bak` | DEPLOY.md 要求還原 holiday_data.json，此 .bak 是否為唯一備份來源？ |
 ```
+
+> 💡 **四類差異**：
+> - ✅ / 🚫：規則該怎麼定的明確判斷
+> - ⚠️：現狀沒違規但**有更穩健的寫法**（防呆、註解、邊界條件）— 開發者可選擇套用、跳過或延後
+> - ❓：需要 domain 知識才能判斷，等開發者回答
 
 **等待開發者逐一確認後**，才進入第四階段。
 
@@ -115,8 +138,17 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
    git rm --cached <path>           # 移除追蹤但保留本機檔案
    git rm --cached -r <dir>         # 目錄版
    ```
-3. 若有需要透過 CLI 重新安裝的技能，用對應工具在 `DEPLOY.md` 補上安裝步驟。
-4. 若有靜態快照要改成連結（如 PDF → Notion），在 `README.md` 或 `DEPLOY.md` 新增參考連結區塊。
+3. **規則邊界驗證**（每改完一條規則必跑）：用 `run_command` 跑 `git check-ignore -v` 對「應該被擋」與「應該放行」的檔案各跑一次，確認 glob 邊界沒寫錯：
+   ```bash
+   git check-ignore -v .env.production       # 應該被擋（顯示命中規則）
+   git check-ignore -v .env.example          # 應該放行（無輸出）
+   git check-ignore -v secrets.json          # 應該被擋（顯示命中規則）
+   ```
+   若 `.env.example` 被誤擋、或 `secrets.json` 沒被擋，回到步驟 1 修正規則。**驗證沒過就不要進步驟 4**。
+4. **補文件前先 grep**：若需要在文件中記錄「clone 後第一次設定步驟」（包含但不限於：技能重新安裝、靜態快照→連結、跨平台 `core.fileMode false` 設定、`chmod +x` 救援等）：
+   - 先用 `run_command grep` 或 `list_dir` 檢查 `README.md` / `DEPLOY.md` / `CONTRIBUTING.md` 是否已記錄
+   - **已存在** → 直接告知開發者位置（例如「DEPLOY.md 第 X 節已涵蓋」），跳過寫入
+   - **不存在** → 詢問開發者要寫到哪份文件再補上；若兩份都沒有，建議寫到 `README.md` 的 Setup 段落
 5. 建議用 `git add <files>` 選擇性加入暫存（**不要**輕易 `git add .` 以免誤加）。
 6. 提交前**再次提醒開發者**檢視 `git status` 與 `git diff --cached --summary`，確認暫存區符合預期才 commit。若 `--cached --summary` 出現 `mode change` 或 rename-only 條目，屬於環境雜訊，**不可混入功能 commit** — 拆到第五階段的獨立 commit。
 7. **Commit 策略**：若同時有「內容變更」和「環境雜訊」（LF 轉換 / file mode 漂移 / rename-only），**拆成多個 commit** 並依類型分組，避免雜訊淹沒真正的功能變更。
@@ -235,6 +267,15 @@ git config --get core.fileMode             # 查目前設定（預設 true）
 *.pem
 *.key
 credentials.json
+
+# =========================================
+# 敏感檔重複列名防呆（即使已被廣域規則涵蓋）
+# 動機：廣域規則日後若被縮減（例如 *.json → data/*.json），
+#       這些 explicit 規則仍會繼續保護敏感檔
+# =========================================
+# google_oauth_tokens.json     # OAuth refresh token
+# secrets.json                 # 應用程式內嵌密鑰
+# credentials.yaml             # 服務帳號憑證
 
 # =========================================
 # 依賴與虛擬環境

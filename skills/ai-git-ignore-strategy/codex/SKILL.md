@@ -44,11 +44,14 @@ Codex user skills 通常位於 Windows 的 `$env:USERPROFILE\.codex\skills\<skil
 Get-Content .gitignore -ErrorAction SilentlyContinue
 Get-Content .gitattributes -ErrorAction SilentlyContinue
 git status --short
-git ls-files
+git ls-files | Select-Object -First 100
+git ls-files --others --ignored --exclude-standard | Select-Object -First 50
 git diff --stat
 git diff --summary
 git log --oneline -10
 ```
+
+> 💡 第 5 行 (`--others --ignored`) 是反向驗證的關鍵 — 看「規則實際攔下了什麼」。若看到本該追蹤的檔案被擋（例如 seed json 被 `*.json` 誤殺），就是規則太粗暴的訊號。
 
 對可疑的 ignored path，確認是哪條規則生效：
 
@@ -108,7 +111,7 @@ git -c core.fileMode=false diff --summary
 
 ### 第三階段：向開發者報告 (Report Shape)
 
-在執行任何 `.gitignore` 修改前，使用這個緊湊格式回報：
+在執行任何 `.gitignore` 修改前，使用這個格式回報：
 
 ```markdown
 ## Git 追蹤審查報告
@@ -121,10 +124,22 @@ git -c core.fileMode=false diff --summary
 | Path | Reason | Action |
 | :--- | :--- | :--- |
 
+### ⚠️ 建議微調（非緊急）
+| 規則 / 檔案 | 現狀 | 建議 | 理由 |
+| :--- | :--- | :--- | :--- |
+| `.env` 規則 | 單一 `.env` | 改為 `.env` + `.env.*` + `!.env.example` 三件套 | 防止未來 `.env.production` 等變體被誤推 |
+| `*.json` blanket 規則 | 單行無註解 | 加註解說明意圖、列出已知敏感檔 | 避免日後被縮限為 `data/*.json` 時意外解放 |
+| `secrets.json` | 已被 `*.json` 涵蓋 | 額外 explicit 列名一次 | 廣域規則若日後縮減，敏感檔仍有 explicit 保護 |
+
 ### ❓ 需要確認
 | Path | Question |
 | :--- | :--- |
 ```
+
+> 💡 **四類差異**：
+> - ✅ / 🚫：規則該怎麼定的明確判斷
+> - ⚠️：現狀沒違規但**有更穩健的寫法**（防呆、註解、邊界條件）— 開發者可選擇套用、跳過或延後
+> - ❓：需要 domain 知識才能判斷，等開發者回答
 
 ### 第四階段：執行 (Execute Safely)
 
@@ -138,13 +153,32 @@ git rm --cached <path>
 git rm --cached -r <dir>
 ```
 
-3. 只 stage 精準檔案：
+3. **規則邊界驗證**（每改完一條規則必跑）：用 `git check-ignore -v` 對「應該被擋」與「應該放行」的檔案各跑一次，確認 glob 邊界沒寫錯：
+
+```powershell
+git check-ignore -v .env.production       # 應該被擋（顯示命中規則）
+git check-ignore -v .env.example          # 應該放行（無輸出）
+git check-ignore -v secrets.json          # 應該被擋（顯示命中規則）
+```
+
+若 `.env.example` 被誤擋、或 `secrets.json` 沒被擋，回到步驟 1 修正規則。**驗證沒過就不要進步驟 4**。
+
+4. **補文件前先 grep**：若需要在文件中記錄「clone 後第一次設定步驟」（包含但不限於：技能重新安裝、靜態快照→連結、跨平台 `core.fileMode false` 設定、`chmod +x` 救援等）：
+
+```powershell
+Select-String -Path "README.md","DEPLOY.md","CONTRIBUTING.md" -Pattern "core.fileMode|chmod \+x" -SimpleMatch:$false 2>$null
+```
+
+   - **已存在** → 直接告知開發者位置（例如「DEPLOY.md 第 X 節已涵蓋」），跳過寫入
+   - **不存在** → 詢問開發者要寫到哪份文件再補上；若兩份都沒有，建議寫到 `README.md` 的 Setup 段落
+
+5. 只 stage 精準檔案：
 
 ```powershell
 git add .gitignore .gitattributes DEPLOY.md
 ```
 
-4. commit 前檢查 staged content：
+6. commit 前檢查 staged content：
 
 ```powershell
 git status --short
@@ -153,7 +187,7 @@ git diff --cached --summary
 git diff --cached --name-only
 ```
 
-5. 依 concern 拆 commit：功能變更、ignore cleanup、line-ending normalization、mode cleanup 不要混在同一個 commit。
+7. 依 concern 拆 commit：功能變更、ignore cleanup、line-ending normalization、mode cleanup 不要混在同一個 commit。
 
 ### 第五階段：跨平台環境雜訊正規化
 
@@ -256,6 +290,13 @@ git -c core.fileMode=false diff --summary
 *.key
 credentials.json
 certs/
+
+# 敏感檔重複列名防呆（即使已被廣域規則涵蓋）
+# 動機：廣域規則日後若被縮減（例如 *.json → data/*.json），
+#       這些 explicit 規則仍會繼續保護敏感檔
+# google_oauth_tokens.json     # OAuth refresh token
+# secrets.json                 # 應用程式內嵌密鑰
+# credentials.yaml             # 服務帳號憑證
 
 # 依賴與虛擬環境
 venv/
