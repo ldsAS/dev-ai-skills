@@ -42,11 +42,11 @@ cd dev-ai-skills
 .\install.ps1
 
 # 指定工具
-.\.install.ps1 claude
-.\.install.ps1 antigravity
-.\.install.ps1 codex
-.\.install.ps1 vscode       # 只裝 VS Code Copilot 版到 ~/.copilot/skills/
-.\.install.ps1 generic
+.\install.ps1 claude
+.\install.ps1 antigravity
+.\install.ps1 codex
+.\install.ps1 vscode       # 只裝 VS Code Copilot 版到 ~/.copilot/skills/
+.\install.ps1 generic
 ```
 
 ---
@@ -65,6 +65,33 @@ cd dev-ai-skills
 > 💡 如果某 AI 工具**沒有**對應版本（例如一個 skill 只寫了 generic 版），安裝器會自動把 generic 版鋪給該工具作為 fallback。
 >
 > ℹ️ **VS Code Copilot 掃描邏輯**：Copilot 原生會掃描 `~/.copilot/skills/`、`~/.agents/skills/`、`~/.claude/skills/` 三個個人層級路徑。使用 `install.ps1 vscode`（或 `auto`）會將 vscode 版裝到 `~/.copilot/skills/`，確保 Claude Code 的 `~/.claude/skills/` 保持 Claude 版，兩者互不干擾。
+
+---
+
+## 🔄 更新已安裝的 skills
+
+因為是 **Copy 模式**，**source repo 更新後不會自動同步到 AI 工具的 skills 目錄**。必須手動跑一次 `git pull` + 安裝器。
+
+### Windows（推薦：雙擊 `update-skills.bat`）
+
+```bat
+:: 在檔案總管雙擊 update-skills.bat 即可（會 git pull + install.ps1 + pause 顯示結果）
+```
+
+或用 PowerShell 一行指令：
+
+```powershell
+cd "<你的 dev-ai-skills 路徑>"; git pull; .\install.ps1
+```
+
+### Linux / macOS
+
+```bash
+cd <你的 dev-ai-skills 路徑>
+git pull && ./install.sh
+```
+
+> 💡 **指定單一工具更新**：在指令尾巴加參數即可（`claude` / `antigravity` / `codex` / `vscode` / `generic`）。例如 Windows 只更新 Claude 版：`.\install.ps1 claude`。
 
 ---
 
@@ -87,6 +114,7 @@ dev-ai-skills/
 ├── LICENSE                 # MIT
 ├── install.sh              # Linux / macOS 安裝器
 ├── install.ps1             # Windows 安裝器
+├── update-skills.bat       # Windows 一鍵更新啟動器（雙擊執行 git pull + install.ps1）
 └── skills/
     ├── ai-git-ignore-strategy/
     │   ├── README.md
