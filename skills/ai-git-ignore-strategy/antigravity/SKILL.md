@@ -62,13 +62,13 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 - **部署與維運文件**：`DEPLOY.md`, `README.md`, `CHANGELOG.md`, `docs/`。
 - **排程與自動化設定參考**：`task_info.xml`（Windows Task Scheduler 匯出）、`.service` 檔備份、`Dockerfile`、`docker-compose.yml`、CI 設定檔。
 - **資料備份檔**：若 `.gitignore` 已排除 `*.json`，則 `.json.bak` 可能是唯一透過 Git 傳承資料的管道 — **必須對照 `DEPLOY.md` 的「還原資料檔」清單確認是否有對應**。
-- **專案級 AI 指令檔與共享 AI 設定**：`CLAUDE.md`（根目錄）、`AGENTS.md`、`GEMINI.md`、`.cursorrules`、`.github/copilot-instructions.md`、`.claude/settings.json`（團隊權限／hooks）、`.claude/commands/`、`.cursor/rules/`、`.github/prompts/*.prompt.md` 等團隊共用的 AI 規則檔。
+- **專案級 AI 指令檔與共享 AI 設定**：`CLAUDE.md`（根目錄）、`AGENTS.md`、`GEMINI.md`、`.cursorrules`、`.github/copilot-instructions.md`、`.agents/AGENTS.md`（專案級自訂規則）、`.agents/settings.json`（專案共用設定）、`.claude/settings.json`（團隊權限／hooks）、`.claude/commands/`、`.cursor/rules/`、`.github/prompts/*.prompt.md` 等團隊共用的 AI 規則檔。
 - **跨平台設定**：`.gitattributes`、`.editorconfig`、`.nvmrc`。
 
 #### 🔴 應該排除 (Ignore)
 
 - **AI 對話紀錄與快取**：`.agent/`（Antigravity 1.x）與 `.agents/`（Antigravity 2.0）的工作區暫存、`.codex/`、`.gemini/` 的快取（`brain/`, `scratch/` 等）、session logs、索引檔。
-  - ⚠️ 注意（最容易誤殺的一區）：`.agents/skills/`（2.0）與 `.agent/skills/`（1.x）可能是專案自有客製技能（見「需確認」類）；專案內 `.claude/` 的 `settings.json`、`commands/`、`skills/` 與 `.cursor/rules/`、`.github/prompts/*.prompt.md` 多半是刻意共享的設定，屬於 🟢 類。多數工具的對話紀錄其實存在使用者家目錄，不在專案內。
+  - ⚠️ 注意（最容易誤殺的一區）：`.agents/skills/`（2.0）與 `.agent/skills/`（1.x）可能是專案自有客製技能（見「需確認」類）；專案內 `.agents/` 的 `AGENTS.md`、`settings.json`，以及 `.claude/` 的 `settings.json`、`commands/`、`skills/` 與 `.cursor/rules/`、`.github/prompts/*.prompt.md` 多半是刻意共享的設定，屬於 🟢 類。多數工具的對話紀錄其實存在使用者家目錄，不在專案內。
 - **自動執行日誌**：`*.log`（無限增長、無版本控制意義）。
 - **Runtime 狀態檔**：像 `last_run.txt`, `last_scan.txt`, `last_download.txt` 這類「每次執行就覆寫」的狀態檔。它們會讓 `git status` 永遠滿江紅。
 - **二進位大型檔案**：PDF、圖片、影片、字型檔。Git 不擅長處理 binary，會永久佔用歷史空間。可考慮用 Git LFS 或改放 Notion/Drive 連結。
@@ -132,7 +132,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 
 根據開發者確認後的結果：
 
-1. 用 `replace_file_content` 或 `multi_replace_file_content` 修改 `.gitignore`，加入要排除的規則。
+1. 修改 `.gitignore`：若檔案不存在，先用 `write_to_file` 建立；若已存在，則使用 `replace_file_content` 或 `multi_replace_file_content` 加入要排除的規則。
 2. 若有已被 Git 追蹤但現在要排除的檔案，用 `run_command` 執行：
    ```bash
    git rm --cached <path>           # 移除追蹤但保留本機檔案
@@ -148,9 +148,9 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 
    若 `.env.example` 命中的不是 `!` 開頭的規則、或 `secrets.json` 完全沒被擋，回到步驟 1 修正規則。**驗證沒過就不要進步驟 4**。
 4. **補文件前先 grep**：若需要在文件中記錄「clone 後第一次設定步驟」（包含但不限於：技能重新安裝、靜態快照→連結、跨平台 `core.fileMode false` 設定、`chmod +x` 救援等）：
-   - 先用 `run_command grep` 或 `list_dir` 檢查 `README.md` / `DEPLOY.md` / `CONTRIBUTING.md` 是否已記錄
+    - 先用 `grep_search` 或 `list_dir` 檢查 `README.md` / `DEPLOY.md` / `CONTRIBUTING.md` 是否已記錄
    - **已存在** → 直接告知開發者位置（例如「DEPLOY.md 第 X 節已涵蓋」），跳過寫入
-   - **不存在** → 詢問開發者要寫到哪份文件再補上；若兩份都沒有，建議寫到 `README.md` 的 Setup 段落
+   - **不存在** → 詢問開發者要寫到哪份文件再補上；若兩份都沒有，建議寫到 `README.md` 的 Setup 段落。使用 `write_to_file` 或 `replace_file_content` 進行更新。
 5. 建議用 `git add <files>` 選擇性加入暫存（**不要**輕易 `git add .` 以免誤加）。
 6. 提交前**再次提醒開發者**檢視 `git status` 與 `git diff --cached --summary`，確認暫存區符合預期才 commit。若 `--cached --summary` 出現 `mode change` 或 rename-only 條目，屬於環境雜訊，**不可混入功能 commit** — 拆到第五階段的獨立 commit。
 7. **Commit 策略**：若同時有「內容變更」和「環境雜訊」（LF 轉換 / file mode 漂移 / rename-only），**拆成多個 commit** 並依類型分組，避免雜訊淹沒真正的功能變更。
@@ -309,6 +309,9 @@ Thumbs.db
 .agent/                         # Antigravity 1.x 專案工作區暫存
 .agents/*                       # Antigravity 2.0 專案工作區
 !.agents/skills/                # 專案自有客製技能（CLI 安裝的第三方技能則毋須追蹤）
+!.agents/AGENTS.md              # 專案級 AI 規則檔
+!.agents/settings.json          # 專案共用設定
+.agents/settings.local.json     # 個人本機設定
 .claude/*
 !.claude/settings.json          # 團隊共用設定（權限、hooks）
 !.claude/commands/              # 團隊共用 slash commands

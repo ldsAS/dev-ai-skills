@@ -96,13 +96,13 @@ git -c core.fileMode=false diff --summary
 - 跨平台 repo policy：`.gitattributes`, `.editorconfig`, `.nvmrc`。
 - 專案自動化參考：Windows Task Scheduler 匯出 XML、systemd service sample、Docker / CI config。
 - 專案設計 source of truth：`design-system/MASTER.md`、有意義的 page override。
-- 團隊 AI 指令與共享 AI 設定：`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`（Copilot 共享 prompt）, `.claude/settings.json`（團隊權限／hooks）, `.claude/commands/`, `.cursor/rules/`，或明確要共享的 project-specific skill files。
+- 團隊 AI 指令與共享 AI 設定：`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`（Copilot 共享 prompt）, `.agents/AGENTS.md`（專案級自訂規則）, `.agents/settings.json`（專案共用設定）, `.claude/settings.json`（團隊權限／hooks）, `.claude/commands/`, `.cursor/rules/`，或明確要共享的 project-specific skill files。
 - 客製專案 skills：例如 `.codex/skills/<project-skill>/SKILL.md`，但必須先確認它不是本機安裝的第三方 skill。
 
 #### 🔴 應該排除或取消追蹤 (Ignore Or Untrack)
 
 - 本機 AI 工作區與 cache：`.agent/`（Antigravity 1.x）與 `.agents/`（2.0）的工作區暫存、`.codex/`、`.gemini/` 的快取，但 confirmed project skills 例外。
-  - ⚠️ 注意（最容易誤殺）：專案內 `.claude/`（`settings.json`, `commands/`, `skills/`）、`.cursor/rules/`、`.github/prompts/*.prompt.md` 多半是刻意共享的設定與規則，屬於 🟢 或 ⚠️ 類，不要整包封殺；多數工具的對話紀錄存在使用者家目錄（如 `~/.claude/projects/`），不在專案內。
+  - ⚠️ 注意（最容易誤殺）：專案內 `.claude/`（`settings.json`, `commands/`, `skills/`）、`.cursor/rules/`、`.github/prompts/*.prompt.md` 多半是刻意共享的設定與規則，屬於 🟢 或 ⚠️ 類；專案內 `.agents/` 的 `AGENTS.md`、`settings.json` 與 `skills/` 也是刻意共享的設定，不要整包封殺；多數工具的對話紀錄存在使用者家目錄（如 `~/.claude/projects/`），不在專案內。
 - Runtime logs：`*.log`，通常會自動輪替或持續增長，沒有版本控制價值。
 - 每次執行會覆寫的 runtime state：`last_run.txt`, `last_*.txt`。這些會讓 `git status` 長期保持 dirty。
 - 機密：`.env`, `.env.*`，但保留 `!.env.example`；另排除 `*.pem`, `*.key`, `credentials.json`, `certs/`。
@@ -344,6 +344,9 @@ Thumbs.db
 .agent/                         # Antigravity 1.x 專案工作區暫存
 .agents/*                       # Antigravity 2.0 專案工作區
 !.agents/skills/                # 專案自有客製技能
+!.agents/AGENTS.md              # 專案級 AI 規則檔
+!.agents/settings.json          # 專案共用設定
+.agents/settings.local.json     # 個人本機設定
 .codex/
 .gemini/
 # .github/prompts/ 是 VS Code Copilot 的團隊共享 prompt files (*.prompt.md)，

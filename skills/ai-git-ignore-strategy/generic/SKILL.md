@@ -61,13 +61,13 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 - **部署與維運文件**：DEPLOY.md, README.md, CHANGELOG.md, docs/。
 - **排程與自動化設定參考**：task_info.xml（Windows Task Scheduler 匯出）、.service 檔備份、Dockerfile、docker-compose.yml、CI 設定檔。
 - **資料備份檔**：若 .gitignore 已排除 *.json，則 .json.bak 可能是唯一透過 Git 傳承資料的管道 — **必須對照 DEPLOY.md 的「還原資料檔」清單確認是否有對應**。
-- **專案級 AI 指令檔與共享 AI 設定**：CLAUDE.md（根目錄）、AGENTS.md、GEMINI.md、.cursorrules、.github/copilot-instructions.md、.claude/settings.json（團隊權限／hooks）、.claude/commands/、.cursor/rules/、.github/prompts/*.prompt.md 等團隊共用的 AI 規則檔。
+- **專案級 AI 指令檔與共享 AI 設定**：CLAUDE.md（根目錄）、AGENTS.md、GEMINI.md、.cursorrules、.github/copilot-instructions.md、.agents/AGENTS.md（專案級自訂規則）、.agents/settings.json（專案共用設定）、.claude/settings.json（團隊權限／hooks）、.claude/commands/、.cursor/rules/、.github/prompts/*.prompt.md 等團隊共用的 AI 規則檔。
 - **跨平台設定**：.gitattributes、.editorconfig、.nvmrc。
 
 #### 🔴 應該排除 (Ignore)
 
 - **AI 對話紀錄與快取**：.agent/（Antigravity 1.x）與 .agents/（Antigravity 2.0）的工作區暫存、.codex/、.gemini/ 的快取、session logs、索引檔。
-  - ⚠️ 注意（最容易誤殺的一區）：多數工具的對話紀錄存在**使用者家目錄**（如 ~/.claude/projects/），不在專案內；專案根目錄的 .claude/（settings.json, commands/, agents/, skills/）、.cursor/rules/、.github/prompts/*.prompt.md 多半是**刻意共享**的設定與規則，屬於 🟢 或 ⚠️ 類。真正該擋的是 .claude/settings.local.json 這類個人本機檔與各工具快取。
+  - ⚠️ 注意（最容易誤殺的一區）：多數工具的對話紀錄存在**使用者家目錄**（如 ~/.claude/projects/），不在專案內；專案根目錄的 .agents/（AGENTS.md, settings.json, skills/）、.claude/（settings.json, commands/, agents/, skills/）、.cursor/rules/、.github/prompts/*.prompt.md 多半是**刻意共享**的設定與規則，屬於 🟢 或 ⚠️ 類。真正該擋的是 .claude/settings.local.json 這類個人本機檔與各工具快取。
 - **自動執行日誌**：*.log（無限增長、無版本控制意義）。
 - **Runtime 狀態檔**：像 last_run.txt, last_scan.txt, last_download.txt 這類「每次執行就覆寫」的狀態檔。它們會讓 git status 永遠滿江紅。
 - **二進位大型檔案**：PDF、圖片、影片、字型檔。Git 不擅長處理 binary，會永久佔用歷史空間。可考慮用 Git LFS 或改放 Notion/Drive 連結。
@@ -281,6 +281,9 @@ Thumbs.db
 .agent/
 .agents/*
 !.agents/skills/
+!.agents/AGENTS.md
+!.agents/settings.json
+.agents/settings.local.json
 .codex/
 .gemini/
 # .github/prompts/ 是共享 prompt files (*.prompt.md)，預設應提交；確認為個人暫存才取消註解：
