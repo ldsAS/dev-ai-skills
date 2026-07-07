@@ -148,7 +148,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 
    若 `.env.example` 命中的不是 `!` 開頭的規則、或 `secrets.json` 完全沒被擋，回到步驟 1 修正規則。**驗證沒過就不要進步驟 4**。
 4. **補文件前先 grep**：若需要在文件中記錄「clone 後第一次設定步驟」（包含但不限於：技能重新安裝、靜態快照→連結、跨平台 `core.fileMode false` 設定、`chmod +x` 救援等）：
-    - 先用 `grep_search` 或 `list_dir` 檢查 `README.md` / `DEPLOY.md` / `CONTRIBUTING.md` 是否已記錄
+   - 先用 `grep_search` 或 `list_dir` 檢查 `README.md` / `DEPLOY.md` / `CONTRIBUTING.md` 是否已記錄
    - **已存在** → 直接告知開發者位置（例如「DEPLOY.md 第 X 節已涵蓋」），跳過寫入
    - **不存在** → 詢問開發者要寫到哪份文件再補上；若兩份都沒有，建議寫到 `README.md` 的 Setup 段落。使用 `write_to_file` 或 `replace_file_content` 進行更新。
 5. 建議用 `git add <files>` 選擇性加入暫存（**不要**輕易 `git add .` 以免誤加）。

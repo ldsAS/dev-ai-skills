@@ -86,7 +86,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 #### 🔴 應該排除 (Ignore)
 
 - **AI 對話紀錄與快取**：`.agent/`（Antigravity 1.x）與 `.agents/`（Antigravity 2.0）的工作區暫存、`.codex/`、`.gemini/` 的快取、session logs、索引檔。
-  - ⚠️ 注意（最容易誤殺的一區）：`.github/prompts/*.prompt.md` 是 VS Code Copilot 的**團隊共享 prompt files**，與 `.github/copilot-instructions.md` 同屬刻意共享，預設應提交；專案根目錄的 `.agents/`（`AGENTS.md`、`settings.json`、`skills/`）、`.claude/`（`settings.json`、`commands/`、`skills/`）與 `.cursor/rules/` 同理。多數工具 of 對話紀錄其實存在使用者家目錄（如 `~/.claude/projects/`），不在專案內；真正該擋的是 `.claude/settings.local.json` 這類個人本機檔與各工具快取。
+  - ⚠️ 注意（最容易誤殺的一區）：`.github/prompts/*.prompt.md` 是 VS Code Copilot 的**團隊共享 prompt files**，與 `.github/copilot-instructions.md` 同屬刻意共享，預設應提交；專案根目錄的 `.agents/`（`AGENTS.md`、`settings.json`、`skills/`）、`.claude/`（`settings.json`、`commands/`、`skills/`）與 `.cursor/rules/` 同理。多數工具的對話紀錄其實存在使用者家目錄（如 `~/.claude/projects/`），不在專案內；真正該擋的是 `.claude/settings.local.json` 這類個人本機檔與各工具快取。
 - **自動執行日誌**：`*.log`（無限增長、無版本控制意義）。
 - **Runtime 狀態檔**：像 `last_run.txt`, `last_scan.txt`, `last_download.txt` 這類「每次執行就覆寫」的狀態檔。它們會讓 `git status` 永遠滿江紅。
 - **二進位大型檔案**：PDF、圖片、影片、字型檔。Git 不擅長處理 binary，會永久佔用歷史空間。可考慮用 Git LFS 或改放 Notion/Drive 連結。
