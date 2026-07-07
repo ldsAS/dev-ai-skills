@@ -83,16 +83,20 @@ description: 一段清楚說明這個 skill 的用途與觸發時機的描述。
 ```bash
 # 從乾淨狀態開始
 rm -rf ~/.claude/skills/<your-skill-name>
-rm -rf ~/.gemini/antigravity/skills/<your-skill-name>
+rm -rf ~/.gemini/config/skills/<your-skill-name>        # Antigravity 2.0
+rm -rf ~/.gemini/antigravity/skills/<your-skill-name>   # Antigravity 1.x
 rm -rf ~/.codex/skills/<your-skill-name>
+rm -rf ~/.copilot/skills/<your-skill-name>              # VS Code Copilot
 
 # 執行安裝器
 ./install.sh
 
-# 驗證結果
+# 驗證結果（依偵測到的工具而定）
 ls -la ~/.claude/skills/<your-skill-name>/
+ls -la ~/.gemini/config/skills/<your-skill-name>/
 ls -la ~/.gemini/antigravity/skills/<your-skill-name>/
 ls -la ~/.codex/skills/<your-skill-name>/
+ls -la ~/.copilot/skills/<your-skill-name>/
 
 # 在實際 AI 工具中觸發，看是否能正確引用 skill
 ```

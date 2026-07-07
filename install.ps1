@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   dev-ai-skills installer (Windows / PowerShell)
 
@@ -6,9 +6,10 @@
   Copies AI skills from this repo into the corresponding AI tool's skills directory.
 
   Supported AI tools:
-    - Claude Code  : $env:USERPROFILE\.claude\skills\
-    - Antigravity  : $env:USERPROFILE\.gemini\antigravity\skills\
-    - Codex        : $env:USERPROFILE\.codex\skills\
+    - Claude Code      : $env:USERPROFILE\.claude\skills\
+    - Antigravity 2.0  : $env:USERPROFILE\.gemini\config\skills\
+    - Antigravity 1.x  : $env:USERPROFILE\.gemini\antigravity\skills\
+    - Codex            : $env:USERPROFILE\.codex\skills\
     - VS Code (GitHub Copilot) : $env:USERPROFILE\.copilot\skills\
 
   Behaviour: COPY mode (not symlink). Re-run after git pull to sync updates.
@@ -16,7 +17,8 @@
 .PARAMETER Mode
   auto         (default) Install each skill's tool-specific variant to all detected AI tools
   claude       Only install claude/ variant to ~/.claude/skills/
-  antigravity  Only install antigravity/ variant to ~/.gemini/antigravity/skills/
+  antigravity  Only install antigravity/ variant to ~/.gemini/config/skills/ (2.0)
+               and/or ~/.gemini/antigravity/skills/ (1.x), whichever is detected
   codex        Only install codex/ variant to ~/.codex/skills/
   vscode       Only install vscode/ variant to ~/.copilot/skills/ (GitHub Copilot in VS Code)
   generic      Install generic/ variant to all detected AI tool dirs (fallback)
@@ -40,10 +42,11 @@ $ErrorActionPreference = 'Stop'
 # ---- paths ----------------------------------------------------------
 $ScriptDir         = Split-Path -Parent $MyInvocation.MyCommand.Path
 $SkillsDir         = Join-Path $ScriptDir 'skills'
-$ClaudeTarget      = Join-Path $env:USERPROFILE '.claude\skills'
-$AntigravityTarget = Join-Path $env:USERPROFILE '.gemini\antigravity\skills'
-$CodexTarget       = Join-Path $env:USERPROFILE '.codex\skills'
-$VSCodeTarget      = Join-Path $env:USERPROFILE '.copilot\skills'
+$ClaudeTarget        = Join-Path $env:USERPROFILE '.claude\skills'
+$AntigravityTargetV2 = Join-Path $env:USERPROFILE '.gemini\config\skills'       # Antigravity 2.0
+$AntigravityTargetV1 = Join-Path $env:USERPROFILE '.gemini\antigravity\skills'  # Antigravity 1.x
+$CodexTarget         = Join-Path $env:USERPROFILE '.codex\skills'
+$VSCodeTarget        = Join-Path $env:USERPROFILE '.copilot\skills'
 
 function Write-Info  { param($msg) Write-Host "[info] $msg" -ForegroundColor Cyan }
 function Write-Ok    { param($msg) Write-Host "[ ok ] $msg" -ForegroundColor Green }
@@ -51,18 +54,20 @@ function Write-Warn2 { param($msg) Write-Host "[warn] $msg" -ForegroundColor Yel
 function Write-Err2  { param($msg) Write-Host "[err ] $msg" -ForegroundColor Red }
 
 # ---- detection ------------------------------------------------------
-$HasClaude      = Test-Path (Join-Path $env:USERPROFILE '.claude')
-$HasAntigravity = Test-Path (Join-Path $env:USERPROFILE '.gemini\antigravity')
-$HasCodex       = Test-Path (Join-Path $env:USERPROFILE '.codex')
-$HasVSCode      = (Get-Command code -ErrorAction SilentlyContinue) -ne $null
+$HasClaude        = Test-Path (Join-Path $env:USERPROFILE '.claude')
+$HasAntigravityV1 = Test-Path (Join-Path $env:USERPROFILE '.gemini\antigravity')
+$HasAntigravityV2 = Test-Path (Join-Path $env:USERPROFILE '.gemini\config')
+$HasCodex         = Test-Path (Join-Path $env:USERPROFILE '.codex')
+$HasVSCode        = (Get-Command code -ErrorAction SilentlyContinue) -ne $null
 
 Write-Info '偵測到的 AI 工具：'
-if ($HasClaude)      { Write-Ok    "Claude Code       → $ClaudeTarget" }      else { Write-Warn2 'Claude Code       → 未偵測到 ~/.claude' }
-if ($HasAntigravity) { Write-Ok    "Antigravity       → $AntigravityTarget" } else { Write-Warn2 'Antigravity       → 未偵測到 ~/.gemini/antigravity' }
-if ($HasCodex)       { Write-Ok    "Codex             → $CodexTarget" }       else { Write-Warn2 'Codex             → 未偵測到 ~/.codex' }
-if ($HasVSCode)      { Write-Ok    "VS Code Copilot   → $VSCodeTarget" }      else { Write-Warn2 'VS Code Copilot   → 未偵測到 code 指令，仍可用 vscode 模式強制安裝' }
+if ($HasClaude)        { Write-Ok    "Claude Code       → $ClaudeTarget" }        else { Write-Warn2 'Claude Code       → 未偵測到 ~/.claude' }
+if ($HasAntigravityV2) { Write-Ok    "Antigravity 2.0   → $AntigravityTargetV2" } else { Write-Warn2 'Antigravity 2.0   → 未偵測到 ~/.gemini/config' }
+if ($HasAntigravityV1) { Write-Ok    "Antigravity 1.x   → $AntigravityTargetV1" } else { Write-Warn2 'Antigravity 1.x   → 未偵測到 ~/.gemini/antigravity' }
+if ($HasCodex)         { Write-Ok    "Codex             → $CodexTarget" }         else { Write-Warn2 'Codex             → 未偵測到 ~/.codex' }
+if ($HasVSCode)        { Write-Ok    "VS Code Copilot   → $VSCodeTarget" }        else { Write-Warn2 'VS Code Copilot   → 未偵測到 code 指令，仍可用 vscode 模式強制安裝' }
 
-if (-not $HasClaude -and -not $HasAntigravity -and -not $HasCodex -and -not $HasVSCode) {
+if (-not $HasClaude -and -not $HasAntigravityV1 -and -not $HasAntigravityV2 -and -not $HasCodex -and -not $HasVSCode) {
     Write-Err2 '沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity、Codex 或 VS Code。'
     exit 1
 }
@@ -117,18 +122,22 @@ function Install-AllForTool {
 # ---- main -----------------------------------------------------------
 switch ($Mode) {
     'auto' {
-        if ($HasClaude)      { Install-AllForTool -Tool 'claude'      -Target $ClaudeTarget }
-        if ($HasAntigravity) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTarget }
-        if ($HasCodex)       { Install-AllForTool -Tool 'codex'       -Target $CodexTarget }
-        if ($HasVSCode)      { Install-AllForTool -Tool 'vscode'      -Target $VSCodeTarget }
+        if ($HasClaude)        { Install-AllForTool -Tool 'claude'      -Target $ClaudeTarget }
+        if ($HasAntigravityV2) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTargetV2 }
+        if ($HasAntigravityV1) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTargetV1 }
+        if ($HasCodex)         { Install-AllForTool -Tool 'codex'       -Target $CodexTarget }
+        if ($HasVSCode)        { Install-AllForTool -Tool 'vscode'      -Target $VSCodeTarget }
     }
     'claude' {
         if (-not $HasClaude) { Write-Err2 '未偵測到 ~/.claude/'; exit 1 }
         Install-AllForTool -Tool 'claude' -Target $ClaudeTarget
     }
     'antigravity' {
-        if (-not $HasAntigravity) { Write-Err2 '未偵測到 ~/.gemini/antigravity/'; exit 1 }
-        Install-AllForTool -Tool 'antigravity' -Target $AntigravityTarget
+        if (-not $HasAntigravityV1 -and -not $HasAntigravityV2) {
+            Write-Err2 '未偵測到 ~/.gemini/config/ (2.0) 或 ~/.gemini/antigravity/ (1.x)'; exit 1
+        }
+        if ($HasAntigravityV2) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTargetV2 }
+        if ($HasAntigravityV1) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTargetV1 }
     }
     'codex' {
         if (-not $HasCodex) { Write-Err2 '未偵測到 ~/.codex/'; exit 1 }
@@ -140,9 +149,11 @@ switch ($Mode) {
         Install-AllForTool -Tool 'vscode' -Target $VSCodeTarget
     }
     'generic' {
-        if ($HasClaude)      { Install-AllForTool -Tool 'claude'      -Target $ClaudeTarget      -ForceVariant 'generic' }
-        if ($HasAntigravity) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTarget -ForceVariant 'generic' }
-        if ($HasCodex)       { Install-AllForTool -Tool 'codex'       -Target $CodexTarget       -ForceVariant 'generic' }
+        if ($HasClaude)        { Install-AllForTool -Tool 'claude'      -Target $ClaudeTarget        -ForceVariant 'generic' }
+        if ($HasAntigravityV2) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTargetV2 -ForceVariant 'generic' }
+        if ($HasAntigravityV1) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTargetV1 -ForceVariant 'generic' }
+        if ($HasCodex)         { Install-AllForTool -Tool 'codex'       -Target $CodexTarget         -ForceVariant 'generic' }
+        if ($HasVSCode)        { Install-AllForTool -Tool 'vscode'      -Target $VSCodeTarget        -ForceVariant 'generic' }
     }
 }
 

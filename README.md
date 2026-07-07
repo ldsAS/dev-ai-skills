@@ -27,8 +27,9 @@ cd dev-ai-skills
 
 # 只裝某一個工具的版本
 ./install.sh claude        # 只裝 Claude 版到 ~/.claude/skills/
-./install.sh antigravity   # 只裝 Antigravity 版到 ~/.gemini/antigravity/skills/
+./install.sh antigravity   # 只裝 Antigravity 版到 ~/.gemini/config/skills/ (2.0) 與/或 ~/.gemini/antigravity/skills/ (1.x)
 ./install.sh codex         # 只裝 Codex 版到 ~/.codex/skills/
+./install.sh vscode        # 只裝 VS Code Copilot 版到 ~/.copilot/skills/
 ./install.sh generic       # 只裝 generic 版（鋪到所有偵測到的 AI 工具，作為 fallback）
 ```
 
@@ -58,9 +59,12 @@ cd dev-ai-skills
 | AI 工具 | Skills 目標目錄 | 自動安裝 |
 | :--- | :--- | :---: |
 | Claude Code | `~/.claude/skills/<skill-name>/` | ✅ |
-| Antigravity | `~/.gemini/antigravity/skills/<skill-name>/` | ✅ |
+| Antigravity 2.0 | `~/.gemini/config/skills/<skill-name>/` | ✅（偵測到 `~/.gemini/config`）|
+| Antigravity 1.x | `~/.gemini/antigravity/skills/<skill-name>/` | ✅（偵測到 `~/.gemini/antigravity`）|
 | Codex | `~/.codex/skills/<skill-name>/` | ✅ |
-| GitHub Copilot (VS Code) | `~/.copilot/skills/<skill-name>/`（原生掃描路徑）| ✅ `vscode` 模式 |
+| GitHub Copilot (VS Code) | `~/.copilot/skills/<skill-name>/`（原生掃描路徑）| ✅ |
+
+> 🆕 **Antigravity 2.0 路徑變更**：全域 skills 移到 `~/.gemini/config/skills/`，專案層 skills 掃描 `<project>/.agents/skills/`（複數，向下相容 `.agent/`）。兩個全域路徑都偵測到時，installer 會兩邊都裝以保相容。
 
 > 💡 如果某 AI 工具**沒有**對應版本（例如一個 skill 只寫了 generic 版），安裝器會自動把 generic 版鋪給該工具作為 fallback。
 >

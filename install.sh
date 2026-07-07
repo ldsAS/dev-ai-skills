@@ -4,8 +4,10 @@
 # Usage:
 #   ./install.sh                 # auto-detect installed AI tools and install all matching variants
 #   ./install.sh claude          # only install claude/ variant to ~/.claude/skills/
-#   ./install.sh antigravity     # only install antigravity/ variant to ~/.gemini/antigravity/skills/
+#   ./install.sh antigravity     # only install antigravity/ variant to ~/.gemini/config/skills/ (2.0)
+#                                #   and/or ~/.gemini/antigravity/skills/ (1.x), whichever is detected
 #   ./install.sh codex           # only install codex/ variant to ~/.codex/skills/
+#   ./install.sh vscode          # only install vscode/ variant to ~/.copilot/skills/ (GitHub Copilot)
 #   ./install.sh generic         # install generic/ variant to all detected AI tool dirs (fallback)
 #   ./install.sh --help          # show this help
 #
@@ -28,32 +30,40 @@ err()   { printf '%s[err ]%s %s\n' "$C_ERR"  "$C_RESET" "$*" >&2; }
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILLS_DIR="$SCRIPT_DIR/skills"
 CLAUDE_TARGET="$HOME/.claude/skills"
-ANTIGRAVITY_TARGET="$HOME/.gemini/antigravity/skills"
+ANTIGRAVITY_TARGET_V2="$HOME/.gemini/config/skills"       # Antigravity 2.0
+ANTIGRAVITY_TARGET_V1="$HOME/.gemini/antigravity/skills"  # Antigravity 1.x
 CODEX_TARGET="$HOME/.codex/skills"
+VSCODE_TARGET="$HOME/.copilot/skills"
 
 MODE="${1:-auto}"
 
 show_help() {
-  sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
   exit 0
 }
 [[ "$MODE" == "--help" || "$MODE" == "-h" ]] && show_help
 
 # ---- detection ------------------------------------------------------
 has_claude=false
-has_antigravity=false
+has_antigravity_v1=false
+has_antigravity_v2=false
 has_codex=false
-[[ -d "$HOME/.claude" ]]                  && has_claude=true
-[[ -d "$HOME/.gemini/antigravity" ]]      && has_antigravity=true
-[[ -d "$HOME/.codex" ]]                   && has_codex=true
+has_vscode=false
+[[ -d "$HOME/.claude" ]]              && has_claude=true
+[[ -d "$HOME/.gemini/antigravity" ]]  && has_antigravity_v1=true
+[[ -d "$HOME/.gemini/config" ]]       && has_antigravity_v2=true
+[[ -d "$HOME/.codex" ]]               && has_codex=true
+{ command -v code >/dev/null 2>&1 || [[ -d "$HOME/.copilot" ]]; } && has_vscode=true
 
 info "偵測到的 AI 工具："
-$has_claude      && ok "Claude Code       → $CLAUDE_TARGET"      || warn "Claude Code       → 未偵測到 ~/.claude"
-$has_antigravity && ok "Antigravity       → $ANTIGRAVITY_TARGET" || warn "Antigravity       → 未偵測到 ~/.gemini/antigravity"
-$has_codex       && ok "Codex             → $CODEX_TARGET"       || warn "Codex             → 未偵測到 ~/.codex"
+$has_claude         && ok "Claude Code       → $CLAUDE_TARGET"         || warn "Claude Code       → 未偵測到 ~/.claude"
+$has_antigravity_v2 && ok "Antigravity 2.0   → $ANTIGRAVITY_TARGET_V2" || warn "Antigravity 2.0   → 未偵測到 ~/.gemini/config"
+$has_antigravity_v1 && ok "Antigravity 1.x   → $ANTIGRAVITY_TARGET_V1" || warn "Antigravity 1.x   → 未偵測到 ~/.gemini/antigravity"
+$has_codex          && ok "Codex             → $CODEX_TARGET"          || warn "Codex             → 未偵測到 ~/.codex"
+$has_vscode         && ok "VS Code Copilot   → $VSCODE_TARGET"         || warn "VS Code Copilot   → 未偵測到 code 指令或 ~/.copilot，仍可用 vscode 模式強制安裝"
 
-if ! $has_claude && ! $has_antigravity && ! $has_codex; then
-  err "沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity 或 Codex。"
+if ! $has_claude && ! $has_antigravity_v1 && ! $has_antigravity_v2 && ! $has_codex && ! $has_vscode; then
+  err "沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity、Codex 或 VS Code (Copilot)。"
   exit 1
 fi
 
@@ -111,26 +121,38 @@ install_all_for_tool() {
 # ---- main -----------------------------------------------------------
 case "$MODE" in
   auto|"")
-    $has_claude      && install_all_for_tool "claude"      "$CLAUDE_TARGET"
-    $has_antigravity && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET"
-    $has_codex       && install_all_for_tool "codex"       "$CODEX_TARGET"
+    $has_claude         && install_all_for_tool "claude"      "$CLAUDE_TARGET"
+    $has_antigravity_v2 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V2"
+    $has_antigravity_v1 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V1"
+    $has_codex          && install_all_for_tool "codex"       "$CODEX_TARGET"
+    $has_vscode         && install_all_for_tool "vscode"      "$VSCODE_TARGET"
     ;;
   claude)
     if ! $has_claude; then err "未偵測到 ~/.claude/"; exit 1; fi
     install_all_for_tool "claude" "$CLAUDE_TARGET"
     ;;
   antigravity)
-    if ! $has_antigravity; then err "未偵測到 ~/.gemini/antigravity/"; exit 1; fi
-    install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET"
+    if ! $has_antigravity_v1 && ! $has_antigravity_v2; then
+      err "未偵測到 ~/.gemini/config/ (2.0) 或 ~/.gemini/antigravity/ (1.x)"; exit 1
+    fi
+    $has_antigravity_v2 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V2"
+    $has_antigravity_v1 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V1"
     ;;
   codex)
     if ! $has_codex; then err "未偵測到 ~/.codex/"; exit 1; fi
     install_all_for_tool "codex" "$CODEX_TARGET"
     ;;
+  vscode)
+    # ~/.copilot/skills/ 是 GitHub Copilot 原生掃描的個人 skill 目錄
+    # 不強制要求偵測結果，允許手動指定情境
+    install_all_for_tool "vscode" "$VSCODE_TARGET"
+    ;;
   generic)
-    $has_claude      && install_all_for_tool "claude"      "$CLAUDE_TARGET"      "generic"
-    $has_antigravity && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET" "generic"
-    $has_codex       && install_all_for_tool "codex"       "$CODEX_TARGET"       "generic"
+    $has_claude         && install_all_for_tool "claude"      "$CLAUDE_TARGET"         "generic"
+    $has_antigravity_v2 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V2" "generic"
+    $has_antigravity_v1 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V1" "generic"
+    $has_codex          && install_all_for_tool "codex"       "$CODEX_TARGET"          "generic"
+    $has_vscode         && install_all_for_tool "vscode"      "$VSCODE_TARGET"         "generic"
     ;;
   *)
     err "未知選項：$MODE"

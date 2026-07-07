@@ -30,8 +30,9 @@
 # Linux / macOS / WSL
 ./install.sh              # 自動偵測已安裝的 AI 工具
 ./install.sh claude       # 僅安裝 Claude 版
-./install.sh antigravity  # 僅安裝 Antigravity 版
+./install.sh antigravity  # 僅安裝 Antigravity 版（2.0 → ~/.gemini/config/skills/，1.x → ~/.gemini/antigravity/skills/）
 ./install.sh codex        # 僅安裝 Codex 版
+./install.sh vscode       # 僅安裝 VS Code Copilot 版（~/.copilot/skills/）
 ```
 
 ```powershell
@@ -50,3 +51,5 @@
 ## 維護者備註
 
 修改此 skill 時，請同步更新工具專用版本（或至少更新 `generic/` 後再移植到各工具版本）。詳細規範見 repo 根目錄的 `CONTRIBUTING.md`。
+
+> ⚠️ **Antigravity 2.0 待驗證項**：2.0 的 skill 安裝路徑已改為全域 `~/.gemini/config/skills/`、專案層 `<project>/.agents/skills/`（installer 已支援雙路徑安裝）。但 `antigravity/SKILL.md` 內使用的工具名（`view_file` / `list_dir` / `run_command` / `replace_file_content`）與 `@ai-git-ignore-strategy` 觸發語法**尚未在 2.0 實測** — 請在 Antigravity 2.0 中實際觸發一次，確認可用後移除本備註。
