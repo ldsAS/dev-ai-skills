@@ -156,12 +156,14 @@ git rm --cached -r <dir>
 3. **規則邊界驗證**（每改完一條規則必跑）：用 `git check-ignore -v` 對「應該被擋」與「應該放行」的檔案各跑一次，確認 glob 邊界沒寫錯：
 
 ```powershell
-git check-ignore -v .env.production       # 應該被擋（顯示命中規則）
-git check-ignore -v .env.example          # 應該放行（無輸出）
-git check-ignore -v secrets.json          # 應該被擋（顯示命中規則）
+git check-ignore -v .env.production       # 應該被擋：輸出命中的 ignore 規則
+git check-ignore -v .env.example          # 應該放行：輸出 `!` 開頭的白名單規則
+git check-ignore -v secrets.json          # 應該被擋：輸出命中的 ignore 規則
 ```
 
-若 `.env.example` 被誤擋、或 `secrets.json` 沒被擋，回到步驟 1 修正規則。**驗證沒過就不要進步驟 4**。
+> ⚠️ **判讀規則**：`-v` 模式下「有輸出」**不等於**「被擋」——輸出的規則若以 `!` 開頭代表**放行**（`-v` 對負向規則也會輸出，且 exit code 同樣是 0）。要用 exit code 判斷時，改用不帶 `-v` 的 `git check-ignore -q <path>`：exit 0 = 被擋、exit 1 = 放行。
+
+若 `.env.example` 命中的不是 `!` 開頭的規則、或 `secrets.json` 完全沒被擋，回到步驟 1 修正規則。**驗證沒過就不要進步驟 4**。
 
 4. **補文件前先 grep**：若需要在文件中記錄「clone 後第一次設定步驟」（包含但不限於：技能重新安裝、靜態快照→連結、跨平台 `core.fileMode false` 設定、`chmod +x` 救援等）：
 
@@ -350,8 +352,10 @@ last_*.txt
 如果 AI workspace 或 runtime log 已被追蹤：
 
 ```powershell
-git rm -r --cached .agent .claude .codex .gemini .cursor .github/prompts
-git rm --cached *.log
+# --ignore-unmatch 必加：沒加的話，只要清單中任何一個路徑不在 index，
+# 整條指令會 fatal 中止、「一個檔案都不會移除」
+git rm -r --cached --ignore-unmatch .agent .claude .codex .gemini .cursor .github/prompts
+git rm --cached --ignore-unmatch '*.log'   # 引號讓 git 對 pathspec 遞迴比對（PowerShell 本來就不展開裸 glob）
 git add .gitignore .gitattributes
 git diff --cached --stat
 git diff --cached --summary
