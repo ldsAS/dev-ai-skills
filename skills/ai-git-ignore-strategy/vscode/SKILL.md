@@ -1,6 +1,6 @@
 ---
 name: ai-git-ignore-strategy
-description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Code, Codex, Cursor, Gemini 等) 的 .gitignore 最佳實務，防止專案庫被 AI 對話紀錄與暫存撐爆；同時正確保留設計藍圖、部署參考、備份資料檔與團隊 AI 指令檔。也負責跨平台（Linux VM ↔ Windows SSHFS）行尾正規化與 .gitattributes 設定。當使用者要求「檢核 gitignore」「整理 repo」「commit 前審查」「清理 AI 追蹤紀錄」「行尾 CRLF 問題」時觸發。
+description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Code, Codex, Cursor, Gemini 等) 的 .gitignore 最佳實務，防止專案庫被 AI 對話紀錄與暫存撐爆；同時正確保留設計藍圖、部署參考、備份資料檔與團隊 AI 指令檔。也負責跨平台（Linux VM ↔ Windows SSHFS）行尾正規化與 .gitattributes 設定。當使用者要求「檢核 gitignore」「整理 repo」「commit 前審查」「清理 AI 追蹤紀錄」「行尾 CRLF 問題」「0 byte diff」「file mode 漂移」時觸發。
 ---
 
 # AI 工作區 Git 管控最佳實務 (AI Git Ignore Strategy)
@@ -33,7 +33,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 | 修改既有檔案 | `replace_string_in_file` 或 `multi_replace_string_in_file` |
 | 新建檔案 | `create_file` |
 
-> ⚠️ **SSHFS 路徑注意**：當專案位於 `Z:\`（SSHFS 掛載的 Linux VM）時，`run_in_terminal` 執行的指令跑在 Windows 端；若要在 VM 端執行 git 指令，必須透過 `ssh asheng@100.120.68.107 '<command>'`。
+> ⚠️ **SSHFS 路徑注意**：當專案位於 SSHFS 掛載磁碟（如 `Z:\`，掛載自 Linux VM）時，`run_in_terminal` 執行的指令跑在 Windows 端；若要在 VM 端執行 git 指令，必須透過 `ssh <user>@<vm-host> '<command>'`（替換為你的 VM 帳號與位址）。
 
 ---
 
@@ -41,7 +41,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 
 1. 用 `read_file` 讀取 `.gitignore`（以及 `.gitattributes`，如存在），確認目前規則。
 2. 用 `run_in_terminal` 執行下列指令取得當前狀態：
-   （若專案在 SSHFS，加 `ssh asheng@100.120.68.107` 前綴）
+   （若專案在 SSHFS，加 `ssh <user>@<vm-host>` 前綴）
    ```bash
    git status
    git ls-files | head -100                                     # 已追蹤清單
@@ -52,6 +52,14 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
    ```
    > 💡 第 3 條 (`--others --ignored`) 是反向驗證的關鍵 — 看「規則實際攔下了什麼」。若看到本該追蹤的檔案被擋（例如 seed json 被 `*.json` 誤殺），就是規則太粗暴的訊號。
 3. 將未提交／已追蹤的檔案分類整理成表格，欄位包含：**檔案路徑、所在目錄、推測用途、是否已被追蹤、diff 大小**。
+4. **跨平台訊號 fingerprint 檢查**：用 `file_search` 或 `list_dir` 偵測下列訊號，若**多個**同時命中代表此專案有跨平台部署需求，第三階段 Report 應主動提及「預防性 fileMode 提示」：
+   - 同一 repo 同時存在 `.sh` + `.ps1` (或 + `.bat` / `.cmd` / `.vbs`)
+   - 根目錄有 `Dockerfile` / `docker-compose.yml`
+   - `.gitattributes` 指定多種 `eol`（同時有 `eol=lf` 與 `eol=crlf`）
+   - `README.md` / `DEPLOY.md` 提及 VM、SSHFS、Linux VM、Tailscale、systemd
+   - 已存在的 `.gitattributes` 有 `binary` 標記混合多平台腳本
+
+   命中 0–1 項：純單一 OS 專案，跳過預防性提示；命中 2 項以上：在第三階段加入相應的 ⚠️ 建議微調項。
 
 > 💡 **識別「假異動」**：`git diff --stat` 顯示 `0 insertions, 0 deletions` 卻被標為 modified，有兩種可能：
 > - **(a) 行尾雜訊**（CRLF ↔ LF 自動轉換）— 實際內容沒差、只是換行符不同。
@@ -124,6 +132,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 | `.env` 規則 | 單一 `.env` | 改為 `.env` + `.env.*` + `!.env.example` 三件套 | 防止未來 `.env.production` 等變體被誤推 |
 | `*.json` blanket 規則 | 單行無註解 | 加註解說明意圖、列出已知敏感檔 | 避免日後被縮限為 `data/*.json` 時意外解放 |
 | `secrets.json` | 已被 `*.json` 涵蓋 | 額外 explicit 列名一次 | 廣域規則若日後縮減，敏感檔仍有 explicit 保護 |
+| 跨平台 fileMode 提示 | DEPLOY.md 無記錄 | 補上 `git config core.fileMode false` 段落 | 第一階段 fingerprint 命中跨平台訊號（Dockerfile + .sh + .ps1 共存） |
 
 ### ❓ 需要您確認的檔案
 | 檔案 | 疑問 |
@@ -371,7 +380,7 @@ git rm --cached --ignore-unmatch '*.log'   # 引號讓 git 遞迴比對 pathspec
 # 2. 確保 .gitignore 已包含正確的阻擋規則
 
 # 3. 如果歷史已被大檔污染，考慮用 git-filter-repo 瘦身：
-#    pip install git-filter-repo
+#    pipx install git-filter-repo
 #    git filter-repo --strip-blobs-bigger-than 1M
 
 # 4. 重新加入應該提交的檔案（不要用 git add . 以免誤加）

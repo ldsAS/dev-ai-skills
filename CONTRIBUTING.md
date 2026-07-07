@@ -67,6 +67,14 @@ description: 一段清楚說明這個 skill 的用途與觸發時機的描述。
 
 - [ ] 各版本 `SKILL.md` 都有正確的 frontmatter（`name` + `description`）
 - [ ] 各版本 `name` 欄位與資料夾名稱完全一致
+- [ ] **五版結構對齊**：工具名可以不同，但下列元素必須五版同構（漏一項就是移植漂移）——
+  - 階段標題與數量（例如五階段流程的每一節）
+  - 診斷階段的「跨平台訊號 fingerprint 檢查」
+  - 報告表的四個區塊（✅ / 🚫 / ⚠️ 含 fileMode 提示 row / ❓）
+  - `git check-ignore` 邊界驗證步驟（含 `-v` 對 `!` 規則的判讀說明）
+  - 救援指令（含 `--ignore-unmatch`）
+  - 白名單注意事項
+- [ ] 內容**不含個人環境資訊**（帳號、IP、hostname、私有路徑）— 一律用 `<user>@<vm-host>` 這類佔位符
 - [ ] `antigravity/SKILL.md` 沒有出現 Claude 專屬工具名（如 `Read`, `Edit`, `Bash`）
 - [ ] `claude/SKILL.md` 沒有出現 Antigravity 專屬工具名（如 `view_file`, `list_dir`）
 - [ ] `codex/SKILL.md` 清楚記錄 Codex 的 `apply_patch`、`functions.shell_command`、sandbox escalation 與精準 staging 規則

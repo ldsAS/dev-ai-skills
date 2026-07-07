@@ -73,6 +73,16 @@ git -c core.fileMode=false status --short
 git -c core.fileMode=false diff --summary
 ```
 
+**跨平台訊號 fingerprint 檢查**：用 `rg --files` 或目錄列示偵測下列訊號，若**多個**同時命中代表此專案有跨平台部署需求，第三階段 Report 應主動提及「預防性 fileMode 提示」：
+
+- 同一 repo 同時存在 `.sh` + `.ps1`（或 + `.bat` / `.cmd` / `.vbs`）
+- 根目錄有 `Dockerfile` / `docker-compose.yml`
+- `.gitattributes` 指定多種 `eol`（同時有 `eol=lf` 與 `eol=crlf`）
+- `README.md` / `DEPLOY.md` 提及 VM、SSHFS、Linux VM、Tailscale、systemd
+- 已存在的 `.gitattributes` 有 `binary` 標記混合多平台腳本
+
+命中 0–1 項：純單一 OS 專案，跳過預防性提示；命中 2 項以上：在第三階段加入相應的 ⚠️ 建議微調項。
+
 如果 Git 回報 `index file corrupt`，先暫停並說明必須修復 index 才能正常審查 status/diff，不要把它當成一般檔案變更問題。
 
 ### 第二階段：分類 (Classify Files)
@@ -131,6 +141,7 @@ git -c core.fileMode=false diff --summary
 | `.env` 規則 | 單一 `.env` | 改為 `.env` + `.env.*` + `!.env.example` 三件套 | 防止未來 `.env.production` 等變體被誤推 |
 | `*.json` blanket 規則 | 單行無註解 | 加註解說明意圖、列出已知敏感檔 | 避免日後被縮限為 `data/*.json` 時意外解放 |
 | `secrets.json` | 已被 `*.json` 涵蓋 | 額外 explicit 列名一次 | 廣域規則若日後縮減，敏感檔仍有 explicit 保護 |
+| 跨平台 fileMode 提示 | DEPLOY.md 無記錄 | 補上 `git config core.fileMode false` 段落 | 第一階段 fingerprint 命中跨平台訊號（Dockerfile + .sh + .ps1 共存） |
 
 ### ❓ 需要確認
 | Path | Question |
