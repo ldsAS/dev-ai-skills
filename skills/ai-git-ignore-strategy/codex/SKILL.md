@@ -86,12 +86,13 @@ git -c core.fileMode=false diff --summary
 - 跨平台 repo policy：`.gitattributes`, `.editorconfig`, `.nvmrc`。
 - 專案自動化參考：Windows Task Scheduler 匯出 XML、systemd service sample、Docker / CI config。
 - 專案設計 source of truth：`design-system/MASTER.md`、有意義的 page override。
-- 團隊 AI 指令：`AGENTS.md`, `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`，或明確要共享的 project-specific skill files。
+- 團隊 AI 指令與共享 AI 設定：`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`（Copilot 共享 prompt）, `.claude/settings.json`（團隊權限／hooks）, `.claude/commands/`, `.cursor/rules/`，或明確要共享的 project-specific skill files。
 - 客製專案 skills：例如 `.codex/skills/<project-skill>/SKILL.md`，但必須先確認它不是本機安裝的第三方 skill。
 
 #### 🔴 應該排除或取消追蹤 (Ignore Or Untrack)
 
-- 本機 AI 工作區與 cache：`.agent/`, `.claude/`, `.codex/`, `.gemini/`, `.cursor/`, `.github/prompts/`，但 confirmed project skills 例外。
+- 本機 AI 工作區與 cache：`.agent/`（Antigravity 1.x）與 `.agents/`（2.0）的工作區暫存、`.codex/`、`.gemini/` 的快取，但 confirmed project skills 例外。
+  - ⚠️ 注意（最容易誤殺）：專案內 `.claude/`（`settings.json`, `commands/`, `skills/`）、`.cursor/rules/`、`.github/prompts/*.prompt.md` 多半是刻意共享的設定與規則，屬於 🟢 或 ⚠️ 類，不要整包封殺；多數工具的對話紀錄存在使用者家目錄（如 `~/.claude/projects/`），不在專案內。
 - Runtime logs：`*.log`，通常會自動輪替或持續增長，沒有版本控制價值。
 - 每次執行會覆寫的 runtime state：`last_run.txt`, `last_*.txt`。這些會讓 `git status` 長期保持 dirty。
 - 機密：`.env`, `.env.*`，但保留 `!.env.example`；另排除 `*.pem`, `*.key`, `credentials.json`, `certs/`。
@@ -102,7 +103,7 @@ git -c core.fileMode=false diff --summary
 
 #### ⚠️ 需要跟開發者確認 (Ask Before Deciding)
 
-- `.codex/skills/`, `.claude/skills/`, `.gemini/skills/`：是本機安裝的第三方 skill，還是 project-owned custom skill？
+- `.codex/skills/`, `.claude/skills/`, `.agents/skills/`（Antigravity 2.0）, `.agent/skills/`（1.x）, `.gemini/skills/`：是本機安裝的第三方 skill，還是 project-owned custom skill？
 - `$env:USERPROFILE\.codex\skills\` / `~/.codex/skills/`：這是 user-level Codex skill installation，通常不要整包複製進專案 repo。
 - `*.json`：runtime data，還是 `package.json`, `tsconfig.json`, `manifest.json` 這類 source/config？
 - `*.json.bak`：可丟棄備份，還是 DEPLOY 文件提到的唯一可還原資料？
@@ -315,20 +316,33 @@ target/
 Thumbs.db
 .idea/
 .vscode/settings.json
+# .vscode/extensions.json 與 launch.json 若為團隊共用，應該提交（勿加進 ignore）
 
 # AI Agent 工作區與快取
-.agent/
-.claude/
+# 原則：擋「工具自動產生的暫存」，放行「刻意共享的設定 / 規則 / 技能」。
+# 多數工具的對話紀錄存在使用者家目錄（如 ~/.claude/projects/），
+# 專案內的 dot 資料夾反而以刻意共享的內容為主 — 不要整包封殺。
+.claude/*
+!.claude/settings.json          # 團隊共用設定（權限、hooks）
+!.claude/commands/              # 團隊共用 slash commands
+!.claude/agents/                # 團隊共用 subagents
+!.claude/skills/                # 專案自有客製技能（本機安裝的第三方 skill 則毋須追蹤）
+.claude/settings.local.json     # 個人本機設定：即使有上方白名單也 explicit 擋一次
+.cursor/*
+!.cursor/rules/                 # Cursor 團隊規則，官方建議 commit
+.agent/                         # Antigravity 1.x 專案工作區暫存
+.agents/*                       # Antigravity 2.0 專案工作區
+!.agents/skills/                # 專案自有客製技能
 .codex/
 .gemini/
-.cursor/
-.github/prompts/
+# .github/prompts/ 是 VS Code Copilot 的團隊共享 prompt files (*.prompt.md)，
+# 預設「應該提交」；確認內容為個人暫存時才取消下行註解：
+# .github/prompts/
 
 # 自動執行日誌（會自動輪替或持續增長，沒有版本控制價值）
 *.log
 
 # Runtime 狀態檔（每次執行會覆寫，不該放 Git）
-last_run.txt
 last_*.txt
 ```
 
@@ -341,9 +355,10 @@ last_*.txt
 !.codex/skills/<project-skill>/**
 ```
 
-> 💡 **白名單注意事項**：`!` 白名單只有在母目錄使用 wildcard 形式時才會生效。
-> 例如：`.codex/` 會整包忽略資料夾，此時 `!.codex/skills/` **完全無效**，因為 Git 不會進入已忽略的資料夾。
-> 必須使用 `.codex/*` 搭配 `!.codex/skills/` 才能正確放行。同理適用 `.claude/`、`.gemini/` 和其他需要部分追蹤的 AI agent folder。
+> 💡 **白名單注意事項**：`!` 無法救回「位於已被忽略之**目錄**底下」的檔案，因為 Git 不會進入已忽略的資料夾。
+> 例如：`.codex/` 會整包忽略資料夾，此時 `!.codex/skills/` **完全無效**；
+> 必須使用 `.codex/*`（只擋直接子項）搭配 `!.codex/skills/` 才能正確放行。同理適用 `.claude/`、`.gemini/` 和其他需要部分追蹤的 AI agent folder。
+> 檔案型規則不受此限：`*.json` 搭配 `!seed.json` 直接有效，不需要母目錄星號。
 
 ---
 
@@ -354,7 +369,9 @@ last_*.txt
 ```powershell
 # --ignore-unmatch 必加：沒加的話，只要清單中任何一個路徑不在 index，
 # 整條指令會 fatal 中止、「一個檔案都不會移除」
-git rm -r --cached --ignore-unmatch .agent .claude .codex .gemini .cursor .github/prompts
+# .claude / .cursor / .github/prompts 內含團隊共用內容（settings.json、rules/、*.prompt.md），
+# 不要整包移除 — 先審查，再用精準路徑處理（例如 .claude/settings.local.json）
+git rm -r --cached --ignore-unmatch .agent .agents .codex .gemini
 git rm --cached --ignore-unmatch '*.log'   # 引號讓 git 對 pathspec 遞迴比對（PowerShell 本來就不展開裸 glob）
 git add .gitignore .gitattributes
 git diff --cached --stat

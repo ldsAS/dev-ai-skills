@@ -61,13 +61,13 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 - **部署與維運文件**：DEPLOY.md, README.md, CHANGELOG.md, docs/。
 - **排程與自動化設定參考**：task_info.xml（Windows Task Scheduler 匯出）、.service 檔備份、Dockerfile、docker-compose.yml、CI 設定檔。
 - **資料備份檔**：若 .gitignore 已排除 *.json，則 .json.bak 可能是唯一透過 Git 傳承資料的管道 — **必須對照 DEPLOY.md 的「還原資料檔」清單確認是否有對應**。
-- **專案級 AI 指令檔**：CLAUDE.md（根目錄）、.cursorrules、AGENTS.md 等團隊共用的 AI 規則檔。
+- **專案級 AI 指令檔與共享 AI 設定**：CLAUDE.md（根目錄）、AGENTS.md、GEMINI.md、.cursorrules、.github/copilot-instructions.md、.claude/settings.json（團隊權限／hooks）、.claude/commands/、.cursor/rules/、.github/prompts/*.prompt.md 等團隊共用的 AI 規則檔。
 - **跨平台設定**：.gitattributes、.editorconfig、.nvmrc。
 
 #### 🔴 應該排除 (Ignore)
 
-- **AI 對話紀錄與快取**：.agent/, .claude/, .codex/, .gemini/, .cursor/, .github/prompts/ 底下非 skills 的 session logs、快取、索引檔。
-  - ⚠️ 注意：.claude/skills/、.gemini/skills/ 是客製技能可能要保留（見「需確認」類）；.claude/ 底下的其他資料夾（projects/, sessions/, telemetry/, shell-snapshots/）才是純暫存。
+- **AI 對話紀錄與快取**：.agent/（Antigravity 1.x）與 .agents/（Antigravity 2.0）的工作區暫存、.codex/、.gemini/ 的快取、session logs、索引檔。
+  - ⚠️ 注意（最容易誤殺的一區）：多數工具的對話紀錄存在**使用者家目錄**（如 ~/.claude/projects/），不在專案內；專案根目錄的 .claude/（settings.json, commands/, agents/, skills/）、.cursor/rules/、.github/prompts/*.prompt.md 多半是**刻意共享**的設定與規則，屬於 🟢 或 ⚠️ 類。真正該擋的是 .claude/settings.local.json 這類個人本機檔與各工具快取。
 - **自動執行日誌**：*.log（無限增長、無版本控制意義）。
 - **Runtime 狀態檔**：像 last_run.txt, last_scan.txt, last_download.txt 這類「每次執行就覆寫」的狀態檔。它們會讓 git status 永遠滿江紅。
 - **二進位大型檔案**：PDF、圖片、影片、字型檔。Git 不擅長處理 binary，會永久佔用歷史空間。可考慮用 Git LFS 或改放 Notion/Drive 連結。
@@ -77,7 +77,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 
 #### ⚠️ 需要跟開發者確認 (Ask)
 
-- **AI 技能庫 (Skills)**：各 AI 工具的 skills/ 目錄。
+- **AI 技能庫 (Skills)**：各 AI 工具的 skills/ 目錄（如 .claude/skills/、.agents/skills/（Antigravity 2.0）、.agent/skills/（1.x）、.gemini/skills/）。
   - 透過 CLI 工具安裝的（如 uipro init --ai ...）→ **不需要** Git 傳承，在 DEPLOY.md 記錄安裝指令即可。
   - 開發者自行撰寫的客製技能 → **應該提交**。
   - **必問開發者**：「這個技能是透過 CLI 安裝的，還是您自己寫的？」
@@ -265,27 +265,37 @@ build/
 .DS_Store
 Thumbs.db
 .idea/
+.vscode/settings.json
+# .vscode/extensions.json 與 launch.json 若為團隊共用，應該提交
 
-# AI Agent Workspaces & Logs
+# AI Agent 工作區與快取
+# 原則：擋「工具自動產生的暫存」，放行「刻意共享的設定 / 規則 / 技能」
+.claude/*
+!.claude/settings.json
+!.claude/commands/
+!.claude/agents/
+!.claude/skills/
+.claude/settings.local.json
+.cursor/*
+!.cursor/rules/
 .agent/
-.claude/
+.agents/*
+!.agents/skills/
 .codex/
 .gemini/
-.cursor/
-.github/prompts/
+# .github/prompts/ 是共享 prompt files (*.prompt.md)，預設應提交；確認為個人暫存才取消註解：
+# .github/prompts/
 *.log
 
 # Runtime 狀態檔
-last_run.txt
 last_*.txt
 
 # TLS (self-signed)
 certs/
 
-# 如有需要保留的 AI 共用指令檔，請取消註解
-# !CLAUDE.md
-# !.cursorrules
-# !AGENTS.md
+# 專案級 AI 指令檔（CLAUDE.md, AGENTS.md, GEMINI.md, .cursorrules,
+# .github/copilot-instructions.md）屬於團隊共用，「應該提交」。
+# 上方規則都不會擋到它們，毋須 ! 白名單，也不要把它們加進 ignore。
 ```
 
 > ⚠️ **此範本僅為起點**。是否需要白名單 (!) 放行特定 skills 資料夾、是否需要排除 design-system/ 等，皆必須經過「逐一審查」流程後再決定。
@@ -306,7 +316,9 @@ certs/
 # 1. 從 Git 快取中移除（不會刪除本機實體檔案）
 #    --ignore-unmatch 必加：沒加的話，只要清單中任何一個路徑不在 index，
 #    整條指令會 fatal 中止、「一個檔案都不會移除」
-git rm -r --cached --ignore-unmatch .agent .claude .codex .gemini .cursor .github/prompts
+#    .claude / .cursor / .github/prompts 內含團隊共用內容（settings.json、rules/、*.prompt.md），
+#    不要整包移除 — 先審查，再用精準路徑處理（例如 .claude/settings.local.json）
+git rm -r --cached --ignore-unmatch .agent .agents .codex .gemini
 git rm --cached --ignore-unmatch '*.log'   # 引號讓 git 遞迴比對 pathspec；shell 裸 glob 只展開當前目錄
 
 # 2. 確保 .gitignore 已包含正確的阻擋規則
@@ -331,11 +343,11 @@ git commit -m "chore: 清理 AI 追蹤紀錄並套用最佳化 gitignore 規則"
 | :--- | :--- | :--- |
 | folder/ | 忽略整個資料夾 | .gemini/ |
 | *.ext | 忽略特定副檔名 | *.log |
-| folder/* | 忽略資料夾內容但保留資料夾本身 | .agent/* |
+| folder/* | 忽略資料夾的直接子項；實際用途是讓 ! 白名單能生效（Git 本來就不追蹤空資料夾） | .agent/* |
 | !path | 白名單：從忽略規則中排除特定路徑 | !.agent/skills/ |
 | **/pattern | 任意層級遞迴比對 | **/node_modules/ |
 
-> 💡 **白名單注意事項**：! 語法只在母目錄使用 *（星號）時才有效。例如 .claude/ 會完全忽略整個資料夾，此時 !.claude/skills/ **無效**。必須改為 .claude/* 搭配 !.claude/skills/ 才能正確放行。
+> 💡 **白名單注意事項**：! 無法救回「位於已被忽略之**目錄**底下」的檔案 — Git 一旦忽略整個資料夾就不會再往裡面看。例如 .claude/ 會整包忽略資料夾，此時 !.claude/skills/ **無效**；必須改為 .claude/*（只擋直接子項）搭配 !.claude/skills/ 才能正確放行。檔案型規則不受此限：*.json 搭配 !seed.json 直接有效，不需要母目錄星號。
 
 ### .gitattributes 進階用法
 
