@@ -36,7 +36,7 @@
 ```
 
 ```powershell
-# Windows
+# Windows (若遇到 Execution Policy 權限報錯，請改用：powershell -ExecutionPolicy Bypass -File .\install.ps1 <參數>)
 .\install.ps1
 .\install.ps1 claude
 .\install.ps1 codex

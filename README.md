@@ -40,6 +40,7 @@ git clone https://github.com/ldsAS/dev-ai-skills.git
 cd dev-ai-skills
 
 # 一鍵自動偵測
+# 💡 若遇到 Execution Policy 權限報錯，請改用：powershell -ExecutionPolicy Bypass -File .\install.ps1
 .\install.ps1
 
 # 指定工具
