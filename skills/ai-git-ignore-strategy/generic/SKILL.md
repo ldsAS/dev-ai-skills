@@ -275,17 +275,35 @@ Thumbs.db
 !.claude/commands/
 !.claude/agents/
 !.claude/skills/
+.claude/skills/*
+# !.claude/skills/<project-skill>/
+# !.claude/skills/<project-skill>/**
 .claude/settings.local.json
 .cursor/*
 !.cursor/rules/
-.agent/
+.agent/*
+!.agent/skills/
+.agent/skills/*
+# !.agent/skills/<project-skill>/
+# !.agent/skills/<project-skill>/**
 .agents/*
 !.agents/skills/
+.agents/skills/*
+# !.agents/skills/<project-skill>/
+# !.agents/skills/<project-skill>/**
 !.agents/AGENTS.md
 !.agents/settings.json
 .agents/settings.local.json
-.codex/
-.gemini/
+.codex/*
+!.codex/skills/
+.codex/skills/*
+# !.codex/skills/<project-skill>/
+# !.codex/skills/<project-skill>/**
+.gemini/*
+!.gemini/skills/
+.gemini/skills/*
+# !.gemini/skills/<project-skill>/
+# !.gemini/skills/<project-skill>/**
 # .github/prompts/ 是共享 prompt files (*.prompt.md)，預設應提交；確認為個人暫存才取消註解：
 # .github/prompts/
 *.log
@@ -319,9 +337,11 @@ certs/
 # 1. 從 Git 快取中移除（不會刪除本機實體檔案）
 #    --ignore-unmatch 必加：沒加的話，只要清單中任何一個路徑不在 index，
 #    整條指令會 fatal 中止、「一個檔案都不會移除」
-#    .claude / .cursor / .github/prompts 內含團隊共用內容（settings.json、rules/、*.prompt.md），
-#    不要整包移除 — 先審查，再用精準路徑處理（例如 .claude/settings.local.json）
-git rm -r --cached --ignore-unmatch .agent .agents .codex .gemini
+#    .agent / .agents / .codex / .gemini / .claude / .cursor / .github/prompts
+#    可能內含團隊共用內容（settings.json、rules/、skills/、*.prompt.md），不要整包移除。
+#    先審查，再用精準路徑處理，例如 .claude/settings.local.json 或已確認的 runtime/cache 子目錄。
+#    將 path/to/confirmed-ai-runtime-dir 替換成審查後確認的實際 runtime/cache 路徑。
+git rm -r --cached --ignore-unmatch path/to/confirmed-ai-runtime-dir
 git rm --cached --ignore-unmatch '*.log'   # 引號讓 git 遞迴比對 pathspec；shell 裸 glob 只展開當前目錄
 
 # 2. 確保 .gitignore 已包含正確的阻擋規則
@@ -350,7 +370,7 @@ git commit -m "chore: 清理 AI 追蹤紀錄並套用最佳化 gitignore 規則"
 | !path | 白名單：從忽略規則中排除特定路徑 | !.agent/skills/ |
 | **/pattern | 任意層級遞迴比對 | **/node_modules/ |
 
-> 💡 **白名單注意事項**：! 無法救回「位於已被忽略之**目錄**底下」的檔案 — Git 一旦忽略整個資料夾就不會再往裡面看。例如 .claude/ 會整包忽略資料夾，此時 !.claude/skills/ **無效**；必須改為 .claude/*（只擋直接子項）搭配 !.claude/skills/ 才能正確放行。檔案型規則不受此限：*.json 搭配 !seed.json 直接有效，不需要母目錄星號。
+> 💡 **白名單注意事項**：! 無法救回「位於已被忽略之**目錄**底下」的檔案 — Git 一旦忽略整個資料夾就不會再往裡面看。例如 .claude/ 會整包忽略資料夾，此時 !.claude/skills/ **無效**；必須改為 .claude/*（只擋直接子項）搭配 !.claude/skills/ 才能正確放行。若只想追蹤單一 project skill，還要先用 .claude/skills/* 重新擋住 skills 目錄內容，再用 !.claude/skills/<project-skill>/ 與 !.claude/skills/<project-skill>/** 精準放行，避免把本機安裝的第三方 skills 一起提交。檔案型規則不受此限：*.json 搭配 !seed.json 直接有效，不需要母目錄星號。
 
 ### .gitattributes 進階用法
 

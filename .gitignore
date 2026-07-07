@@ -12,7 +12,7 @@ Thumbs.db
 .codex/
 .gemini/
 .cursor/
-.github/prompts/
+# .github/prompts/ contains shareable Copilot prompt files; keep it trackable by default.
 
 # Test output
 *.log

@@ -16,7 +16,7 @@ skills/<skill-name>/
 ├── claude/
 │   └── SKILL.md           # [必要] Claude Code 專用版（用 Read, Edit, Bash, Glob 等工具名）
 ├── codex/
-│   └── SKILL.md           # [必要] Codex 專用版（用 functions.shell_command, apply_patch 等工具名）
+│   └── SKILL.md           # [必要] Codex 專用版（用 functions.exec_command, apply_patch 等工具名）
 ├── vscode/
 │   └── SKILL.md           # [必要] GitHub Copilot / VS Code 專用版（用 read_file, run_in_terminal 等工具名）
 └── generic/
@@ -55,7 +55,7 @@ description: 一段清楚說明這個 skill 的用途與觸發時機的描述。
 | :--- | :--- | :--- |
 | `antigravity/SKILL.md` | Antigravity 特有的工具名（`view_file`, `list_dir`, `@skill-name` 觸發語法） | Claude 專屬工具名 |
 | `claude/SKILL.md` | Claude Code 工具名（`Read`, `Edit`, `Bash`, `Glob`, `Grep`, `Write`）、`/skill-name` slash command | Antigravity 專屬工具名 |
-| `codex/SKILL.md` | Codex 工具與規則（`functions.shell_command`, `multi_tool_use.parallel`, `apply_patch`, sandbox escalation, `~/.codex/skills/`） | Claude / Antigravity / VS Code 專屬工具名 |
+| `codex/SKILL.md` | Codex 工具與規則（`functions.exec_command`, `multi_tool_use.parallel`, `apply_patch`, sandbox escalation, `~/.codex/skills/`） | Claude / Antigravity / VS Code 專屬工具名 |
 | `vscode/SKILL.md` | GitHub Copilot / VS Code 工具名（`read_file`, `list_dir`, `grep_search`, `run_in_terminal`, `replace_string_in_file`） | Claude / Antigravity / Codex 專屬工具名 |
 | `generic/SKILL.md` | 工具無關的描述（「讀取檔案內容」「列出目錄」「執行 git 指令」） | ❌ 任何具體工具名 |
 
@@ -77,7 +77,7 @@ description: 一段清楚說明這個 skill 的用途與觸發時機的描述。
 - [ ] 內容**不含個人環境資訊**（帳號、IP、hostname、私有路徑）— 一律用 `<user>@<vm-host>` 這類佔位符
 - [ ] `antigravity/SKILL.md` 沒有出現 Claude 專屬工具名（如 `Read`, `Edit`, `Bash`）
 - [ ] `claude/SKILL.md` 沒有出現 Antigravity 專屬工具名（如 `view_file`, `list_dir`）
-- [ ] `codex/SKILL.md` 清楚記錄 Codex 的 `apply_patch`、`functions.shell_command`、sandbox escalation 與精準 staging 規則
+- [ ] `codex/SKILL.md` 清楚記錄 Codex 的 `apply_patch`、`functions.exec_command`、sandbox escalation 與精準 staging 規則
 - [ ] `vscode/SKILL.md` 沒有混入 Claude / Antigravity / Codex 專屬工具名
 - [ ] `generic/SKILL.md` 沒有出現**任何**具體工具名
 - [ ] 撰寫 `skills/<skill-name>/README.md` 說明各版本差異與使用時機

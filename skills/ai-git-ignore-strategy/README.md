@@ -17,7 +17,7 @@
 | `antigravity/SKILL.md` | Google Antigravity | `view_file` / `list_dir` / `run_command` |
 | `claude/SKILL.md` | Claude Code | `Read` / `Glob` / `Grep` / `Bash` / `Edit` |
 | `vscode/SKILL.md` | GitHub Copilot (VS Code) | `read_file` / `list_dir` / `grep_search` / `run_in_terminal` / `replace_string_in_file` |
-| `codex/SKILL.md` | Codex | `functions.shell_command` / `multi_tool_use.parallel` / `apply_patch` / sandbox escalation |
+| `codex/SKILL.md` | Codex | `functions.exec_command` / `multi_tool_use.parallel` / `apply_patch` / sandbox escalation |
 | `generic/SKILL.md` | 工具無關 | 描述為「讀檔工具」「shell 執行工具」等抽象名稱 |
 
 五版內容結構一致（五階段流程 + 三色分類 + 標準範本 + 救援指令），並依各工具的檔案讀取、shell 執行、編輯、權限提升與安裝位置做微調。Codex 版額外納入 `apply_patch`、`multi_tool_use.parallel`、sandbox escalation 等 Codex 特有操作規則，並全程使用 PowerShell 範例（Windows + SSHFS 友善）。
@@ -51,4 +51,3 @@
 ## 維護者備註
 
 修改此 skill 時，請同步更新工具專用版本（或至少更新 `generic/` 後再移植到各工具版本）。詳細規範見 repo 根目錄的 `CONTRIBUTING.md`。
-

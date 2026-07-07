@@ -58,14 +58,14 @@ $HasClaude        = Test-Path (Join-Path $env:USERPROFILE '.claude')
 $HasAntigravityV1 = Test-Path (Join-Path $env:USERPROFILE '.gemini\antigravity')
 $HasAntigravityV2 = Test-Path (Join-Path $env:USERPROFILE '.gemini\config')
 $HasCodex         = Test-Path (Join-Path $env:USERPROFILE '.codex')
-$HasVSCode        = (Get-Command code -ErrorAction SilentlyContinue) -ne $null
+$HasVSCode        = ((Get-Command code -ErrorAction SilentlyContinue) -ne $null) -or (Test-Path (Join-Path $env:USERPROFILE '.copilot'))
 
 Write-Info '偵測到的 AI 工具：'
 if ($HasClaude)        { Write-Ok    "Claude Code       → $ClaudeTarget" }        else { Write-Warn2 'Claude Code       → 未偵測到 ~/.claude' }
 if ($HasAntigravityV2) { Write-Ok    "Antigravity 2.0   → $AntigravityTargetV2" } else { Write-Warn2 'Antigravity 2.0   → 未偵測到 ~/.gemini/config' }
 if ($HasAntigravityV1) { Write-Ok    "Antigravity 1.x   → $AntigravityTargetV1" } else { Write-Warn2 'Antigravity 1.x   → 未偵測到 ~/.gemini/antigravity' }
 if ($HasCodex)         { Write-Ok    "Codex             → $CodexTarget" }         else { Write-Warn2 'Codex             → 未偵測到 ~/.codex' }
-if ($HasVSCode)        { Write-Ok    "VS Code Copilot   → $VSCodeTarget" }        else { Write-Warn2 'VS Code Copilot   → 未偵測到 code 指令，仍可用 vscode 模式強制安裝' }
+if ($HasVSCode)        { Write-Ok    "VS Code Copilot   → $VSCodeTarget" }        else { Write-Warn2 'VS Code Copilot   → 未偵測到 code 指令或 ~/.copilot，仍可用 vscode 模式強制安裝' }
 
 if (-not $HasClaude -and -not $HasAntigravityV1 -and -not $HasAntigravityV2 -and -not $HasCodex -and -not $HasVSCode) {
     Write-Err2 '沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity、Codex 或 VS Code。'
