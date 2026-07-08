@@ -51,6 +51,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
    git log --oneline -10                                         # 最近的 commit 風格
    ```
    > ⚠️ **PowerShell 提醒**：`run_in_terminal` 在此環境是 Windows PowerShell 5.1，沒有內建 `head`/`grep`/`chmod`/`find`，一律改用 `Select-Object -First N`、`Select-String`、`git` 原生子指令等 PowerShell 等效寫法。
+   > ⚠️ **ssh 前綴例外**：若指令是透過 `ssh <user>@<vm-host> '<command>'` 送到 Linux VM 端執行，remote 是 POSIX shell — 那邊**沒有** `Select-Object`/`Select-String`，要改回 `head -N`/`grep`。判斷基準：指令實際在哪一端執行，就用哪一端的語法。
    > 💡 第 3 條 (`--others --ignored`) 是反向驗證的關鍵 — 看「規則實際攔下了什麼」。若看到本該追蹤的檔案被擋（例如 seed json 被 `*.json` 誤殺），就是規則太粗暴的訊號。
 3. 將未提交／已追蹤的檔案分類整理成表格，欄位包含：**檔案路徑、所在目錄、推測用途、是否已被追蹤、diff 大小**。
 4. **跨平台訊號 fingerprint 檢查**：用 `file_search` 或 `list_dir` 偵測下列訊號，若**多個**同時命中代表此專案有跨平台部署需求，第三階段 Report 應主動提及「預防性 fileMode 提示」：
