@@ -215,7 +215,11 @@ git commit -m "chore: 導入 .gitattributes 強制 LF，正規化既有文字檔
 git ls-files --eol
 # 例：i/lf  w/lf  attr/text eol=crlf  update-skills.bat   ← w/ 應為 crlf，中招
 
-# 修復：刪除後重新 checkout，強制觸發行尾轉換（不會產生任何 diff）
+# 修復前先確認沒有內容變更；兩條 diff 都必須無輸出，否則不可刪檔
+git diff -- update-skills.bat
+git diff --cached -- update-skills.bat
+
+# 修復：只對「內容乾淨但行尾殘留」的檔案刪除後重新 checkout，強制觸發行尾轉換（不會產生任何 diff）
 rm update-skills.bat
 git checkout -- update-skills.bat
 ```
