@@ -113,6 +113,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 | `*.json` blanket 規則 | 單行無註解 | 加註解說明意圖、列出已知敏感檔 | 避免日後被縮限為 `data/*.json` 時意外解放 |
 | `secrets.json` | 已被 `*.json` 涵蓋 | 額外 explicit 列名一次 | 廣域規則若日後縮減，敏感檔仍有 explicit 保護 |
 | 跨平台 fileMode 提示 | DEPLOY.md 無記錄 | 補上 `git config core.fileMode false` 段落 | 第一階段 fingerprint 命中跨平台訊號（Dockerfile + .sh + .ps1 共存） |
+| 根目錄散落 runtime 檔 | `last_*.txt`、`*.log` 等散在根目錄 | 方案 A：就地 ignore（本 skill 可直接執行）／方案 B：集中到 `data/` 等目錄（屬架構重構，**超出本 skill 範圍**，僅提出由開發者決定） | 方案 B 牽動程式路徑、排程與部署，須另行評估 |
 
 ### ❓ 需要您確認的檔案
 | 檔案 | 疑問 |
@@ -151,6 +152,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
    - 先用 `Grep` 或 `Bash grep` 檢查 `README.md` / `DEPLOY.md` / `CONTRIBUTING.md` 是否已記錄
    - **已存在** → 直接告知開發者位置（例如「DEPLOY.md 第 X 節已涵蓋」），跳過寫入
    - **不存在** → 詢問開發者要寫到哪份文件再補上；若兩份都沒有，建議寫到 `README.md` 的 Setup 段落
+   - **動態資料目錄搬移**：若本次調整（或近期重構）曾搬移 runtime 資料目錄，額外確認 `DEPLOY.md` 已記錄部署安全順序「**停服務 → 拉代碼 → 搬舊資料 → 啟動服務**」— 服務運行中搬移動態檔案會引發排程與去重失效（真實事故教訓）
 5. 用 `Bash git add <files>` 選擇性加入暫存（**不要** `git add .` 以免誤加）。
 6. 提交前**再次提醒開發者**檢視 `git status` 與 `git diff --cached --summary`，確認暫存區符合預期才 commit。若 `--cached --summary` 出現 `mode change` 或 rename-only 條目，屬於環境雜訊，**不可混入功能 commit** — 拆到第五階段的獨立 commit。
 7. **Commit 策略**：若同時有「內容變更」和「環境雜訊」（LF 轉換 / file mode 漂移 / rename-only），**拆成多個 commit** 並依類型分組，避免雜訊淹沒真正的功能變更。

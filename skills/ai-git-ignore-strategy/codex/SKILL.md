@@ -142,6 +142,7 @@ git -c core.fileMode=false diff --summary
 | `*.json` blanket 規則 | 單行無註解 | 加註解說明意圖、列出已知敏感檔 | 避免日後被縮限為 `data/*.json` 時意外解放 |
 | `secrets.json` | 已被 `*.json` 涵蓋 | 額外 explicit 列名一次 | 廣域規則若日後縮減，敏感檔仍有 explicit 保護 |
 | 跨平台 fileMode 提示 | DEPLOY.md 無記錄 | 補上 `git config core.fileMode false` 段落 | 第一階段 fingerprint 命中跨平台訊號（Dockerfile + .sh + .ps1 共存） |
+| 根目錄散落 runtime 檔 | `last_*.txt`、`*.log` 等散在根目錄 | 方案 A：就地 ignore（本 skill 可直接執行）／方案 B：集中到 `data/` 等目錄（屬架構重構，**超出本 skill 範圍**，僅提出由開發者決定） | 方案 B 牽動程式路徑、排程與部署，須另行評估 |
 
 ### ❓ 需要確認
 | Path | Question |
@@ -185,6 +186,7 @@ Select-String -Path "README.md","DEPLOY.md","CONTRIBUTING.md" -Pattern "core.fil
 
    - **已存在** → 直接告知開發者位置（例如「DEPLOY.md 第 X 節已涵蓋」），跳過寫入
    - **不存在** → 詢問開發者要寫到哪份文件再補上；若兩份都沒有，建議寫到 `README.md` 的 Setup 段落
+   - **動態資料目錄搬移**：若本次調整（或近期重構）曾搬移 runtime 資料目錄，額外確認 `DEPLOY.md` 已記錄部署安全順序「**停服務 → 拉代碼 → 搬舊資料 → 啟動服務**」— 服務運行中搬移動態檔案會引發排程與去重失效（真實事故教訓）
 
 5. 只 stage 精準檔案：
 
