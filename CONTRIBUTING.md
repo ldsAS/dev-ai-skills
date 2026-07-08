@@ -74,6 +74,7 @@ description: 一段清楚說明這個 skill 的用途與觸發時機的描述。
   - `git check-ignore` 邊界驗證步驟（含 `-v` 對 `!` 規則的判讀說明）
   - 救援指令（含 `--ignore-unmatch`）
   - 白名單注意事項
+  - 5a 的「工作樹行尾殘留」診斷與修復（`git ls-files --eol` + 強制重新 checkout）
 - [ ] 內容**不含個人環境資訊**（帳號、IP、hostname、私有路徑）— 一律用 `<user>@<vm-host>` 這類佔位符
 - [ ] `antigravity/SKILL.md` 沒有出現 Claude 專屬工具名（如 `Read`, `Edit`, `Bash`）
 - [ ] `claude/SKILL.md` 沒有出現 Antigravity 專屬工具名（如 `view_file`, `list_dir`）

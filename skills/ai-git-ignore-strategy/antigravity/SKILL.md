@@ -208,6 +208,18 @@ git commit -m "chore: 導入 .gitattributes 強制 LF，正規化既有文字檔
 
 > ⚠️ **Renormalize 會造成大量 diff**：所有曾經以 CRLF 存在的檔案都會顯示「整檔重寫」。這是預期行為，不是 bug。**務必拆成獨立 commit**，與內容變更分開。
 
+**Renormalize 修不到的「工作樹殘留」**：`git add --renormalize .` 只修**入庫側**（index）；工作樹的實體檔案不會被動。Git 只在 checkout 的瞬間套用 `eol=` 轉換，所以在規則導入**之前**就存在於工作樹、內容又與 index 一致的檔案，永遠不會被自動重寫 — `.gitattributes` 寫著 `*.bat eol=crlf`，硬碟上卻仍是 LF，而且 `git status` 完全乾淨。實際後果（真實案例）：LF 的 `.bat` 含中文時，cmd/CP950 會把中文尾位元組與 LF 配對吞掉，行黏合、指令腰斬（症狀如 `'pull' 不是內部或外部命令`）。
+
+```bash
+# 檢測：逐檔列出 index (i/)、工作樹 (w/)、attr 三方行尾，找 attr 與 w/ 不一致者
+git ls-files --eol
+# 例：i/lf  w/lf  attr/text eol=crlf  update-skills.bat   ← w/ 應為 crlf，中招
+
+# 修復：刪除後重新 checkout，強制觸發行尾轉換（不會產生任何 diff）
+rm update-skills.bat
+git checkout -- update-skills.bat
+```
+
 #### 5b. 檔案權限漂移（File Mode on SSHFS / cross-platform）
 
 **症狀**：`git diff --stat` 每行顯示 `0 insertions, 0 deletions`、`git diff` 看不到任何 hunk，但 `git diff --summary` 出現大量 `mode change 100644 => 100755 <file>`。內容完全沒動，只有執行權限翻了。
