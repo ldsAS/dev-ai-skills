@@ -42,14 +42,15 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 1. 用 `read_file` 讀取 `.gitignore`（以及 `.gitattributes`，如存在），確認目前規則。
 2. 用 `run_in_terminal` 執行下列指令取得當前狀態：
    （若專案在 SSHFS，加 `ssh <user>@<vm-host>` 前綴）
-   ```bash
+   ```powershell
    git status
-   git ls-files | head -100                                     # 已追蹤清單
-   git ls-files --others --ignored --exclude-standard | head -50 # 實體存在但被 ignore 的檔案
+   git ls-files | Select-Object -First 100                                     # 已追蹤清單
+   git ls-files --others --ignored --exclude-standard | Select-Object -First 50 # 實體存在但被 ignore 的檔案
    git diff --stat                                               # 內容 diff 量
    git diff --summary                                            # 抓 mode-only / rename-only 變動（stat 看不到）
    git log --oneline -10                                         # 最近的 commit 風格
    ```
+   > ⚠️ **PowerShell 提醒**：`run_in_terminal` 在此環境是 Windows PowerShell 5.1，沒有內建 `head`/`grep`/`chmod`/`find`，一律改用 `Select-Object -First N`、`Select-String`、`git` 原生子指令等 PowerShell 等效寫法。
    > 💡 第 3 條 (`--others --ignored`) 是反向驗證的關鍵 — 看「規則實際攔下了什麼」。若看到本該追蹤的檔案被擋（例如 seed json 被 `*.json` 誤殺），就是規則太粗暴的訊號。
 3. 將未提交／已追蹤的檔案分類整理成表格，欄位包含：**檔案路徑、所在目錄、推測用途、是否已被追蹤、diff 大小**。
 4. **跨平台訊號 fingerprint 檢查**：用 `file_search` 或 `list_dir` 偵測下列訊號，若**多個**同時命中代表此專案有跨平台部署需求，第三階段 Report 應主動提及「預防性 fileMode 提示」：
@@ -195,7 +196,7 @@ Git 預設會依 `core.autocrlf` 在 checkout/commit 時轉換行尾，造成：
 - Merge conflict 發生在純行尾差異
 - `.sh` 腳本在 Linux 端因為 CRLF 噴 `\r: command not found`
 
-**檢測**：用 `run_in_terminal` 跑 `git diff --stat | grep ' | *0$'` 找 0 byte 修改的檔案；若多個 0 byte diff 文字檔 `git diff` 又看不到 hunk，就是行尾問題。
+**檢測**：用 `run_in_terminal` 跑 `git diff --stat | Select-String '\| *0$'`（PowerShell 原生指令，取代 Unix `grep`）找 0 byte 修改的檔案；若多個 0 byte diff 文字檔 `git diff` 又看不到 hunk，就是行尾問題。
 
 **解法**：用 `create_file` 在專案根目錄建立 `.gitattributes`：
 
@@ -236,9 +237,16 @@ git commit -m "chore: 導入 .gitattributes 強制 LF，正規化既有文字檔
 
 **檢測**：用 `run_in_terminal` 執行：
 
-```bash
-git diff --summary | grep "mode change"   # 抓所有 mode 漂移
-git config --get core.fileMode             # 查目前設定（預設 true）
+```powershell
+git diff --summary | Select-String "mode change"   # 抓所有 mode 漂移
+git config --get core.fileMode                       # 查目前設定（預設 true）
+```
+
+若 `.git/config` 因權限問題暫時無法寫入，可先用 `-c` 暫時診斷（不改 repo 設定）：
+
+```powershell
+git -c core.fileMode=false status --short
+git -c core.fileMode=false diff --summary
 ```
 
 **三種解法**（由重到輕，挑一個）：
@@ -262,7 +270,9 @@ git config --get core.fileMode             # 查目前設定（預設 true）
 
    只改 git index 的記錄，不動 working tree。適合少量檔案、或想保留 mode 追蹤的情境。
 
-3. **🥉 Working tree 批次修回**
+3. **🥉 Working tree 批次修回（需在 Linux VM 端 / POSIX shell 執行）**
+
+   > ⚠️ Windows 端的 `run_in_terminal` 是 PowerShell，沒有 `chmod` / `find -exec`。若專案透過 SSHFS 掛載，須改用 `ssh <user>@<vm-host> '<command>'` 在 Linux 端執行下列指令；純 Windows 專案本來就沒有 exec bit 問題，可略過此招。
 
    ```bash
    find . -type f \( -name '*.py' -o -name '*.md' -o -name '*.html' -o -name '*.json' \) -exec chmod 644 {} \;
