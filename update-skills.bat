@@ -1,4 +1,6 @@
 @echo off
+REM 切到 UTF-8 code page，讓本檔的中文訊息正常顯示（本檔為 UTF-8 編碼）
+chcp 65001 >nul
 REM ============================================================
 REM  dev-ai-skills 一鍵更新啟動器 (Windows)
 REM  雙擊執行：git pull + 重新安裝所有偵測到的 AI 工具版本
