@@ -2,9 +2,9 @@ name: Check AI Tools Updates
 
 on:
   schedule:
-    # 每天的 UTC 03:23 執行一次 (約台灣時間中午 11:23)
-    # 💡 推薦做法：避開整點 (如 00:00) 的 queue 塞車高峰，選擇任意的非整點時間
-    - cron: '23 3 * * *'
+    # 每天的 UTC 01:15 執行一次 (約台灣時間早上 09:15)
+    # 💡 推薦做法：避開整點 (如 09:00 / UTC 01:00) 的 queue 塞車高峰，選擇非整點以降低延遲
+    - cron: '15 1 * * *'
   workflow_dispatch: # 允許在 GitHub 介面上手動點擊按鈕立即執行，非常適合驗證與測試
 
 permissions:
