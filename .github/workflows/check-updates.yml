@@ -1,0 +1,59 @@
+name: Check AI Tools Updates
+
+on:
+  schedule:
+    # 每天的 UTC 03:23 執行一次 (約台灣時間中午 11:23)
+    # 💡 推薦做法：避開整點 (如 00:00) 的 queue 塞車高峰，選擇任意的非整點時間
+    - cron: '23 3 * * *'
+  workflow_dispatch: # 允許在 GitHub 介面上手動點擊按鈕立即執行，非常適合驗證與測試
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  check-and-notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Run check script
+        id: run_check
+        run: |
+          # 執行檢測並將日誌輸出到 report.txt
+          python scripts/check_updates.py > report.txt
+          cat report.txt
+          
+          # 檢查報告內容是否包含警示訊號
+          if grep -q "UPDATE_DETECTED" report.txt; then
+            echo "has_updates=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_updates=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Issue on GitHub
+        if: steps.run_check.outputs.has_updates == 'true'
+        run: |
+          # 透過 GitHub CLI 建立 Issue 來發送通知
+          # --body-file 會將 report.txt 內容作為 Issue 的主體
+          gh issue create \
+            --title "🚨 偵測到 AI 工具路徑與機制更新！" \
+            --body-file report.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit version baseline update
+        if: steps.run_check.outputs.has_updates == 'true'
+        run: |
+          # 將更新後的 scripts/last_checked.json 提交回 Repo，避免重複建立 Issue
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add scripts/last_checked.json
+          git commit -m "chore: update checked version baseline [skip ci]"
+          git push
