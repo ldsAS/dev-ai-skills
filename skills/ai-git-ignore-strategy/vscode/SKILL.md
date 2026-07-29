@@ -82,13 +82,13 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 - **部署與維運文件**：`DEPLOY.md`, `README.md`, `CHANGELOG.md`, `docs/`。
 - **排程與自動化設定參考**：`task_info.xml`（Windows Task Scheduler 匯出）、`.service` 檔備份、`Dockerfile`、`docker-compose.yml`、CI 設定檔。
 - **資料備份檔**：若 `.gitignore` 已排除 `*.json`，則 `.json.bak` 可能是唯一透過 Git 傳承資料的管道 — **必須對照 `DEPLOY.md` 的「還原資料檔」清單確認是否有對應**。
-- **專案級 AI 指令檔與共享 AI 設定**：`CLAUDE.md`（根目錄）、`AGENTS.md`、`GEMINI.md`、`.cursorrules`、`.github/copilot-instructions.md`、`.github/prompts/*.prompt.md`（Copilot 共享 prompt）、`.agents/AGENTS.md`（專案級自訂規則）、`.agents/settings.json`（專案共用設定）、`.claude/settings.json`（團隊權限／hooks）、`.claude/commands/`、`.cursor/rules/` 等團隊共用的 AI 規則檔。
+- **專案級 AI 指令檔與共享 AI 設定**：`CLAUDE.md`（根目錄）、`AGENTS.md`、`GEMINI.md`、`.cursorrules`、`.github/copilot-instructions.md`、`.github/prompts/*.prompt.md`（Copilot 共享 prompt）、`.agents/plugins/marketplace.json`（Codex 團隊共用外掛市集）、`.agents/AGENTS.md`（專案級自訂規則）、`.agents/settings.json`（專案共用設定）、`.claude/settings.json`（團隊權限／hooks）、`.claude/commands/`、`.cursor/rules/` 等團隊共用的 AI 規則檔。
 - **跨平台設定**：`.gitattributes`、`.editorconfig`、`.nvmrc`。
 
 #### 🔴 應該排除 (Ignore)
 
-- **AI 對話紀錄與快取**：`.agent/`（Antigravity 1.x）與 `.agents/`（Antigravity 2.0）的工作區暫存、`.codex/`、`.gemini/` 的快取、session logs、索引檔。
-  - ⚠️ 注意（最容易誤殺的一區）：`.github/prompts/*.prompt.md` 是 VS Code Copilot 的**團隊共享 prompt files**，與 `.github/copilot-instructions.md` 同屬刻意共享，預設應提交；專案根目錄的 `.agents/`（`AGENTS.md`、`settings.json`、`skills/`）、`.claude/`（`settings.json`、`commands/`、`skills/`）與 `.cursor/rules/` 同理。多數工具的對話紀錄其實存在使用者家目錄（如 `~/.claude/projects/`），不在專案內；真正該擋的是 `.claude/settings.local.json` 這類個人本機檔與各工具快取。
+- **AI 對話紀錄與快取**：`.agent/`（Antigravity 1.x）、`.antigravitycli/`（Antigravity CLI 舊版的工作區對應檔；新版已改集中到 `~/.gemini/antigravity-cli/cache/projects.json` 並淘汰此目錄，舊專案仍會殘留） 的工作區暫存、`.codex/`、`.gemini/` 的快取、session logs、索引檔。
+  - ⚠️ 注意（最容易誤殺的一區）：`.github/prompts/*.prompt.md` 是 VS Code Copilot 的**團隊共享 prompt files**，與 `.github/copilot-instructions.md` 同屬刻意共享，預設應提交；專案根目錄的 `.agents/`（`AGENTS.md`、`settings.json`、`skills/`）、`.claude/`（`settings.json`、`commands/`、`skills/`）與 `.cursor/rules/` 同理。多數工具的對話紀錄其實存在使用者家目錄（如 `~/.claude/projects/`），不在專案內；真正該擋的是 `.claude/settings.local.json` 這類個人本機檔與各工具快取。 另外，`.agents/` 並非 Antigravity 專屬，而是**跨工具共用目錄** — Codex 會從當前工作目錄逐層往上掃 `.agents/skills`、Gemini CLI 以 `.agents/skills/` 作為 `.gemini/skills/` 的高優先別名、Antigravity 讀 `.agents/hooks.json`；只裝 Codex 的專案一樣會出現 `.agents/`，不要當成 Antigravity 殘留。
 - **自動執行日誌**：`*.log`（無限增長、無版本控制意義）。
 - **Runtime 狀態檔**：像 `last_run.txt`, `last_scan.txt`, `last_download.txt` 這類「每次執行就覆寫」的狀態檔。它們會讓 `git status` 永遠滿江紅。
 - **二進位大型檔案**：PDF、圖片、影片、字型檔。Git 不擅長處理 binary，會永久佔用歷史空間。可考慮用 Git LFS 或改放 Notion/Drive 連結。
@@ -98,7 +98,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 
 #### ⚠️ 需要跟開發者確認 (Ask)
 
-- **AI 技能庫 (Skills)**：`.claude/skills/`, `.agents/skills/`（Antigravity 2.0）, `.agent/skills/`（1.x）, `.gemini/skills/`, `~/.copilot/skills/` 等目錄。
+- **AI 技能庫 (Skills)**：`.claude/skills/`, `.agents/skills/`（跨工具：Codex／Gemini CLI／Antigravity 共用）, `.agent/skills/`（1.x）, `.gemini/skills/`, `~/.copilot/skills/` 等目錄。
   - 透過 CLI 工具安裝的（如 `uipro init --ai claude`）→ **不需要** Git 傳承，在 `DEPLOY.md` 記錄安裝指令即可。
   - 開發者自行撰寫的客製技能 → **應該提交**。
   - **必問開發者**：「這個技能是透過 CLI 安裝的，還是您自己寫的？」
@@ -308,6 +308,13 @@ git -c core.fileMode=false diff --summary
 
 ```text
 # =========================================
+# ⚠️ .gitignore 的 # 只有在「行首」才算註解
+# 寫成  !.claude/settings.json   # 團隊共用設定
+# 會讓整條規則連同註解一起被當成檔名比對而完全失效 —
+# 白名單看起來存在，實際上一條都沒生效。註解一律獨立成行。
+# 每改完一條規則，務必用 git check-ignore 驗證邊界。
+# =========================================
+# =========================================
 # 機密與環境
 # =========================================
 .env
@@ -354,36 +361,64 @@ Thumbs.db
 # 多數工具的對話紀錄存在使用者家目錄（如 ~/.claude/projects/），
 # 專案內的 dot 資料夾反而以刻意共享的內容為主 — 不要整包封殺。
 .claude/*
-!.claude/settings.json          # 團隊共用設定（權限、hooks）
-!.claude/commands/              # 團隊共用 slash commands
-!.claude/agents/                # 團隊共用 subagents
-!.claude/skills/                # 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
+# 團隊共用設定（權限、hooks）
+!.claude/settings.json
+# 團隊共用 slash commands
+!.claude/commands/
+# 團隊共用 subagents
+!.claude/agents/
+# 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
+!.claude/skills/
 .claude/skills/*
 # !.claude/skills/<project-skill>/
 # !.claude/skills/<project-skill>/**
-.claude/settings.local.json     # 個人本機設定：即使有上方白名單也 explicit 擋一次
+# 個人本機設定：即使有上方白名單也 explicit 擋一次
+.claude/settings.local.json
 .cursor/*
-!.cursor/rules/                 # Cursor 團隊規則，官方建議 commit
-.agent/*                        # Antigravity 1.x 專案工作區暫存
-!.agent/skills/                 # 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
+# Cursor 團隊規則，官方建議 commit
+!.cursor/rules/
+# Antigravity 1.x 專案工作區暫存
+.agent/*
+# 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
+!.agent/skills/
 .agent/skills/*
 # !.agent/skills/<project-skill>/
 # !.agent/skills/<project-skill>/**
-.agents/*                       # Antigravity 2.0 專案工作區
-!.agents/skills/                # 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
+# .agents/ 為跨工具共用目錄，非 Antigravity 專屬：
+#   Codex       — 從 CWD 逐層往上掃 .agents/skills；.agents/plugins/marketplace.json 屬團隊共用
+#   Gemini CLI  — .agents/skills/ 是 .gemini/skills/ 的別名，且優先權高於後者
+#   Antigravity — .agents/hooks.json（工作區層級 hooks）
+.agents/*
+# 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
+!.agents/skills/
 .agents/skills/*
 # !.agents/skills/<project-skill>/
 # !.agents/skills/<project-skill>/**
-!.agents/AGENTS.md              # 專案級 AI 規則檔
-!.agents/settings.json          # 專案共用設定
-.agents/settings.local.json     # 個人本機設定
+# 必須先放行父目錄，否則下一行的 marketplace.json 白名單無效
+!.agents/plugins/
+# 外掛本體多為安裝產物，不追蹤
+.agents/plugins/*
+# Codex 官方定位：「for everyone on a project」
+!.agents/plugins/marketplace.json
+# 專案級 AI 規則檔（⚠️ 未見於官方文件，依實機經驗保留）
+!.agents/AGENTS.md
+# 專案共用設定（⚠️ 未見於官方文件，依實機經驗保留）
+!.agents/settings.json
+# 個人本機設定
+.agents/settings.local.json
+# 工作區層級 hooks：內含可執行指令，確認為團隊共用再放行
+# !.agents/hooks.json
+# Antigravity CLI 舊版工作區對應檔（新版已淘汰，舊專案仍可能殘留）
+.antigravitycli/
 .codex/*
-!.codex/skills/                 # 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
+# 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
+!.codex/skills/
 .codex/skills/*
 # !.codex/skills/<project-skill>/
 # !.codex/skills/<project-skill>/**
 .gemini/*
-!.gemini/skills/                # 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
+# 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
+!.gemini/skills/
 .gemini/skills/*
 # !.gemini/skills/<project-skill>/
 # !.gemini/skills/<project-skill>/**
