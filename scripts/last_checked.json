@@ -7,7 +7,21 @@
   },
   "sources": {
     "antigravity/changelog": {
-      "tokens": []
+      "tokens": [
+        ".antigravitycli",
+        ".antigravitycli/",
+        "/.agents/hooks.json",
+        "AGENTS.md",
+        "GEMINI.md",
+        "~/.gemini/antigravity-cli/",
+        "~/.gemini/antigravity-cli/cache",
+        "~/.gemini/antigravity-cli/cache/projects.json",
+        "~/.gemini/antigravity-cli/hooks.json",
+        "~/.gemini/antigravity-cli/settings.json",
+        "~/.gemini/config/",
+        "~/.gemini/config/hooks.json",
+        "~/.gemini/config/projects/"
+      ]
     },
     "claude-code/changelog": {
       "tokens": [
@@ -60,6 +74,7 @@
         "copilot-instructions.md",
         "~/.claude/CLAUDE.md",
         "~/.claude/my-project-instructions.md",
+        "~/.claude/projects/",
         "~/.claude/rules/",
         "~/.claude/settings.json"
       ]
@@ -116,11 +131,13 @@
     },
     "codex/changelog": {
       "tokens": [
+        ".agents/plugins/marketplace.json",
         ".codex-plugin/",
         ".codex-plugin/plugin.json",
         ".codex/",
         ".codex/skills",
         "AGENTS.md",
+        "~/.agents/plugins/marketplace.json",
         "~/.codex/",
         "~/.codex/plugins/",
         "~/.codex/skills"
@@ -177,8 +194,10 @@
     },
     "gemini-cli/skills": {
       "tokens": [
+        ".agents/skills/",
         ".gemini/skills/",
         "GEMINI.md",
+        "~/.agents/skills/",
         "~/.gemini/skills/"
       ]
     }
