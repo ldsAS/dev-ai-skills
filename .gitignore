@@ -8,11 +8,16 @@ Thumbs.db
 
 # AI workspaces (本 repo 是管理 skills 的，不提交任何 AI 工具本機暫存)
 .agent/
+.agents/          # Codex / Gemini CLI / Antigravity 共用的跨工具目錄，非 Antigravity 專屬
 .claude/
 .codex/
 .gemini/
 .cursor/
 # .github/prompts/ contains shareable Copilot prompt files; keep it trackable by default.
+
+# Python (scripts/check_updates.py 執行後產生)
+__pycache__/
+*.pyc
 
 # Test output
 *.log
