@@ -62,7 +62,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 - **部署與維運文件**：`DEPLOY.md`, `README.md`, `CHANGELOG.md`, `docs/`。
 - **排程與自動化設定參考**：`task_info.xml`（Windows Task Scheduler 匯出）、`.service` 檔備份、`Dockerfile`、`docker-compose.yml`、CI 設定檔。
 - **資料備份檔**：若 `.gitignore` 已排除 `*.json`，則 `.json.bak` 可能是唯一透過 Git 傳承資料的管道 — **必須對照 `DEPLOY.md` 的「還原資料檔」清單確認是否有對應**。
-- **專案級 AI 指令檔與共享 AI 設定**：`CLAUDE.md`（根目錄）、`AGENTS.md`、`GEMINI.md`、`.cursorrules`、`.github/copilot-instructions.md`、`.agents/plugins/marketplace.json`（Codex 團隊共用外掛市集）、`.agents/AGENTS.md`（專案級自訂規則）、`.agents/settings.json`（專案共用設定）、`.claude/settings.json`（團隊權限／hooks）、`.claude/commands/`、`.cursor/rules/`、`.github/prompts/*.prompt.md` 等團隊共用的 AI 規則檔。
+- **專案級 AI 指令檔與共享 AI 設定**：`CLAUDE.md`（根目錄）、`AGENTS.md`、`GEMINI.md`、`.cursorrules`、`.github/copilot-instructions.md`、`.agents/plugins/marketplace.json`（Codex 團隊共用外掛市集）、`.agents/AGENTS.md`（專案級自訂規則）、`.agents/settings.json`（專案共用設定）、`.claude/settings.json`（團隊權限／hooks）、`.claude/commands/`、`.claude/rules/`（團隊共用分檔規則）、`.codex/config.toml`（專案層設定覆寫）、`.gemini/settings.json`（Workspace 設定）、`.cursor/rules/`、`.github/prompts/*.prompt.md` 等團隊共用的 AI 規則檔。
 - **跨平台設定**：`.gitattributes`、`.editorconfig`、`.nvmrc`。
 
 #### 🔴 應該排除 (Ignore)
@@ -371,6 +371,8 @@ Thumbs.db
 !.claude/commands/
 # 團隊共用 subagents
 !.claude/agents/
+# 團隊共用的分檔規則（官方定位為會被 commit 進共享專案的檔案）
+!.claude/rules/
 # 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
 !.claude/skills/
 .claude/skills/*
@@ -382,12 +384,16 @@ Thumbs.db
 # Cursor 團隊規則，官方建議 commit
 !.cursor/rules/
 .codex/*
+# 專案層設定覆寫（官方：add a .codex/config.toml file in your repo）
+!.codex/config.toml
 # 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
 !.codex/skills/
 .codex/skills/*
 # !.codex/skills/<project-skill>/
 # !.codex/skills/<project-skill>/**
 .gemini/*
+# Workspace 設定，與 .claude/settings.json 同性質的專案層共用設定
+!.gemini/settings.json
 # 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
 !.gemini/skills/
 .gemini/skills/*

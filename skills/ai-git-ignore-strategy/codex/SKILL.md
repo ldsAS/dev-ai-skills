@@ -96,7 +96,7 @@ git -c core.fileMode=false diff --summary
 - 跨平台 repo policy：`.gitattributes`, `.editorconfig`, `.nvmrc`。
 - 專案自動化參考：Windows Task Scheduler 匯出 XML、systemd service sample、Docker / CI config。
 - 專案設計 source of truth：`design-system/MASTER.md`、有意義的 page override。
-- 團隊 AI 指令與共享 AI 設定：`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`（Copilot 共享 prompt）, `.agents/plugins/marketplace.json`（Codex 團隊共用外掛市集）, `.agents/AGENTS.md`（專案級自訂規則）, `.agents/settings.json`（專案共用設定）, `.claude/settings.json`（團隊權限／hooks）, `.claude/commands/`, `.cursor/rules/`，或明確要共享的 project-specific skill files。
+- 團隊 AI 指令與共享 AI 設定：`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`（Copilot 共享 prompt）, `.agents/plugins/marketplace.json`（Codex 團隊共用外掛市集）, `.agents/AGENTS.md`（專案級自訂規則）, `.agents/settings.json`（專案共用設定）, `.claude/settings.json`（團隊權限／hooks）, `.claude/commands/`, `.claude/rules/`（團隊共用分檔規則）, `.codex/config.toml`（專案層設定覆寫）, `.gemini/settings.json`（Workspace 設定）, `.cursor/rules/`，或明確要共享的 project-specific skill files。
 - 客製專案 skills：例如 `.codex/skills/<project-skill>/SKILL.md`，但必須先確認它不是本機安裝的第三方 skill。
 
 #### 🔴 應該排除或取消追蹤 (Ignore Or Untrack)
@@ -365,6 +365,8 @@ Thumbs.db
 !.claude/commands/
 # 團隊共用 subagents
 !.claude/agents/
+# 團隊共用的分檔規則（官方定位為會被 commit 進共享專案的檔案）
+!.claude/rules/
 # 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
 !.claude/skills/
 .claude/skills/*
@@ -410,12 +412,16 @@ Thumbs.db
 .antigravitycli/
 .codex/*
 # 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
+# 專案層設定覆寫（官方：add a .codex/config.toml file in your repo）
+!.codex/config.toml
 !.codex/skills/
 .codex/skills/*
 # !.codex/skills/<project-skill>/
 # !.codex/skills/<project-skill>/**
 .gemini/*
 # 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
+# Workspace 設定，與 .claude/settings.json 同性質的專案層共用設定
+!.gemini/settings.json
 !.gemini/skills/
 .gemini/skills/*
 # !.gemini/skills/<project-skill>/
