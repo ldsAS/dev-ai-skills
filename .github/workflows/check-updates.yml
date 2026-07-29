@@ -40,11 +40,15 @@ jobs:
       - name: Create Issue on GitHub
         if: steps.run_check.outputs.has_updates == 'true'
         run: |
+          # 在報告結尾追加標記擁有者，確保觸發 @mention 通知
+          echo -e "\n\nCC: @${{ github.repository_owner }}" >> report.txt
+          
           # 透過 GitHub CLI 建立 Issue 來發送通知
-          # --body-file 會將 report.txt 內容作為 Issue 的主體
+          # --assignee 指派給您本人，雙重確保觸發 Participating 通知
           gh issue create \
             --title "🚨 偵測到 AI 工具路徑與機制更新！" \
-            --body-file report.txt
+            --body-file report.txt \
+            --assignee "${{ github.repository_owner }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
