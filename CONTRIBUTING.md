@@ -81,6 +81,7 @@ description: 一段清楚說明這個 skill 的用途與觸發時機的描述。
 - [ ] `codex/SKILL.md` 清楚記錄 Codex 的 `apply_patch`、`functions.exec_command`、sandbox escalation 與精準 staging 規則
 - [ ] `vscode/SKILL.md` 沒有混入 Claude / Antigravity / Codex 專屬工具名
 - [ ] `generic/SKILL.md` 沒有出現**任何**具體工具名
+- [ ] 若改動涉及**外部工具的路徑事實**（某工具會在哪產生什麼檔案），先查 `skills/<skill-name>/verification/CLAIMS.md` 的既有依據；新增或推翻主張時同步更新該帳本（含取證日與工具版本）
 - [ ] 撰寫 `skills/<skill-name>/README.md` 說明各版本差異與使用時機
 - [ ] 在 repo 根目錄的 [`README.md`](./README.md) 「目前提供的技能」表格中新增一行
 - [ ] 本機跑過 `./install.sh` 驗證安裝器能正確鋪到所有目標目錄

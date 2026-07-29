@@ -51,3 +51,13 @@
 ## 維護者備註
 
 修改此 skill 時，請同步更新工具專用版本（或至少更新 `generic/` 後再移植到各工具版本）。詳細規範見 repo 根目錄的 `CONTRIBUTING.md`。
+
+### 路徑主張的依據
+
+本 skill 的規則建立在一組「哪個工具會在哪裡產生什麼檔案」的路徑事實上，這些事實會隨工具改版而變。
+
+- 每條主張的依據、取證日與狀態記錄於 [`verification/CLAIMS.md`](./verification/) — **改動任何路徑規則前請先查閱**
+- 官方文件的異動由 [`check-updates.yml`](../../.github/workflows/check-updates.yml) 每日自動偵測，有變動會開 issue
+- 無法從文件查證的項目（尤其 Antigravity 無公開文件站）走實機交接流程，見 `verification/README.md`
+
+`verification/` 不會被 `install.sh` 安裝到使用者環境（安裝器只複製 `<variant>/` 底下的內容）。
