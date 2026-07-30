@@ -62,7 +62,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 - **部署與維運文件**：`DEPLOY.md`, `README.md`, `CHANGELOG.md`, `docs/`。
 - **排程與自動化設定參考**：`task_info.xml`（Windows Task Scheduler 匯出）、`.service` 檔備份、`Dockerfile`、`docker-compose.yml`、CI 設定檔。
 - **資料備份檔**：若 `.gitignore` 已排除 `*.json`，則 `.json.bak` 可能是唯一透過 Git 傳承資料的管道 — **必須對照 `DEPLOY.md` 的「還原資料檔」清單確認是否有對應**。
-- **專案級 AI 指令檔與共享 AI 設定**：`CLAUDE.md`（根目錄）、`AGENTS.md`、`GEMINI.md`、`.cursorrules`、`.github/copilot-instructions.md`、`.agents/plugins/marketplace.json`（Codex 團隊共用外掛市集）、`.claude/settings.json`（團隊權限／hooks）、`.claude/commands/`、`.claude/rules/`（團隊共用分檔規則）、`.codex/config.toml`（專案層設定覆寫）、`.gemini/settings.json`（Workspace 設定）、`.cursor/rules/`、`.github/prompts/*.prompt.md` 等團隊共用的 AI 規則檔。
+- **專案級 AI 指令檔與共享 AI 設定**：`CLAUDE.md`（根目錄）、`AGENTS.md`、`GEMINI.md`、`.cursorrules`、`.github/copilot-instructions.md`、`.agents/plugins/marketplace.json`（Codex 團隊共用外掛市集）、`.claude/settings.json`（團隊權限／hooks）、`.claude/commands/`、`.geminiignore`、`.aiexclude`（AI 忽略規則，與 `.gitignore` 同性質）、`.claude-plugin/plugin.json`、`.codex-plugin/plugin.json`（本 repo 本身是外掛時的清單檔）、`.claude/rules/`（團隊共用分檔規則）、`.codex/config.toml`（專案層設定覆寫）、`.gemini/settings.json`（Workspace 設定）、`.cursor/rules/`、`.github/prompts/*.prompt.md` 等團隊共用的 AI 規則檔。
 - **跨平台設定**：`.gitattributes`、`.editorconfig`、`.nvmrc`。
 
 #### 🔴 應該排除 (Ignore)
@@ -81,7 +81,10 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 - **AI 技能庫 (Skills)**：`.claude/skills/`, `.agents/skills/`（跨工具：Codex／Gemini CLI／Antigravity 共用）, `.agent/skills/`（1.x）, `.gemini/skills/`, `~/.claude/skills/` 等目錄。
   - 透過 CLI 工具安裝的（如 `uipro init --ai claude`）→ **不需要** Git 傳承，在 `DEPLOY.md` 記錄安裝指令即可。
   - 開發者自行撰寫的客製技能 → **應該提交**。
-  - **必問開發者**：「這個技能是透過 CLI 安裝的，還是您自己寫的？」
+  - **工具自動產生、但官方定位為要共享的** → **應該提交**。例：Claude Code 的 `/verify` 會把
+    可用的建置指令寫進 `.claude/skills/verify/SKILL.md`，官方說明是「so later runs and other
+    agents follow the same steps」。判斷關鍵：官方文件有沒有講明「讓後續執行或其他 agent 沿用」。
+  - **必問開發者**：「這個技能是透過 CLI 安裝的、您自己寫的，還是工具自動記錄的？」
 - **Antigravity 工作區 agent 定義**：`.agents/agents/<name>/agent.json`（由 agy 1.0.13 二進位內的路徑模板 `{workspace}/.agents/agents/{agent_name}/agent.json` 證實）。agy 1.0.13 二進位顯示 agents 與 skills 有**完全對稱**的 workspace／global 建立路徑函式，且執行期狀態另有去處，故已比照 `.claude/agents/` 放行。但**尚無人目視過實體檔案** —— 提交前請確認內容是角色宣告而非執行狀態。
 - **產生的設定檔**：如 `design-system/pages/*.md`。需確認是可重新產生的快取，或有手動調整過的客製設定。
 - **大型 PDF / 文件快照**：是否是 Notion/雲端文件的靜態匯出？若是，**建議改以連結指向活文件**，避免靜態快照過時誤導。
@@ -346,11 +349,23 @@ Thumbs.db
 .claude/skills/*
 # !.claude/skills/<project-skill>/
 # !.claude/skills/<project-skill>/**
+# /verify 會把可用的建置指令自動寫進此處，官方定位為「so later runs and other
+# agents follow the same steps」＝設計上要共享。屬「自動產生但意圖共享」的第三類（C-53）
+!.claude/skills/verify/
+# 專案層 workflow；對應 user-scope 的 ~/.claude/workflows/，屬團隊共用（C-09）
+!.claude/workflows/
 # 個人本機設定：即使有上方白名單也 explicit 擋一次
 .claude/settings.local.json
+# git worktree 的實體工作目錄，執行期產物。官方曾修過
+# 「repository-committed symlink at .claude/worktrees 可在 repo 外建檔」的問題，
+# 這條務必保持排除，且不要提交該路徑的 symlink（C-09）
+.claude/worktrees/
 .cursor/*
 # Cursor 團隊規則，官方建議 commit
 !.cursor/rules/
+# 由其他 repo 同步下來的規則鏡像（Cursor 會自動 pull and sync），可隨時重新取得，
+# 提交等同 vendoring 他人內容且會持續 churn（C-32）
+.cursor/rules/imported/
 # Antigravity 1.x 專案工作區暫存
 .agent/*
 # 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
@@ -399,11 +414,19 @@ Thumbs.db
 .codex/*
 # 專案層設定覆寫（官方：add a .codex/config.toml file in your repo）
 !.codex/config.toml
+# 專案層 lifecycle hooks 與其腳本；官方將 <repo>/.codex/hooks.json 列為
+# 主要的 hooks 位置之一，屬團隊共用（C-17）
+!.codex/hooks.json
+!.codex/hooks/
+# 沙箱指令規則（experimental）：控制哪些指令可在沙箱外執行，屬專案層政策（C-17）
+!.codex/rules/
 # 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
 !.codex/skills/
 .codex/skills/*
 # !.codex/skills/<project-skill>/
 # !.codex/skills/<project-skill>/**
+# session rollout 紀錄，執行期產物（C-17）
+.codex/rollout.jsonl
 .gemini/*
 # Workspace 設定，與 .claude/settings.json 同性質的專案層共用設定
 !.gemini/settings.json

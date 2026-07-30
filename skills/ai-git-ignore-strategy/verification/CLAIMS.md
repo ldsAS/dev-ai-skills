@@ -3,12 +3,12 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-07-30（Antigravity 全部結案：C-48、C-54 均已定案；新增 C-53～C-56）
+**最後更新**：2026-07-30（**全部 43 條均已定案**，無待實查與有疑殘留）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 29 |
-| 待實查 | 9 |
+| 已驗證 | 38 |
+| 待實查 | 0 |
 | 有疑 | 0 |
 | 結構性 | 5 |
 | **總計** | **43** |
@@ -26,9 +26,9 @@
 | C-05 | `.claude/rules/` | 團隊共用分檔規則，應提交 | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-06 | `.claude/skills/` | 需逐案確認（CLI 安裝 vs 自撰） | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-07 | `~/.claude/projects/` | 對話紀錄與 memory 在家目錄，不在專案內 | 官方文件 | 2026-07-29 | — | 已驗證 |
-| C-08 | `.claude-plugin/plugin.json`、`.claude-plugin/marketplace.json` | 存在於官方文件，但 skill 完全未提及；預設不被任何規則擋下 | 官方文件 | 2026-07-29 | — | 待實查 |
-| C-09 | `.claude/workflows/`、`.claude/worktrees/` | 出現於 CHANGELOG，目前被 `.claude/*` 擋下；worktrees 應擋，workflows 是否團隊共用未知 | 官方文件 | 2026-07-29 | — | 待實查 |
-| C-53 | `.claude/skills/verify/SKILL.md` | Claude Code 的 verify 技能會**自動寫入**此檔並註明「so later runs and other agents follow the same steps」＝設計上要共享；但目前被 `.claude/skills/*` 擋下。屬「自動產生但意圖共享」的第三類，現行 skill 的二分法（CLI 安裝 vs 自撰）未涵蓋 | 官方文件（**由排程監控於 2026-07-30 自動偵測**） | 2026-07-30 | — | 待實查 |
+| C-08 | `.claude-plugin/plugin.json`、`.claude-plugin/marketplace.json` | 外掛／市集清單檔，官方定位為「Sharing with teammates, distributing to community」。**若本 repo 本身就是 plugin 或 marketplace，必須提交**。現行規則不擋（正確），已補進 🟢 清單 | 官方文件 | 2026-07-30 | — | 已驗證 |
+| C-09 | `.claude/workflows/`、`.claude/worktrees/` | **兩者相反**。`workflows/` 有 user-scope（`~/.claude/workflows/`）與 project-scope 兩層，屬團隊共用 → **已放行**。`worktrees/` 是 git worktree 實體工作目錄，且官方修過「repository-committed symlink at `.claude/worktrees` 可在 repo 外建檔」的逃逸問題 → **已 explicit 排除** | 官方 CHANGELOG | 2026-07-30 | — | 已驗證 |
+| C-53 | `.claude/skills/verify/SKILL.md` | `/verify` 把可用的建置指令自動寫入 repo root（monorepo 則寫入被動到的套件目錄），官方定位「so later runs and **other agents** follow the same steps」＝設計上要共享 → **已放行**。屬「自動產生但意圖共享」的第三類，補足了原本 CLI 安裝／自撰的二分法 | 官方文件（**由排程監控於 2026-07-30 自動偵測**） | 2026-07-30 | — | 已驗證 |
 
 ## Codex
 
@@ -39,9 +39,9 @@
 | C-12 | `.codex/skills/` | 需逐案確認 | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-13 | `.agents/skills` | Codex 從 CWD 逐層往上掃到 repo root | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-14 | `.agents/plugins/marketplace.json` | 專案層外掛市集，官方定位為團隊共用，應提交 | 官方文件 | 2026-07-29 | — | 已驗證 |
-| C-15 | `.agents/plugins/*` | 市集內外掛本體視為安裝產物，應排除 | 推論 | 2026-07-29 | — | 待實查 |
-| C-16 | `.codex-plugin/plugin.json` | 出現於 changelog，skill 未提及 | 官方文件 | 2026-07-29 | — | 待實查 |
-| C-17 | `.codex/` 專案目錄其餘內容 | 除 config.toml 外是否有 cache／session 需擋 | — | — | — | 待實查 |
+| C-15 | `.agents/plugins/*` | 官方寫明專案層只放 `.agents/plugins/marketplace.json`，**外掛本體另存於 repo-local 目錄（如 `./plugins/`）**，不在 `.agents/plugins/` 底下。現行「放行 manifest、擋其餘」的三段式規則正確 | 官方 changelog | 2026-07-30 | — | 已驗證 |
+| C-16 | `.codex-plugin/plugin.json` | 外掛必備清單檔（`Every plugin is a folder with a required .codex-plugin/plugin.json manifest`）。與 C-08 同性質，若本 repo 是外掛則必須提交。現行規則不擋（正確），已補進 🟢 清單 | 官方 changelog | 2026-07-30 | — | 已驗證 |
+| C-17 | `.codex/` 專案目錄其餘內容 | **原規則誤殺三項**：`.codex/hooks.json`、`.codex/hooks/*.py`、`.codex/rules/*.rules` 都是官方列出的專案層設定層（未信任專案會跳過這些 layer），屬團隊共用 → **已放行**。`.codex/rollout.jsonl` 為 session 執行期紀錄 → **已 explicit 排除** | 官方文件（hooks／rules 指南） | 2026-07-30 | — | 已驗證 |
 
 ## Gemini CLI
 
@@ -50,8 +50,8 @@
 | C-20 | `.gemini/*` | 擋直接子項 | 結構性 | — | — | 結構性 |
 | C-21 | `.gemini/settings.json` | Workspace 設定，與 `.claude/settings.json` 同性質，應提交 | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-22 | `.agents/skills/` | 為 `.gemini/skills/` 的別名，且**優先權高於**後者 | 官方文件 | 2026-07-29 | — | 已驗證 |
-| C-23 | `.geminiignore`、`.aiexclude` | Gemini CLI 的忽略檔，skill 完全未提及 | 官方文件 | 2026-07-29 | — | 待實查 |
-| C-24 | `.gemini/` 專案目錄其餘內容 | 是否有 cache／session 需擋 | — | — | — | 待實查 |
+| C-23 | `.geminiignore`、`.aiexclude` | AI 忽略規則檔，官方明示「similar to `.gitignore`」，與 `.gitignore` 同性質 → **應提交**。現行規則不擋（正確），已補進 🟢 清單 | 官方文件 | 2026-07-30 | — | 已驗證 |
+| C-24 | `.gemini/` 專案目錄其餘內容 | Session 存於 **家目錄** `~/.gemini/tmp/<project_hash>/chats/`，不寫入專案。專案內 `.gemini/` 以 `settings.json`、`skills/` 等共享內容為主，無需額外 cache 排除規則 | 官方文件 | 2026-07-30 | — | 已驗證 |
 
 ## Cursor
 
@@ -59,7 +59,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-30 | `.cursor/*` | 擋直接子項 | 結構性 | — | — | 結構性 |
 | C-31 | `.cursor/rules/` | 團隊規則，官方建議 commit | 官方文件 | 2026-07-29 | — | 已驗證 |
-| C-32 | `.cursor/rules/imported/` | 疑為自動匯入產物，但現行 `!.cursor/rules/` 整包放行，可能誤提交 | 官方文件 | 2026-07-29 | — | 待實查 |
+| C-32 | `.cursor/rules/imported/` | Cursor 會自 **其他 repo** pull and sync 規則並放到 `.cursor/rules/imported/<repoName>`，屬可重新取得的鏡像，提交等同 vendoring 他人內容且會持續 churn → **已在 `!.cursor/rules/` 之後 explicit 排除** | 官方文件 | 2026-07-30 | — | 已驗證 |
 
 ## Antigravity
 
@@ -128,6 +128,36 @@
 
 **C-32** `.cursor/rules/imported/` — [cursor.com/docs/context/rules](https://cursor.com/docs/context/rules)
 > `.cursor/rule/imported/<repoName>/dir/rule.mdc`
+> Cursor will pull and sync the rule(s) into your project. Rules will be placed in `.cursor/rules/imported/<repoName>`
+
+**C-08** — [docs.claude.com/en/docs/claude-code/plugins](https://docs.claude.com/en/docs/claude-code/plugins)
+> **Plugins** (self-contained directories with skills, agents, hooks, or a `.claude-plugin/plugin.json` manifest) … Sharing with teammates, distributing to community, versioned releases, reusable across projects
+
+**C-09** — [claude-code CHANGELOG](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md)
+> project-scope workflow saves now target the closest existing `.claude/workflows/`
+>
+> Fixed worktree creation following a repository-committed symlink at `.claude/worktrees`, which could create files outside the repository
+
+**C-53** — [docs.claude.com/en/docs/claude-code/skills](https://docs.claude.com/en/docs/claude-code/skills)
+> it writes what worked to `.claude/skills/verify/SKILL.md` at the repo root, or in the touched package directory in a monorepo, so later runs and other agents follow the same steps
+
+**C-15／C-16** — [developers.openai.com/codex/changelog](https://developers.openai.com/codex/changelog)
+> for everyone on a project with `.agents/plugins/marketplace.json` and a repo-local plugin directory such as `./plugins/`
+>
+> Every plugin is a folder with a required `.codex-plugin/plugin.json` manifest
+
+**C-17** — [developers.openai.com/codex/hooks](https://developers.openai.com/codex/hooks)、[/rules](https://developers.openai.com/codex/rules)
+> the four most useful locations are: `~/.codex/hooks.json` … `<repo>/.codex/…`
+>
+> Create a `.rules` file under a `rules/` folder next to an active config layer (for example, `~/.codex/rules/default.rules`)
+>
+> Untrusted projects skip project-scoped `.codex/` layers, including project-local config, hooks, and rules.
+
+**C-23** — [gemini-cli docs/cli/gemini-ignore.md](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/gemini-ignore.md)
+> Gemini CLI includes the ability to automatically ignore files, similar to `.gitignore` (used by Git) and `.aiexclude` (used by Gemini Code Assist).
+
+**C-24** — [gemini-cli docs/cli/session-management.md](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/session-management.md)
+> Sessions are stored in `~/.gemini/tmp/<project_hash>/chats/`
 
 **C-44** `.agents/hooks.json` — [antigravity.google/changelog](https://antigravity.google/changelog)
 > Fixed workspace-local hooks defined in `/.agents/hooks.json` not loading after trusting a folder
@@ -165,3 +195,4 @@
 | :--- | :--- | :--- | :--- | :--- |
 | 2026-07-29 | Antigravity 1.0.13 | C-41～C-49（新增 C-51、C-52） | [交接包](./rounds/2026-07-29-antigravity.md) | [回覆](./rounds/2026-07-29-antigravity.reply.md)　已回填；其中 C-44、C-48 經維護者複驗後**未採信**回報結論 |
 | 2026-07-30 | Antigravity 1.0.13 | C-48、C-54（Q1 為實驗題） | [交接包](./rounds/2026-07-30-antigravity-round2.md) | [回覆](./rounds/2026-07-30-antigravity-round2.reply.md)　C-48 結案（實驗方法正確）；C-54 與自由敘述的 4 條路徑未採信，C-54 改由二進位對稱設計自行結案 |
+| 2026-07-30 | 官方文件研究（無需交接） | C-08、C-09、C-15～C-17、C-23、C-24、C-32、C-53 | — | 九項全部由官方文件直接定案，未動用交接輪次 |
