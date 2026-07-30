@@ -33,7 +33,11 @@ import urllib.error
 import urllib.request
 import zlib
 
-BASELINE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "last_checked.json")
+_HERE = os.path.dirname(os.path.abspath(__file__))
+BASELINE_PATH = os.path.join(_HERE, "last_checked.json")
+# 路徑主張帳本；異動時用來標出「本次觸及哪幾條已登記的主張」
+CLAIMS_PATH = os.path.join(_HERE, os.pardir, "skills", "ai-git-ignore-strategy",
+                           "verification", "CLAIMS.md")
 SCHEMA_VERSION = 2
 
 USER_AGENT = "Mozilla/5.0 (compatible; dev-ai-skills-watch/2.0; +https://github.com/ldsAS/dev-ai-skills)"
@@ -164,6 +168,81 @@ def context_for(text, token, window=120):
     return re.sub(r"\s+", " ", text[start:end]).strip()
 
 
+CLAIM_ROW_RE = re.compile(
+    r"^\|\s*(C-\d+)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*$",
+    re.M,
+)
+
+
+def _norm_path(value):
+    return value.strip().strip("`").rstrip("/")
+
+
+def _claim_paths(cell):
+    """從帳本「路徑」欄抽出可比對的路徑。
+
+    兩種情況會被丟掉，因為比對範圍過寬會把整個工具目錄底下的異動
+    全部算成同一條主張：
+
+    * 含 `<name>` / `[_<N>]` 佔位符者截到第一個佔位符為止，截完只剩單段時丟掉
+      （例：`.agents/<type>_<milestone>/` → `.agents`）
+    * 指向單一段**目錄**者丟掉（例：`.agents/`、`.claude/*`）；
+      單段**檔名**則保留（例：`.geminiignore`、`.cursorrules`）
+    """
+    paths = []
+    for raw in re.findall(r"`([^`]+)`", cell):
+        value = raw.strip()
+        is_dir = value.endswith("/") or value.endswith("/*")
+        cuts = [i for i in (value.find("<"), value.find("[")) if i >= 0]
+        if cuts:
+            value = value[:min(cuts)]
+            is_dir = True
+        value = _norm_path(value.rstrip("*"))
+        if not value or value.startswith("http"):
+            continue
+        if is_dir and "/" not in value:
+            continue
+        paths.append(value)
+    return paths
+
+
+def load_claims():
+    """讀取路徑主張帳本；讀不到就回空清單，監控本身不受影響。"""
+    if not os.path.exists(CLAIMS_PATH):
+        return []
+    try:
+        text = open(CLAIMS_PATH, encoding="utf-8").read()
+    except OSError:
+        return []
+    claims = []
+    for match in CLAIM_ROW_RE.finditer(text):
+        cid, path_cell, brief, _basis, dated, _version, status = match.groups()
+        paths = _claim_paths(path_cell)
+        if not paths:
+            continue
+        claims.append({
+            "id": cid,
+            "label": paths[0],
+            "paths": paths,
+            "brief": re.sub(r"\s+", " ", brief)[:100],
+            "date": dated.strip(),
+            "status": status.strip(),
+        })
+    return claims
+
+
+def claims_for_token(token, claims):
+    """找出哪些主張涵蓋這個 token（雙向前綴比對）。"""
+    value = _norm_path(token)
+    hits = []
+    for claim in claims:
+        for path in claim["paths"]:
+            if value == path or value.startswith(path + "/") or path.startswith(value + "/"):
+                hits.append(claim)
+                break
+    return hits
+
+
 def fetch_npm_version(package):
     body = fetch(f"https://registry.npmjs.org/{package}/latest")
     return json.loads(body).get("version")
@@ -184,10 +263,50 @@ def load_baseline():
             return {}
 
 
+def report_coverage():
+    """列出每條主張是否有對應的監控 token —— 沒有的就是自動偵測的盲區。"""
+    claims = load_claims()
+    baseline = load_baseline()
+    tokens = {}
+    for key, entry in baseline.get("sources", {}).items():
+        for token in entry.get("tokens", []):
+            tokens.setdefault(_norm_path(token), set()).add(key)
+
+    covered, blind = [], []
+    for claim in claims:
+        hits = set()
+        for value, srcs in tokens.items():
+            for path in claim["paths"]:
+                if value == path or value.startswith(path + "/") or path.startswith(value + "/"):
+                    hits |= srcs
+                    break
+        (covered if hits else blind).append((claim, sorted(hits)))
+
+    print("# 帳本 ↔ 監控涵蓋率\n")
+    print(f"可自動偵測 {len(covered)} 條／盲區 {len(blind)} 條／"
+          f"共 {len(claims)} 條有路徑的主張\n")
+
+    if blind:
+        print("## ⚠️ 監控盲區（路徑異動不會被自動偵測）\n")
+        for claim, _ in blind:
+            print(f"- **{claim['id']}** `{claim['label']}` — 狀態 {claim['status']}")
+        print()
+
+    print("## ✅ 有監控涵蓋\n")
+    for claim, srcs in covered:
+        print(f"- **{claim['id']}** `{claim['label']}` ← {', '.join(srcs)}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="不寫回基準線，僅輸出報告")
+    parser.add_argument("--coverage", action="store_true",
+                        help="列出帳本主張與監控 token 的涵蓋關係後結束（不連網）")
     args = parser.parse_args()
+
+    if args.coverage:
+        report_coverage()
+        return
 
     raw_baseline = load_baseline()
     # schema 1（僅記錄版本號）視為未建立 token 基準，走 bootstrap 流程
@@ -271,16 +390,56 @@ def main():
         lines.append("以下路徑與技能 `ai-git-ignore-strategy` 的 `.gitignore` 規則直接相關，"
                      "請確認五個變體的 SKILL.md 是否需要同步更新。")
         lines.append("")
+        claims = load_claims()
+        affected = {}      # claim id -> (claim, [觸發說明])
+        orphan_tokens = []  # 帳本查無對應主張的新增路徑
+
+        def _tag(token):
+            hits = claims_for_token(token, claims)
+            return "".join(f" `{c['id']}`" for c in hits), hits
+
         for tool, source, added, removed, text in changes:
             lines.append(f"### `{tool}` — {source}")
             lines.append("")
             for token in removed:
-                lines.append(f"- ❌ **消失**：`{token}`")
+                tag, hits = _tag(token)
+                lines.append(f"- ❌ **消失**：`{token}`" + (f" →{tag}" if tag else ""))
+                for c in hits:
+                    affected.setdefault(c["id"], (c, []))[1].append(f"`{token}` 消失")
             for token in added:
                 context = context_for(text, token)
-                lines.append(f"- ✅ **新增**：`{token}`")
+                tag, hits = _tag(token)
+                lines.append(f"- ✅ **新增**：`{token}`" + (f" →{tag}" if tag else ""))
                 if context:
                     lines.append(f"  > {context}")
+                for c in hits:
+                    affected.setdefault(c["id"], (c, []))[1].append(f"`{token}` 新增")
+                if claims and not hits:
+                    orphan_tokens.append(f"{tool}/{source}: `{token}`")
+            lines.append("")
+
+        if affected:
+            lines.append("## 📒 受影響的帳本主張")
+            lines.append("")
+            lines.append("本次異動觸及下列已登記主張。**路徑消失代表原依據可能已不成立**，"
+                         "請依 `verification/CLAIMS.md` 重新確認，必要時新增一列並將舊列標為「被取代」。")
+            lines.append("")
+            for cid, (claim, reasons) in sorted(affected.items()):
+                lines.append(f"- **{cid}** `{claim['label']}` — 狀態 {claim['status']}"
+                             f"，取證日 {claim['date']}")
+                lines.append(f"  - 觸發：{'、'.join(sorted(set(reasons)))}")
+                if claim["brief"]:
+                    lines.append(f"  - 原主張：{claim['brief']}")
+            lines.append("")
+
+        if orphan_tokens:
+            lines.append("## 🆕 帳本中查無對應主張的新路徑")
+            lines.append("")
+            lines.append("下列路徑不屬於任何已登記主張，可能是全新機制 —— "
+                         "確認後請在帳本新增條目。")
+            lines.append("")
+            for item in orphan_tokens:
+                lines.append(f"- {item}")
             lines.append("")
 
     if version_alerts:

@@ -41,7 +41,7 @@
 | C-14 | `.agents/plugins/marketplace.json` | 專案層外掛市集，官方定位為團隊共用，應提交 | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-15 | `.agents/plugins/*` | 官方寫明專案層只放 `.agents/plugins/marketplace.json`，**外掛本體另存於 repo-local 目錄（如 `./plugins/`）**，不在 `.agents/plugins/` 底下。現行「放行 manifest、擋其餘」的三段式規則正確 | 官方 changelog | 2026-07-30 | — | 已驗證 |
 | C-16 | `.codex-plugin/plugin.json` | 外掛必備清單檔（`Every plugin is a folder with a required .codex-plugin/plugin.json manifest`）。與 C-08 同性質，若本 repo 是外掛則必須提交。現行規則不擋（正確），已補進 🟢 清單 | 官方 changelog | 2026-07-30 | — | 已驗證 |
-| C-17 | `.codex/` 專案目錄其餘內容 | **原規則誤殺三項**：`.codex/hooks.json`、`.codex/hooks/*.py`、`.codex/rules/*.rules` 都是官方列出的專案層設定層（未信任專案會跳過這些 layer），屬團隊共用 → **已放行**。`.codex/rollout.jsonl` 為 session 執行期紀錄 → **已 explicit 排除** | 官方文件（hooks／rules 指南） | 2026-07-30 | — | 已驗證 |
+| C-17 | `.codex/hooks.json`、`.codex/hooks/`、`.codex/rules/`、`.codex/rollout.jsonl` | **原規則誤殺三項**：`.codex/hooks.json`、`.codex/hooks/*.py`、`.codex/rules/*.rules` 都是官方列出的專案層設定層（未信任專案會跳過這些 layer），屬團隊共用 → **已放行**。`.codex/rollout.jsonl` 為 session 執行期紀錄 → **已 explicit 排除** | 官方文件（hooks／rules 指南） | 2026-07-30 | — | 已驗證 |
 
 ## Gemini CLI
 
@@ -51,7 +51,7 @@
 | C-21 | `.gemini/settings.json` | Workspace 設定，與 `.claude/settings.json` 同性質，應提交 | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-22 | `.agents/skills/` | 為 `.gemini/skills/` 的別名，且**優先權高於**後者 | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-23 | `.geminiignore`、`.aiexclude` | AI 忽略規則檔，官方明示「similar to `.gitignore`」，與 `.gitignore` 同性質 → **應提交**。現行規則不擋（正確），已補進 🟢 清單 | 官方文件 | 2026-07-30 | — | 已驗證 |
-| C-24 | `.gemini/` 專案目錄其餘內容 | Session 存於 **家目錄** `~/.gemini/tmp/<project_hash>/chats/`，不寫入專案。專案內 `.gemini/` 以 `settings.json`、`skills/` 等共享內容為主，無需額外 cache 排除規則 | 官方文件 | 2026-07-30 | — | 已驗證 |
+| C-24 | `~/.gemini/tmp/`（session 實際位置） | Session 存於 **家目錄** `~/.gemini/tmp/<project_hash>/chats/`，不寫入專案。專案內 `.gemini/` 以 `settings.json`、`skills/` 等共享內容為主，無需額外 cache 排除規則 | 官方文件 | 2026-07-30 | — | 已驗證 |
 
 ## Cursor
 
