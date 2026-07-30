@@ -94,7 +94,7 @@ description: 一段清楚說明這個 skill 的用途與觸發時機的描述。
 # 從乾淨狀態開始
 rm -rf ~/.claude/skills/<your-skill-name>
 rm -rf ~/.gemini/config/skills/<your-skill-name>        # Antigravity 現行全域路徑
-rm -rf ~/.gemini/antigravity/skills/<your-skill-name>   # 舊版佈局（未證實會被讀取，見 CLAIMS.md C-48）
+rm -rf ~/.gemini/antigravity/skills/<your-skill-name>   # 遷移前佈局（1.0.13 實驗證實已不掃描，見 CLAIMS.md C-48）
 rm -rf ~/.codex/skills/<your-skill-name>
 rm -rf ~/.copilot/skills/<your-skill-name>              # VS Code Copilot
 

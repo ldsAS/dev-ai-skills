@@ -3,15 +3,15 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-07-30（Antigravity 第一輪回填＋二進位複驗，新增 C-53～C-55）
+**最後更新**：2026-07-30（Antigravity 兩輪交接完成，C-48 結案；新增 C-53～C-56）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 26 |
+| 已驗證 | 28 |
 | 待實查 | 10 |
-| 有疑 | 1 |
+| 有疑 | 0 |
 | 結構性 | 5 |
-| **總計** | **42** |
+| **總計** | **43** |
 
 ---
 
@@ -77,13 +77,14 @@
 | C-45 | `.antigravitycli/` | 舊版工作區對應檔，現行版本不再產生；規則保留供舊專案 | 官方 changelog＋實機 | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-46 | `.agent/` | 舊版佈局的專案工作區暫存，現行版本不再產生；規則保留供舊專案 | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-47 | `~/.gemini/config/skills/` | **現行**全域 skills 路徑；實查含工具自身的 `.datacloud_skills_manifest` 與 22 個內建技能 | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
-| C-48 | `~/.gemini/antigravity/skills/` | ~~1.x 全域路徑~~ → **舊版佈局，未證實會被讀取**：該目錄僅有本專案 `install.sh` 寫入的內容，無工具自身產物；`~/.gemini/config/.migrated`（2026-06-23）顯示已遷移，而本技能是遷移後才寫入 | 維護者複驗**推翻**回報結論 | 2026-07-29 | 1.0.13 | 有疑 |
+| C-48 | `~/.gemini/antigravity/skills/` | ~~1.x 全域路徑~~ → **死路徑，1.0.13 已不掃描**。標記技能實驗：探針只放此路徑，開全新子代理重新初始化後不在可用技能中，且子代理指認實際載入路徑為 `~/.gemini/config/skills/`。安裝器偵測邏輯已連帶修正 | 實驗（探針技能＋對照組） | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-49 | Antigravity 對話紀錄位置 | 在家目錄 `~/.gemini/antigravity/conversations/`（實查 21 項）與 `~/.gemini/antigravity-cli/conversations/`（1 項），**不寫入專案** | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-50 | `AGENTS.md`（根目錄） | Antigravity 已支援讀取，與 `GEMINI.md` 並列 | 官方 changelog＋實機 | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-51 | 技能觸發語法 | `@skill-name` **已不適用**；技能由 Agent 依任務自動掃描載入 | 實機（回報） | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-52 | 專案目錄自動產生物 | ~~不在專案目錄產生任何 cache／log~~ → **回報有誤**：對話紀錄確實在家目錄，但 agent 會寫入 `.agents/ORIGINAL_REQUEST.md`（見 C-55） | 二進位字串分析**推翻**回報結論 | 2026-07-30 | 1.0.13 | 已驗證 |
-| C-54 | `.agents/agents/<name>/agent.json` | 工作區層級 agent 定義；二進位內有路徑模板 `{workspace}/.agents/agents/{agent_name}/agent.json`。性質類同 `.claude/agents/`，但**未確認是開發者手寫還是工具自動產生**，目前被 `.agents/*` 擋下 | 二進位字串分析 | 2026-07-30 | 1.0.13 | 待實查 |
+| C-54 | `.agents/agents/<name>/agent.json` | 工作區層級 agent 定義；二進位內有路徑模板 `{workspace}/.agents/agents/{agent_name}/agent.json`。**第二輪回報「應提交」不予採納**——其環境中查無任何實體檔案，卻改以交接包明文禁止的 `.claude/agents/` 類比作答。維持被 `.agents/*` 擋下 | 二進位字串分析（存在性）／回報未採信（歸類） | 2026-07-30 | 1.0.13 | 待實查 |
 | C-55 | `.agents/ORIGINAL_REQUEST.md` | agent 會把使用者訊息**逐字**附加至此檔（含 UTC 時間戳），亦有 `.agents/<agent_folder>/ORIGINAL_REQUEST.md` 變體。**屬敏感內容，必須排除** | 二進位字串分析 | 2026-07-30 | 1.0.13 | 已驗證 |
+| C-56 | `.agents/<type>_<milestone>[_<N>][_gen<N>]/` | 子代理在**專案內**建立的工作目錄命名規則（二進位字串），內含 `ORIGINAL_REQUEST.md` 等記錄。已被 `.agents/*` 完整涵蓋 | 二進位字串分析 | 2026-07-30 | 1.0.13 | 已驗證 |
 
 > 📌 **版本標籤更正**：本 skill 原以「1.x／2.0」區分新舊路徑，但實查 `agy --version` 為 **1.0.13**，
 > 且 `config.json`、`antigravity_state.pbtxt`、`settings.json` 中均查無任何 `2.0` 版本字串。
@@ -156,4 +157,4 @@
 | 日期 | 工具 | 涵蓋項目 | 交接包 | 回覆 |
 | :--- | :--- | :--- | :--- | :--- |
 | 2026-07-29 | Antigravity 1.0.13 | C-41～C-49（新增 C-51、C-52） | [交接包](./rounds/2026-07-29-antigravity.md) | [回覆](./rounds/2026-07-29-antigravity.reply.md)　已回填；其中 C-44、C-48 經維護者複驗後**未採信**回報結論 |
-| 2026-07-30 | Antigravity 1.0.13 | C-48、C-54（Q1 為實驗題） | [交接包](./rounds/2026-07-30-antigravity-round2.md) | 待回覆 |
+| 2026-07-30 | Antigravity 1.0.13 | C-48、C-54（Q1 為實驗題） | [交接包](./rounds/2026-07-30-antigravity-round2.md) | [回覆](./rounds/2026-07-30-antigravity-round2.reply.md)　C-48 結案（實驗方法正確）；C-54 與自由敘述的 4 條路徑**未採信** |

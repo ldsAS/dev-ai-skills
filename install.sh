@@ -4,8 +4,8 @@
 # Usage:
 #   ./install.sh                 # auto-detect installed AI tools and install all matching variants
 #   ./install.sh claude          # only install claude/ variant to ~/.claude/skills/
-#   ./install.sh antigravity     # only install antigravity/ variant to ~/.gemini/config/skills/ (2.0)
-#                                #   and/or ~/.gemini/antigravity/skills/ (1.x), whichever is detected
+#   ./install.sh antigravity     # only install antigravity/ variant to ~/.gemini/config/skills/
+#                                #   falls back to ~/.gemini/antigravity/skills/ only on pre-migration installs
 #   ./install.sh codex           # only install codex/ variant to ~/.codex/skills/
 #   ./install.sh vscode          # only install vscode/ variant to ~/.copilot/skills/ (GitHub Copilot)
 #   ./install.sh generic         # install generic/ variant to all detected AI tool dirs (fallback)
@@ -30,8 +30,8 @@ err()   { printf '%s[err ]%s %s\n' "$C_ERR"  "$C_RESET" "$*" >&2; }
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILLS_DIR="$SCRIPT_DIR/skills"
 CLAUDE_TARGET="$HOME/.claude/skills"
-ANTIGRAVITY_TARGET_V2="$HOME/.gemini/config/skills"       # Antigravity 2.0
-ANTIGRAVITY_TARGET_V1="$HOME/.gemini/antigravity/skills"  # Antigravity 1.x
+ANTIGRAVITY_TARGET_V2="$HOME/.gemini/config/skills"       # 現行佈局
+ANTIGRAVITY_TARGET_V1="$HOME/.gemini/antigravity/skills"  # 遷移前佈局（僅在無現行佈局時使用）
 CODEX_TARGET="$HOME/.codex/skills"
 VSCODE_TARGET="$HOME/.copilot/skills"
 
@@ -50,15 +50,19 @@ has_antigravity_v2=false
 has_codex=false
 has_vscode=false
 [[ -d "$HOME/.claude" ]]              && has_claude=true
-[[ -d "$HOME/.gemini/antigravity" ]]  && has_antigravity_v1=true
+# 遷移前佈局只在「沒有現行 ~/.gemini/config」時才視為有效目標。
+# agy 1.0.13 以標記技能實驗證實 ~/.gemini/antigravity/skills/ 已不再被掃描，
+# 而 ~/.gemini/antigravity/ 本身仍是現行版本使用中的資料目錄（conversations、brain 等），
+# 不能單以它存在就判定為舊版。詳見 skills/ai-git-ignore-strategy/verification/CLAIMS.md 的 C-48。
+[[ -d "$HOME/.gemini/antigravity" && ! -d "$HOME/.gemini/config" ]] && has_antigravity_v1=true
 [[ -d "$HOME/.gemini/config" ]]       && has_antigravity_v2=true
 [[ -d "$HOME/.codex" ]]               && has_codex=true
 { command -v code >/dev/null 2>&1 || [[ -d "$HOME/.copilot" ]]; } && has_vscode=true
 
 info "偵測到的 AI 工具："
 $has_claude         && ok "Claude Code       → $CLAUDE_TARGET"         || warn "Claude Code       → 未偵測到 ~/.claude"
-$has_antigravity_v2 && ok "Antigravity 2.0   → $ANTIGRAVITY_TARGET_V2" || warn "Antigravity 2.0   → 未偵測到 ~/.gemini/config"
-$has_antigravity_v1 && ok "Antigravity 1.x   → $ANTIGRAVITY_TARGET_V1" || warn "Antigravity 1.x   → 未偵測到 ~/.gemini/antigravity"
+$has_antigravity_v2 && ok "Antigravity       → $ANTIGRAVITY_TARGET_V2" || warn "Antigravity       → 未偵測到 ~/.gemini/config"
+$has_antigravity_v1 && ok "Antigravity(舊)   → $ANTIGRAVITY_TARGET_V1" || true
 $has_codex          && ok "Codex             → $CODEX_TARGET"          || warn "Codex             → 未偵測到 ~/.codex"
 $has_vscode         && ok "VS Code Copilot   → $VSCODE_TARGET"         || warn "VS Code Copilot   → 未偵測到 code 指令或 ~/.copilot，仍可用 vscode 模式強制安裝"
 
