@@ -118,6 +118,7 @@
         ".claude/skills/deploy-staging/SKILL.md",
         ".claude/skills/deploy/SKILL.md",
         ".claude/skills/run-",
+        ".claude/skills/verify/SKILL.md",
         "/.claude/hooks/helper.sh",
         "CLAUDE.md",
         "~/.claude/skills/",
