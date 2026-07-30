@@ -102,7 +102,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
   - 透過 CLI 工具安裝的（如 `uipro init --ai claude`）→ **不需要** Git 傳承，在 `DEPLOY.md` 記錄安裝指令即可。
   - 開發者自行撰寫的客製技能 → **應該提交**。
   - **必問開發者**：「這個技能是透過 CLI 安裝的，還是您自己寫的？」
-- **Antigravity 工作區 agent 定義**：`.agents/agents/<name>/agent.json`（由 agy 1.0.13 二進位內的路徑模板 `{workspace}/.agents/agents/{agent_name}/agent.json` 證實）。性質類同 `.claude/agents/`（團隊共用 subagent），但尚未確認是開發者手寫還是工具自動產生 —— 目前被 `.agents/*` 擋下，**要放行前必問開發者**。
+- **Antigravity 工作區 agent 定義**：`.agents/agents/<name>/agent.json`（由 agy 1.0.13 二進位內的路徑模板 `{workspace}/.agents/agents/{agent_name}/agent.json` 證實）。agy 1.0.13 二進位顯示 agents 與 skills 有**完全對稱**的 workspace／global 建立路徑函式，且執行期狀態另有去處，故已比照 `.claude/agents/` 放行。但**尚無人目視過實體檔案** —— 提交前請確認內容是角色宣告而非執行狀態。
 - **產生的設定檔**：如 `design-system/pages/*.md`。需確認是可重新產生的快取，或有手動調整過的客製設定。
 - **大型 PDF / 文件快照**：是否是 Notion/雲端文件的靜態匯出？若是，**建議改以連結指向活文件**，避免靜態快照過時誤導。
 - **用途不明的檔案**：任何無法從檔名或副檔名判斷用途的檔案，**一律先 `read_file` 讀取內容再決定**。
@@ -398,6 +398,11 @@ Thumbs.db
 # !.agents/skills/<project-skill>/
 # !.agents/skills/<project-skill>/**
 # 必須先放行父目錄，否則下一行的 marketplace.json 白名單無效
+# 專案層自訂子代理定義。agy 1.0.13 二進位顯示 agents 與 skills 有完全對稱的
+# 建立路徑函式（GetAgentsCreatePath／GetGlobalAgentsCreatePath 對應
+# GetSkillsCreatePath／GetGlobalSkillsCreatePath），且執行期狀態另有去處
+# （.agents/<type>_<milestone>/ 與家目錄 brain/），故視同 .claude/agents/ 放行。見 C-54
+!.agents/agents/
 !.agents/plugins/
 # 外掛本體多為安裝產物，不追蹤
 .agents/plugins/*

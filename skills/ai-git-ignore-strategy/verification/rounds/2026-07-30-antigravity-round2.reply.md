@@ -8,7 +8,7 @@
 | 題 | 帳本 | 回報結論 | 複驗後採用 |
 | :--- | :--- | :--- | :--- |
 | Q1 | C-48 | `~/.gemini/antigravity/skills/` 是死路徑 | ✅ **採用** — 方法正確 |
-| Q2 | C-54 | `.agents/agents/` 應提交 | ❌ **不採用** — 用了交接包明文禁止的類比推論 |
+| Q2 | C-54 | `.agents/agents/` 應提交 | ⚠️ **結論相同但依據不採用**，改由二進位對稱設計獨立佐證（見文末） |
 | 自由敘述 | — | 列出 4 條 `.agents/` 執行期路徑 | ❌ **全數不採用**（但直覺方向正確） |
 | 自由敘述 | — | 建議的 `.gitignore` 寫法 | ❌ **不採用** — 有三處退步 |
 
@@ -63,8 +63,8 @@
 依據 2 則是「依據核心架構設計⋯⋯類似 `.claude/agents/`」——**正是被禁止的那條路**。
 在零觀察樣本的情況下標記「信心：高」並給出「應提交」，不予採納。
 
-**C-54 維持「待實查」**，`.agents/agents/` 維持被 `.agents/*` 擋下。
-下次要驗證此項，必須在**實際建立過自訂子代理**的專案上進行。
+**它的推論過程不予採納。** 不過同一結論後來由二進位分析獨立取得了依據——
+見文末〈追加：C-54 由二進位對稱設計自行結案〉。答案碰巧對，不代表推論方式可接受。
 
 ---
 
@@ -134,13 +134,46 @@ file:///C:/Users/LdsFi/.gemini/antigravity/brain/ff178158-.../.system_generated/
 | :--- | :--- |
 | `install.sh`、`install.ps1` | 遷移前佈局改為 fallback（僅在無 `~/.gemini/config` 時啟用）；標籤去除無據的「2.0／1.x」 |
 | `CONTRIBUTING.md`、skill `README.md` | 同步安裝路徑說明 |
-| `verification/CLAIMS.md` | C-48 結案；新增 C-56；C-54 維持待實查 |
+| `verification/CLAIMS.md` | C-48、C-54 均結案；新增 C-56 |
 
 `install.ps1` 已確認保留 UTF-8 BOM 與 CRLF，PowerShell 解析 0 錯誤。
 
 ---
 
-## 下一輪待辦
+## 追加：C-54 由二進位對稱設計自行結案（2026-07-30）
 
-- **C-54**：需在實際配置過自訂子代理的專案上，觀察 `.agents/agents/<name>/agent.json`
-  是誰建立的、內容是否適合共享。
+回報的「應提交」結論不採信（依據是被禁止的類比），但改查二進位後，**結論相同而依據不同**。
+
+關鍵不是類比 Claude Code，而是 **agy 自己的對稱設計**：
+
+```text
+store.(*Manager).GetAgentsCreatePath        ／ GetGlobalAgentsCreatePath       （各 3 次）
+store.(*SkillsManager).GetSkillsCreatePath  ／ GetGlobalSkillsCreatePath       （各 3 次）
+
+{workspace}/.agents/agents/{agent_name}/agent.json
+{appDataDir}/agents/{agent_name}/agent.json
+```
+
+工具為 agents 與 skills 建立了**完全平行的兩層（workspace／global）結構**。
+既然 `.agents/skills/`（workspace 技能）本 skill 已放行，同一層級的
+`.agents/agents/` 沒有理由擋下——那是工具自己認定的同類物。
+
+另外兩項佐證：
+
+- `writing agent.json`、`marshaling agent.json` —— 是使用者發起（`Create New Agents` UI）
+  的持久化宣告，不是執行期日誌。
+- 執行期狀態**另有去處**：專案內是 `.agents/<type>_<milestone>/`（C-56），
+  家目錄是 `brain/<uuid>/`。`.agents/agents/` 不承擔那個角色。
+
+**已放行 `!.agents/agents/`**，並在 ❓ 需確認保留一句：尚無人目視過實體檔案，
+提交前請確認內容是角色宣告而非執行狀態。
+
+風險權衡：若判斷錯誤而放行，會提交一些不該提交的檔案 —— 在 `git status` 看得見、
+容易發現、易於回復；若判斷錯誤而擋下，團隊會**無聲地**失去共用子代理定義，
+正是本 skill 最警告的「誤殺」失效模式。兩者不對稱，故採放行。
+
+---
+
+## Antigravity 部分至此全部結案
+
+帳本 Antigravity 區 16 條全數定案（已驗證 15、結構性 1），無「待實查」與「有疑」殘留。

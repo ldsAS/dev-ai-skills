@@ -114,7 +114,7 @@ git -c core.fileMode=false diff --summary
 #### ⚠️ 需要跟開發者確認 (Ask Before Deciding)
 
 - `.codex/skills/`, `.claude/skills/`, `.agents/skills/`（跨工具：Codex／Gemini CLI／Antigravity 共用）, `.agent/skills/`（1.x）, `.gemini/skills/`：是本機安裝的第三方 skill，還是 project-owned custom skill？
-- **Antigravity 工作區 agent 定義**：`.agents/agents/<name>/agent.json`（由 agy 1.0.13 二進位內的路徑模板 `{workspace}/.agents/agents/{agent_name}/agent.json` 證實）。性質類同 `.claude/agents/`（團隊共用 subagent），但尚未確認是開發者手寫還是工具自動產生 —— 目前被 `.agents/*` 擋下，**要放行前必問開發者**。
+- **Antigravity 工作區 agent 定義**：`.agents/agents/<name>/agent.json`（由 agy 1.0.13 二進位內的路徑模板 `{workspace}/.agents/agents/{agent_name}/agent.json` 證實）。agy 1.0.13 二進位顯示 agents 與 skills 有**完全對稱**的 workspace／global 建立路徑函式，且執行期狀態另有去處，故已比照 `.claude/agents/` 放行。但**尚無人目視過實體檔案** —— 提交前請確認內容是角色宣告而非執行狀態。
 - `$env:USERPROFILE\.codex\skills\` / `~/.codex/skills/`：這是 user-level Codex skill installation，通常不要整包複製進專案 repo。
 - `*.json`：runtime data，還是 `package.json`, `tsconfig.json`, `manifest.json` 這類 source/config？
 - `*.json.bak`：可丟棄備份，還是 DEPLOY 文件提到的唯一可還原資料？
@@ -396,6 +396,11 @@ Thumbs.db
 # !.agents/skills/<project-skill>/
 # !.agents/skills/<project-skill>/**
 # 必須先放行父目錄，否則下一行的 marketplace.json 白名單無效
+# 專案層自訂子代理定義。agy 1.0.13 二進位顯示 agents 與 skills 有完全對稱的
+# 建立路徑函式（GetAgentsCreatePath／GetGlobalAgentsCreatePath 對應
+# GetSkillsCreatePath／GetGlobalSkillsCreatePath），且執行期狀態另有去處
+# （.agents/<type>_<milestone>/ 與家目錄 brain/），故視同 .claude/agents/ 放行。見 C-54
+!.agents/agents/
 !.agents/plugins/
 # 外掛本體多為安裝產物，不追蹤
 .agents/plugins/*
