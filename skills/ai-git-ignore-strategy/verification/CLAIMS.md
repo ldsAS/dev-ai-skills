@@ -3,15 +3,15 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-07-30（Antigravity 第一輪交接結果已回填）
+**最後更新**：2026-07-30（Antigravity 第一輪交接結果已回填；新增排程自動偵測的 C-53）
 
 | 狀態 | 數量 |
 | :--- | ---: |
 | 已驗證 | 24 |
-| 待實查 | 8 |
+| 待實查 | 9 |
 | 有疑 | 2 |
 | 結構性 | 5 |
-| **總計** | **39** |
+| **總計** | **40** |
 
 ---
 
@@ -28,6 +28,7 @@
 | C-07 | `~/.claude/projects/` | 對話紀錄與 memory 在家目錄，不在專案內 | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-08 | `.claude-plugin/plugin.json`、`.claude-plugin/marketplace.json` | 存在於官方文件，但 skill 完全未提及；預設不被任何規則擋下 | 官方文件 | 2026-07-29 | — | 待實查 |
 | C-09 | `.claude/workflows/`、`.claude/worktrees/` | 出現於 CHANGELOG，目前被 `.claude/*` 擋下；worktrees 應擋，workflows 是否團隊共用未知 | 官方文件 | 2026-07-29 | — | 待實查 |
+| C-53 | `.claude/skills/verify/SKILL.md` | Claude Code 的 verify 技能會**自動寫入**此檔並註明「so later runs and other agents follow the same steps」＝設計上要共享；但目前被 `.claude/skills/*` 擋下。屬「自動產生但意圖共享」的第三類，現行 skill 的二分法（CLI 安裝 vs 自撰）未涵蓋 | 官方文件（**由排程監控於 2026-07-30 自動偵測**） | 2026-07-30 | — | 待實查 |
 
 ## Codex
 
