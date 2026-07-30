@@ -71,7 +71,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 #### 🔴 應該排除 (Ignore)
 
 - **AI 對話紀錄與快取**：`.agent/`（Antigravity 1.x）、`.antigravitycli/`（Antigravity CLI 舊版的工作區對應檔；新版已改集中到 `~/.gemini/antigravity-cli/cache/projects.json` 並淘汰此目錄，舊專案仍會殘留） 的工作區暫存、`.codex/`、`.gemini/` 的快取（`brain/`, `scratch/` 等）、session logs、索引檔。
-  - ⚠️ 注意（最容易誤殺的一區）：`.agents/skills/`（2.0）與 `.agent/skills/`（1.x）可能是專案自有客製技能（見「需確認」類）；專案內 `.agents/` 的 `AGENTS.md`、`settings.json`，以及 `.claude/` 的 `settings.json`、`commands/`、`skills/` 與 `.cursor/rules/`、`.github/prompts/*.prompt.md` 多半是刻意共享的設定，屬於 🟢 類。多數工具的對話紀錄其實存在使用者家目錄，不在專案內。 另外，`.agents/` 並非 Antigravity 專屬，而是**跨工具共用目錄** — Codex 會從當前工作目錄逐層往上掃 `.agents/skills`、Gemini CLI 以 `.agents/skills/` 作為 `.gemini/skills/` 的高優先別名、Antigravity 讀 `.agents/hooks.json`；只裝 Codex 的專案一樣會出現 `.agents/`，不要當成 Antigravity 殘留。　Antigravity 實查（1.0.13，2026-07-29）：對話紀錄位於 `~/.gemini/antigravity/conversations/` 與 `~/.gemini/antigravity-cli/conversations/`，**專案目錄內不產生任何 cache／log**。
+  - ⚠️ 注意（最容易誤殺的一區）：`.agents/skills/`（2.0）與 `.agent/skills/`（1.x）可能是專案自有客製技能（見「需確認」類）；專案內 `.agents/` 的 `AGENTS.md`、`settings.json`，以及 `.claude/` 的 `settings.json`、`commands/`、`skills/` 與 `.cursor/rules/`、`.github/prompts/*.prompt.md` 多半是刻意共享的設定，屬於 🟢 類。多數工具的對話紀錄其實存在使用者家目錄，不在專案內。 另外，`.agents/` 並非 Antigravity 專屬，而是**跨工具共用目錄** — Codex 會從當前工作目錄逐層往上掃 `.agents/skills`、Gemini CLI 以 `.agents/skills/` 作為 `.gemini/skills/` 的高優先別名、Antigravity 讀 `.agents/hooks.json`；只裝 Codex 的專案一樣會出現 `.agents/`，不要當成 Antigravity 殘留。　Antigravity 實查（1.0.13，2026-07-30）：對話紀錄位於 `~/.gemini/antigravity/conversations/` 等家目錄，**但專案內並非乾淨** — agent 會把使用者訊息**逐字**附加到 `.agents/ORIGINAL_REQUEST.md`（含 UTC 時間戳），屬本 skill 開頭所述的 Security Risks，必須排除。
 - **自動執行日誌**：`*.log`（無限增長、無版本控制意義）。
 - **Runtime 狀態檔**：像 `last_run.txt`, `last_scan.txt`, `last_download.txt` 這類「每次執行就覆寫」的狀態檔。它們會讓 `git status` 永遠滿江紅。
 - **二進位大型檔案**：PDF、圖片、影片、字型檔。Git 不擅長處理 binary，會永久佔用歷史空間。可考慮用 Git LFS 或改放 Notion/Drive 連結。
@@ -85,6 +85,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
   - 透過 CLI 工具安裝的（如 `uipro init --ai antigravity`）→ **不需要** Git 傳承，在 `DEPLOY.md` 記錄安裝指令即可。
   - 開發者自行撰寫的客製技能 → **應該提交**。
   - **必問開發者**：「這個技能是透過 CLI 安裝的，還是您自己寫的？」
+- **Antigravity 工作區 agent 定義**：`.agents/agents/<name>/agent.json`（由 agy 1.0.13 二進位內的路徑模板 `{workspace}/.agents/agents/{agent_name}/agent.json` 證實）。性質類同 `.claude/agents/`（團隊共用 subagent），但尚未確認是開發者手寫還是工具自動產生 —— 目前被 `.agents/*` 擋下，**要放行前必問開發者**。
 - **產生的設定檔**：如 `design-system/pages/*.md`。需確認是可重新產生的快取，或有手動調整過的客製設定。
 - **大型 PDF / 文件快照**：是否是 Notion/雲端文件的靜態匯出？若是，**建議改以連結指向活文件**，避免靜態快照過時誤導。
 - **用途不明的檔案**：任何無法從檔名或副檔名判斷用途的檔案，**一律先 view_file 內容再決定**。
@@ -363,6 +364,10 @@ Thumbs.db
 # 依據見 verification/CLAIMS.md 的 C-41、C-42
 !.agents/AGENTS.md
 !.agents/settings.json
+# agent 會把使用者訊息逐字寫入下列檔案（含 UTC 時間戳），可能含對話中貼過的敏感資訊。
+# 已被上方 .agents/* 涵蓋，仍 explicit 列名一次 —— 廣域規則日後若被放寬仍有保護
+.agents/ORIGINAL_REQUEST.md
+.agents/**/ORIGINAL_REQUEST.md
 # .agents/settings.local.json 已移除：實查確認 Antigravity 無此概念，
 # 原規則是誤類比 Claude Code 而來（C-43）。該路徑仍被上方 .agents/* 涵蓋。
 # 工作區層級 hooks：Antigravity 回報屬專案共用（與家目錄 hooks 合併、專案優先），

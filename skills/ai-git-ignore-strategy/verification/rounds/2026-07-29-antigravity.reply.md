@@ -122,9 +122,67 @@ skill 原本以「1.x / 2.0」區分新舊路徑，這個標籤**沒有可觀察
 
 ---
 
+## 追加：二進位字串複驗（2026-07-30）
+
+回報中兩項未採信的項目，改以 `agy.exe` 1.0.13（152 MB）的字串分析追查，結果如下。
+
+### C-44 已解決 —— 回報的「合併」說法獲得證實
+
+二進位內含：
+
+```text
+loaded %d named hooks from %d hooks.json file(s)     ← 複數，確認會合併多個檔案
+Loaded hooks.json from %s: %d named hooks, %d total handlers
+No hooks.json found at %s / skipping hooks.json at %s: %v / failed to write hooks.json to %s: %v
+```
+
+另查 `~/.gemini/trusted_hooks.json`，其結構為「**工作區絕對路徑** → 已信任的 `hookType:command` 清單」，
+另有 `*` 代表全域。**信任狀態存在家目錄、以工作區路徑為 key** —— 這個設計本身就意味
+hooks 定義可能來自他人 commit 的 repo（否則自己在自己機器上建的檔不需要信任閘門）。
+
+因此 C-44 升為「已驗證」：`.agents/hooks.json` 屬**可共享檔**。
+至於某個專案要不要提交它，是專案決策而非待驗事實，範本維持註解讓開發者自行判斷。
+
+### C-52 遭推翻 —— 「專案內絕無自動產生物」不成立
+
+回報第 4 節稱「專案目錄內部⋯⋯不會產生任何會被 Git 誤抓的執行暫存檔」。二進位字串顯示並非如此：
+
+```text
+Maintain an **ORIGINAL_REQUEST.md** file that captures user requests verbatim.
+append it to .agents/ORIGINAL_REQUEST.md with a UTC timestamp header
+append it to .agents/<your_folder>/ORIGINAL_REQUEST.md with a UTC timestamp header
+You are a PROJECT SENTINEL. You have exactly 4 jobs: (1) Record user requests to ORIGINAL_REQUEST.md.
+```
+
+agent 會把使用者訊息**逐字**附加進專案的 `.agents/` 目錄。這正是本 skill 開頭列的
+Security Risks（「可能暴露對話中貼過的敏感資訊或測試密碼」），而且是最該擋的一類。
+現行 `.agents/*` 已涵蓋，但依「敏感檔重複列名防呆」原則已 explicit 列名（C-55）。
+
+### 新發現 C-54：`.agents/agents/<name>/agent.json`
+
+```text
+{workspace}/.agents/skills/{skill_name}/SKILL.md
+{workspace}/.agents/agents/{agent_name}/agent.json
+- Path: ".agents" (relative to the workspace root)
+```
+
+工作區層級的 agent 定義路徑，本 skill 原本完全未涵蓋。性質類同 `.claude/agents/`
+（已被列為團隊共用而放行），但尚未確認是開發者手寫還是工具自動產生，故列入 ❓ 需確認。
+
+### C-48 仍未解決
+
+二進位中查無 `config/skills`、`antigravity/skills` 的字面字串（路徑係動態組合），
+故無法由字串分析判定。補充觀察：`~/.gemini/antigravity/builtin/skills/` 底下有 3 個工具自帶技能
+（`agy-customizations`、`antigravity_guide`、`permissioned-github`），
+可見 `~/.gemini/antigravity/` 確實是工具管理的目錄 —— 但工具自己的技能放在 `builtin/skills/`，
+而非 `skills/`。`~/.gemini/antigravity/skills/` 至今仍只有我方安裝器寫入的內容。
+
+需以實驗判定，見 [第二輪交接包](./2026-07-30-antigravity-round2.md)。
+
+---
+
 ## 下一輪待辦
 
-- C-44 `.agents/hooks.json`：需在**實際配置了 workspace hooks 的專案**上重問，
-  並要求提供 `trusted_hooks.json` 與實際載入行為的觀察。
-- C-48 `~/.gemini/antigravity/skills/`：需確認 Antigravity 是否真的掃描此路徑。
+- **C-48**：以標記技能實驗判定 `~/.gemini/antigravity/skills/` 是否真的被掃描。
   若否，`install.sh` 的雙路徑寫入應簡化。
+- **C-54**：`.agents/agents/<name>/agent.json` 是手寫還是自動產生，決定要不要放行。
