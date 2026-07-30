@@ -53,7 +53,7 @@ description: 一段清楚說明這個 skill 的用途與觸發時機的描述。
 
 | 版本 | 應該包含 | 不應包含 |
 | :--- | :--- | :--- |
-| `antigravity/SKILL.md` | Antigravity 特有的工具名（`view_file`, `list_dir`, `@skill-name` 觸發語法） | Claude 專屬工具名 |
+| `antigravity/SKILL.md` | Antigravity 特有的工具名（`view_file`, `list_dir`；1.0.13 起技能自動載入，不再用 `@skill-name` 顯式觸發） | Claude 專屬工具名 |
 | `claude/SKILL.md` | Claude Code 工具名（`Read`, `Edit`, `Bash`, `Glob`, `Grep`, `Write`）、`/skill-name` slash command | Antigravity 專屬工具名 |
 | `codex/SKILL.md` | Codex 工具與規則（`functions.exec_command`, `multi_tool_use.parallel`, `apply_patch`, sandbox escalation, `~/.codex/skills/`） | Claude / Antigravity / VS Code 專屬工具名 |
 | `vscode/SKILL.md` | GitHub Copilot / VS Code 工具名（`read_file`, `list_dir`, `grep_search`, `run_in_terminal`, `replace_string_in_file`） | Claude / Antigravity / Codex 專屬工具名 |
@@ -93,8 +93,8 @@ description: 一段清楚說明這個 skill 的用途與觸發時機的描述。
 ```bash
 # 從乾淨狀態開始
 rm -rf ~/.claude/skills/<your-skill-name>
-rm -rf ~/.gemini/config/skills/<your-skill-name>        # Antigravity 2.0
-rm -rf ~/.gemini/antigravity/skills/<your-skill-name>   # Antigravity 1.x
+rm -rf ~/.gemini/config/skills/<your-skill-name>        # Antigravity 現行全域路徑
+rm -rf ~/.gemini/antigravity/skills/<your-skill-name>   # 舊版佈局（未證實會被讀取，見 CLAIMS.md C-48）
 rm -rf ~/.codex/skills/<your-skill-name>
 rm -rf ~/.copilot/skills/<your-skill-name>              # VS Code Copilot
 

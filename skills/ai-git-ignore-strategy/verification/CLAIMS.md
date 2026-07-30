@@ -3,15 +3,15 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-07-29
+**最後更新**：2026-07-30（Antigravity 第一輪交接結果已回填）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 17 |
-| 待實查 | 13 |
+| 已驗證 | 24 |
+| 待實查 | 8 |
 | 有疑 | 2 |
 | 結構性 | 5 |
-| **總計** | **37** |
+| **總計** | **39** |
 
 ---
 
@@ -69,16 +69,22 @@
 | ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-40 | `.agents/*` | 擋直接子項 | 結構性 | — | — | 結構性 |
-| C-41 | `.agents/AGENTS.md` | 專案級自訂規則，應提交 | 實機（AI 自我回報） | 2026-07-07 | **未記錄** | 有疑 |
-| C-42 | `.agents/settings.json` | 專案共用設定，應提交 | 實機（AI 自我回報） | 2026-07-07 | **未記錄** | 有疑 |
-| C-43 | `.agents/settings.local.json` | 個人本機設定，應排除 | 無 | — | — | 待實查 |
-| C-44 | `.agents/hooks.json` | 工作區層級 hooks，**確實存在**；屬團隊共用或個人未定 | 官方 changelog | 2026-07-29 | — | 待實查 |
-| C-45 | `.antigravitycli/` | 舊版工作區對應檔，新版已淘汰但舊專案仍可能殘留 | 官方 changelog | 2026-07-29 | — | 已驗證 |
-| C-46 | `.agent/`（1.x） | 1.x 專案工作區暫存 | 無 | — | — | 待實查 |
-| C-47 | `~/.gemini/config/skills/` | 2.0 全域 skills 安裝路徑 | 官方 changelog（間接） | 2026-07-29 | — | 已驗證 |
-| C-48 | `~/.gemini/antigravity/skills/` | 1.x 全域 skills 安裝路徑（`install.sh` 與 CONTRIBUTING 皆依賴此路徑） | 無 | — | — | 待實查 |
-| C-49 | Antigravity 對話紀錄位置 | skill 泛稱「多數工具在家目錄」，未指出 Antigravity 實際位置 | 無 | — | — | 待實查 |
-| C-50 | `AGENTS.md`（根目錄） | Antigravity 已支援讀取，與 `GEMINI.md` 並列 | 官方 changelog | 2026-07-29 | — | 已驗證 |
+| C-41 | `.agents/AGENTS.md` | ~~專案級自訂規則，應提交~~ → **不存在**；Antigravity 只讀根目錄的 `AGENTS.md` | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
+| C-42 | `.agents/settings.json` | ~~專案共用設定，應提交~~ → **不存在**；專案設定實存於 `~/.gemini/config/projects/<uuid>.json` | 實機＋官方 changelog（雙重佐證） | 2026-07-29 | 1.0.13 | 已驗證 |
+| C-43 | `.agents/settings.local.json` | ~~個人本機設定~~ → **不存在**，係誤類比 Claude Code；規則已移除 | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
+| C-44 | `.agents/hooks.json` | 工作區層級 hooks **確實存在於設計中**；「屬團隊共用、與家目錄 hooks 合併且專案優先」之說法**依據循環且標的物未觀察到** | 官方 changelog（存在性）／回報未採信（歸類） | 2026-07-29 | 1.0.13 | 有疑 |
+| C-45 | `.antigravitycli/` | 舊版工作區對應檔，現行版本不再產生；規則保留供舊專案 | 官方 changelog＋實機 | 2026-07-29 | 1.0.13 | 已驗證 |
+| C-46 | `.agent/` | 舊版佈局的專案工作區暫存，現行版本不再產生；規則保留供舊專案 | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
+| C-47 | `~/.gemini/config/skills/` | **現行**全域 skills 路徑；實查含工具自身的 `.datacloud_skills_manifest` 與 22 個內建技能 | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
+| C-48 | `~/.gemini/antigravity/skills/` | ~~1.x 全域路徑~~ → **舊版佈局，未證實會被讀取**：該目錄僅有本專案 `install.sh` 寫入的內容，無工具自身產物；`~/.gemini/config/.migrated`（2026-06-23）顯示已遷移，而本技能是遷移後才寫入 | 維護者複驗**推翻**回報結論 | 2026-07-29 | 1.0.13 | 有疑 |
+| C-49 | Antigravity 對話紀錄位置 | 在家目錄 `~/.gemini/antigravity/conversations/`（實查 21 項）與 `~/.gemini/antigravity-cli/conversations/`（1 項），**不寫入專案** | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
+| C-50 | `AGENTS.md`（根目錄） | Antigravity 已支援讀取，與 `GEMINI.md` 並列 | 官方 changelog＋實機 | 2026-07-29 | 1.0.13 | 已驗證 |
+| C-51 | 技能觸發語法 | `@skill-name` **已不適用**；技能由 Agent 依任務自動掃描載入 | 實機（回報） | 2026-07-29 | 1.0.13 | 已驗證 |
+| C-52 | 專案目錄自動產生物 | Antigravity **不在專案目錄產生任何 cache／log／session**，全部收於 `~/.gemini/` | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
+
+> 📌 **版本標籤更正**：本 skill 原以「1.x／2.0」區分新舊路徑，但實查 `agy --version` 為 **1.0.13**，
+> 且 `config.json`、`antigravity_state.pbtxt`、`settings.json` 中均查無任何 `2.0` 版本字串。
+> 該標籤無可觀察依據，已改用「現行全域路徑／舊版佈局」並以 `~/.gemini/config/.migrated` 為分界證據。
 
 ## 跨工具
 
@@ -137,4 +143,4 @@
 
 | 日期 | 工具 | 涵蓋項目 | 交接包 | 回覆 |
 | :--- | :--- | :--- | :--- | :--- |
-| 2026-07-29 | Antigravity | C-41～C-49 | [round](./rounds/2026-07-29-antigravity.md) | 待回覆 |
+| 2026-07-29 | Antigravity 1.0.13 | C-41～C-49（新增 C-51、C-52） | [交接包](./rounds/2026-07-29-antigravity.md) | [回覆](./rounds/2026-07-29-antigravity.reply.md)　已回填；其中 C-44、C-48 經維護者複驗後**未採信**回報結論 |

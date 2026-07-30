@@ -96,13 +96,13 @@ git -c core.fileMode=false diff --summary
 - 跨平台 repo policy：`.gitattributes`, `.editorconfig`, `.nvmrc`。
 - 專案自動化參考：Windows Task Scheduler 匯出 XML、systemd service sample、Docker / CI config。
 - 專案設計 source of truth：`design-system/MASTER.md`、有意義的 page override。
-- 團隊 AI 指令與共享 AI 設定：`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`（Copilot 共享 prompt）, `.agents/plugins/marketplace.json`（Codex 團隊共用外掛市集）, `.agents/AGENTS.md`（專案級自訂規則）, `.agents/settings.json`（專案共用設定）, `.claude/settings.json`（團隊權限／hooks）, `.claude/commands/`, `.claude/rules/`（團隊共用分檔規則）, `.codex/config.toml`（專案層設定覆寫）, `.gemini/settings.json`（Workspace 設定）, `.cursor/rules/`，或明確要共享的 project-specific skill files。
+- 團隊 AI 指令與共享 AI 設定：`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`（Copilot 共享 prompt）, `.agents/plugins/marketplace.json`（Codex 團隊共用外掛市集）, `.claude/settings.json`（團隊權限／hooks）, `.claude/commands/`, `.claude/rules/`（團隊共用分檔規則）, `.codex/config.toml`（專案層設定覆寫）, `.gemini/settings.json`（Workspace 設定）, `.cursor/rules/`，或明確要共享的 project-specific skill files。
 - 客製專案 skills：例如 `.codex/skills/<project-skill>/SKILL.md`，但必須先確認它不是本機安裝的第三方 skill。
 
 #### 🔴 應該排除或取消追蹤 (Ignore Or Untrack)
 
 - 本機 AI 工作區與 cache：`.agent/`（Antigravity 1.x）、`.antigravitycli/`（Antigravity CLI 舊版的工作區對應檔；新版已改集中到 `~/.gemini/antigravity-cli/cache/projects.json` 並淘汰此目錄，舊專案仍會殘留） 的工作區暫存、`.codex/`、`.gemini/` 的快取，但 confirmed project skills 例外。
-  - ⚠️ 注意（最容易誤殺）：專案內 `.claude/`（`settings.json`, `commands/`, `skills/`）、`.cursor/rules/`、`.github/prompts/*.prompt.md` 多半是刻意共享的設定與規則，屬於 🟢 或 ⚠️ 類；專案內 `.agents/` 的 `AGENTS.md`、`settings.json` 與 `skills/` 也是刻意共享的設定，不要整包封殺；多數工具的對話紀錄存在使用者家目錄（如 `~/.claude/projects/`），不在專案內。 另外，`.agents/` 並非 Antigravity 專屬，而是**跨工具共用目錄** — Codex 會從當前工作目錄逐層往上掃 `.agents/skills`、Gemini CLI 以 `.agents/skills/` 作為 `.gemini/skills/` 的高優先別名、Antigravity 讀 `.agents/hooks.json`；只裝 Codex 的專案一樣會出現 `.agents/`，不要當成 Antigravity 殘留。
+  - ⚠️ 注意（最容易誤殺）：專案內 `.claude/`（`settings.json`, `commands/`, `skills/`）、`.cursor/rules/`、`.github/prompts/*.prompt.md` 多半是刻意共享的設定與規則，屬於 🟢 或 ⚠️ 類；專案內 `.agents/` 的 `AGENTS.md`、`settings.json` 與 `skills/` 也是刻意共享的設定，不要整包封殺；多數工具的對話紀錄存在使用者家目錄（如 `~/.claude/projects/`），不在專案內。 另外，`.agents/` 並非 Antigravity 專屬，而是**跨工具共用目錄** — Codex 會從當前工作目錄逐層往上掃 `.agents/skills`、Gemini CLI 以 `.agents/skills/` 作為 `.gemini/skills/` 的高優先別名、Antigravity 讀 `.agents/hooks.json`；只裝 Codex 的專案一樣會出現 `.agents/`，不要當成 Antigravity 殘留。　Antigravity 實查（1.0.13，2026-07-29）：對話紀錄位於 `~/.gemini/antigravity/conversations/` 與 `~/.gemini/antigravity-cli/conversations/`，**專案目錄內不產生任何 cache／log**。
 - Runtime logs：`*.log`，通常會自動輪替或持續增長，沒有版本控制價值。
 - 每次執行會覆寫的 runtime state：`last_run.txt`, `last_*.txt`。這些會讓 `git status` 長期保持 dirty。
 - 機密：`.env`, `.env.*`，但保留 `!.env.example`；另排除 `*.pem`, `*.key`, `credentials.json`, `certs/`。
@@ -400,13 +400,16 @@ Thumbs.db
 .agents/plugins/*
 # Codex 官方定位：「for everyone on a project」
 !.agents/plugins/marketplace.json
-# 專案級 AI 規則檔（⚠️ 未見於官方文件，依實機經驗保留）
+# 下兩條：Antigravity 1.0.13 實機查核（2026-07-29）確認**不存在**，
+# 專案設定實際存放於 ~/.gemini/config/projects/<uuid>.json。
+# 保留為防禦性白名單 —— 手動建立或未來版本啟用時不會被上方 .agents/* 誤擋。
+# 依據見 verification/CLAIMS.md 的 C-41、C-42
 !.agents/AGENTS.md
-# 專案共用設定（⚠️ 未見於官方文件，依實機經驗保留）
 !.agents/settings.json
-# 個人本機設定
-.agents/settings.local.json
-# 工作區層級 hooks：內含可執行指令，確認為團隊共用再放行
+# .agents/settings.local.json 已移除：實查確認 Antigravity 無此概念，
+# 原規則是誤類比 Claude Code 而來（C-43）。該路徑仍被上方 .agents/* 涵蓋。
+# 工作區層級 hooks：Antigravity 回報屬專案共用（與家目錄 hooks 合併、專案優先），
+# 但實查環境中該檔不存在，此說法尚未直接驗證。內含可執行指令，確認後再放行（C-44）
 # !.agents/hooks.json
 # Antigravity CLI 舊版工作區對應檔（新版已淘汰，舊專案仍可能殘留）
 .antigravitycli/
