@@ -72,13 +72,17 @@ my-monorepo/                      # repo root (has .git folder)
 2. `.claude/skills/*` 的 scoped allowlist（擋第三方、放行自撰）**同時影響 Copilot**，
    不只影響 Claude Code。這讓那條規則的重要性提高。
 
-### Q3　Copilot 是否在專案產生 cache／log → ⚠️ **待工具確認**
+### Q3　Copilot 是否在專案產生 cache／log → ✅ **實機確認**
 
 skills 與 hooks 兩頁**均未提及**專案層的 cache 或 log。唯一出現的 `.log`
 是官方範例中「**使用者自行設定**的 hook 把稽核日誌寫到 `.github/hooks/audit.log`」——
 那是使用者行為，不是工具自動產生。
 
-文件沒提到不等於不存在，**此題維持待工具確認**。
+文件沒提到不等於不存在；因此已由 VS Code 1.125.1／Copilot Chat 0.53.1 的 active
+agent session 實查補足。session、transcript、debug log 與 editing state 實際落在
+`<VS Code user-data>/User/workspaceStorage/<workspace-id>/`，global cache 落在同一份
+user data 的 `globalStorage/`，不是 repository。同期 `git status` 未出現新的 Copilot
+runtime 檔。詳見 [VS Code 實機回覆](./2026-08-03-vscode-copilot.reply.md)。
 
 ### Q4　`~/.copilot/skills/` 是否正確 → ✅ **確認（依據升級）**
 
@@ -98,6 +102,7 @@ skills 與 hooks 兩頁**均未提及**專案層的 cache 或 log。唯一出現
 | **C-75** | 新增 —— `.github/skills/`：Copilot 專案層技能 |
 | **C-76** | 新增 —— `.github/hooks/*.json`：Copilot 工作區 hooks（含可執行指令） |
 | **C-77** | 新增 —— Copilot 跨工具讀取 `.claude/`、`.agents/` |
+| **C-78** | 新增 —— Copilot runtime session／log／cache 位於 VS Code user data，非 repository；不需新增 project `.gitignore` 規則 |
 | C-17 | 維持；Codex Q2 的其餘部分列為待工具確認 |
 
 ## 監控補強
@@ -111,6 +116,5 @@ skills 與 hooks 兩頁**均未提及**專案層的 cache 或 log。唯一出現
 | 工具 | 問題 |
 | :--- | :--- |
 | Codex | 專案層 `.codex/` 除已知五項外，還有什麼自動產生物？ |
-| Copilot | 是否在專案目錄產生任何 cache／log／session？ |
 
-其餘問題已由官方文件定案，無需再問。
+Copilot Q3 已由 [VS Code 實機回覆](./2026-08-03-vscode-copilot.reply.md) 定案；其餘問題已由官方文件定案，無需再問。

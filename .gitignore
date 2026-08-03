@@ -19,6 +19,12 @@ Thumbs.db
 # Python (scripts/check_updates.py 執行後產生)
 __pycache__/
 *.pyc
+# 虛擬環境：本 skill 的範本本就列有 venv/ 與 .venv/，本 repo 自己卻漏了。
+# 實務上 Python 的 venv 模組會在 .venv/ 內自建一個內容為 * 的 .gitignore，
+# 所以 git status 看起來乾淨 —— 但那是「靠工具剛好幫你擋」，
+# 換成 virtualenv 或舊版 Python 就不成立。規則要寫在自己的 .gitignore 裡。
+venv/
+.venv/
 
 # Test output
 *.log
