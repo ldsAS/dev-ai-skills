@@ -1,6 +1,6 @@
 # ai-git-ignore-strategy
 
-針對各類 AI 代理工具 (Claude Code / Antigravity / GitHub Copilot / Codex / Cursor / Gemini) 建立 .gitignore 最佳實務的五階段審查流程，並延伸處理跨平台行尾（LF / CRLF）正規化。
+針對各類 AI 代理工具 (Claude Code / Antigravity / GitHub Copilot / Codex / Gemini) 建立 .gitignore 最佳實務的五階段審查流程，並延伸處理跨平台行尾（LF / CRLF）正規化。
 
 ## 適用情境
 

@@ -67,8 +67,6 @@
         ".claude/rules/shared",
         ".claude/settings.json",
         ".claude/settings.local.json",
-        ".cursor/rules/",
-        ".cursorrules",
         "AGENTS.md",
         "CLAUDE.local.md",
         "CLAUDE.md",
@@ -162,15 +160,6 @@
         ".codex/config.toml",
         "AGENTS.md",
         "~/.codex/config.toml"
-      ]
-    },
-    "cursor/rules": {
-      "tokens": [
-        ".cursor/rule/imported/",
-        ".cursor/rules",
-        ".cursor/rules/",
-        ".cursor/rules/imported/",
-        "AGENTS.md"
       ]
     },
     "gemini-cli/gemini-md": {

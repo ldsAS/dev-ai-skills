@@ -87,9 +87,6 @@ CASES = [
     (".geminiignore", False),                            # C-23 忽略規則，與 .gitignore 同性質
     (".aiexclude", False),                               # C-23
     (".gemini/cache/x", True),
-    # --- Cursor（C-31、C-32）---
-    (".cursor/rules/style.mdc", False),                  # C-31 團隊規則
-    (".cursor/rules/imported/other-repo/r.mdc", True),   # C-32 他 repo 鏡像
     # --- 一般檔案不可被誤殺 ---
     (".github/prompts/a.prompt.md", False),
     ("CLAUDE.md", False),

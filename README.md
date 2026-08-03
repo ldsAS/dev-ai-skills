@@ -1,6 +1,6 @@
 # dev-ai-skills
 
-> 集中管理跨 AI 代理工具（Antigravity、Claude Code、GitHub Copilot、Codex、Cursor⋯⋯）的 **Skills** 技能庫。
+> 集中管理跨 AI 代理工具（Antigravity、Claude Code、GitHub Copilot、Codex⋯⋯）的 **Skills** 技能庫。
 >
 > 每個 skill 依工具提供專用版本：`antigravity/`（Gemini / Antigravity 專用）、`claude/`（Claude Code 專用）、`vscode/`（GitHub Copilot / VS Code 專用）、`codex/`（Codex 專用）、`generic/`（工具無關的通用版本，供其他 AI 工具 fallback）。
 

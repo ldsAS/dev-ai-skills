@@ -62,9 +62,8 @@ SOURCES = [
     ("gemini-cli", "gemini-md", "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/gemini-md.md"),
     ("gemini-cli", "skills", "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/skills.md"),
     ("gemini-cli", "ignore", "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/gemini-ignore.md"),
-    # Cursor — 僅有 HTML 文件站
-    ("cursor", "rules", "https://cursor.com/docs/context/rules"),
-    # Antigravity — 無公開 docs 站，changelog 是目前唯一能穩定取得路徑資訊的來源
+    # Antigravity — 官方文件站在 /docs/<section> 之下（索引頁 /docs 只是 stub）。
+    # 目前僅監控 changelog；官方 docs 尚未納入，見 CLAIMS.md 的待辦
     ("antigravity", "changelog", "https://antigravity.google/changelog"),
 ]
 
@@ -93,11 +92,10 @@ ALERT_LEVEL = {"antigravity": "minor"}
 # 路徑 token 抽取
 # --------------------------------------------------------------------------
 # 長名必須排在短名前面：alternation 取最先命中者，
-# 否則 `.agents` 會先被 `.agent` 吃掉、`.cursorrules` 會被 `.cursor` 吃掉。
+# 否則 `.agents` 會先被 `.agent` 吃掉、`.codexignore` 會被 `.codex` 吃掉。
 DOT_NAMES = "|".join([
     "claude-plugin", "claude",
     "codex-plugin", "codexignore", "codex",
-    "cursorignore", "cursorrules", "cursor",
     "geminiignore", "gemini",
     "antigravity-cli", "antigravitycli", "antigravity",
     "agents", "agent",
@@ -201,7 +199,7 @@ def _claim_paths(cell):
     * 含 `<name>` / `[_<N>]` 佔位符者截到第一個佔位符為止，截完只剩單段時丟掉
       （例：`.agents/<type>_<milestone>/` → `.agents`）
     * 指向單一段**目錄**者丟掉（例：`.agents/`、`.claude/*`）；
-      單段**檔名**則保留（例：`.geminiignore`、`.cursorrules`）
+      單段**檔名**則保留（例：`.geminiignore`、`.aiexclude`）
     """
     paths = []
     for raw in re.findall(r"`([^`]+)`", cell):
@@ -231,6 +229,10 @@ def load_claims():
     claims = []
     for match in CLAIM_ROW_RE.finditer(text):
         cid, path_cell, brief, _basis, dated, _version, status = match.groups()
+        # 已移出維護範圍者不參與比對，也不列入涵蓋率 ——
+        # 它們保留在帳本裡只是歷史紀錄，算進盲區會讓報表失真。
+        if status.strip() == "移出範圍":
+            continue
         paths = _claim_paths(path_cell)
         if not paths:
             continue

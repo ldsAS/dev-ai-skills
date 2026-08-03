@@ -3,14 +3,15 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-07-30（**全部 43 條均已定案**，無待實查與有疑殘留）
+**最後更新**：2026-08-03（Cursor 移出範圍；更正「Antigravity 無公開文件站」的錯誤判定）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 38 |
+| 已驗證 | 36 |
 | 待實查 | 0 |
 | 有疑 | 0 |
-| 結構性 | 5 |
+| 結構性 | 4 |
+| 移出範圍 | 3 |
 | **總計** | **43** |
 
 ---
@@ -53,19 +54,34 @@
 | C-23 | `.geminiignore`、`.aiexclude` | AI 忽略規則檔，官方明示「similar to `.gitignore`」，與 `.gitignore` 同性質 → **應提交**。現行規則不擋（正確），已補進 🟢 清單 | 官方文件 | 2026-07-30 | — | 已驗證 |
 | C-24 | `~/.gemini/tmp/`（session 實際位置） | Session 存於 **家目錄** `~/.gemini/tmp/<project_hash>/chats/`，不寫入專案。專案內 `.gemini/` 以 `settings.json`、`skills/` 等共享內容為主，無需額外 cache 排除規則 | 官方文件 | 2026-07-30 | — | 已驗證 |
 
-## Cursor
+## Cursor（已移出維護範圍）
+
+> 🚫 **2026-08-03 移出**：維護者未使用 Cursor，為降低維護負擔已自五版範本移除
+> `.cursor/*` 相關規則、自監控來源移除 `cursor.com/docs`。
+> 下列三條**保留作為歷史紀錄**（帳本原則：不刪除，只改狀態）。
+> 若日後要重新納入，規則與依據可直接由此還原。
 
 | ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| C-30 | `.cursor/*` | 擋直接子項 | 結構性 | — | — | 結構性 |
-| C-31 | `.cursor/rules/` | 團隊規則，官方建議 commit | 官方文件 | 2026-07-29 | — | 已驗證 |
-| C-32 | `.cursor/rules/imported/` | Cursor 會自 **其他 repo** pull and sync 規則並放到 `.cursor/rules/imported/<repoName>`，屬可重新取得的鏡像，提交等同 vendoring 他人內容且會持續 churn → **已在 `!.cursor/rules/` 之後 explicit 排除** | 官方文件 | 2026-07-30 | — | 已驗證 |
+| C-30 | `.cursor/*` | 擋直接子項 | 結構性 | — | — | 移出範圍 |
+| C-31 | `.cursor/rules/` | 團隊規則，官方建議 commit | 官方文件 | 2026-07-29 | — | 移出範圍 |
+| C-32 | `.cursor/rules/imported/` | Cursor 會自其他 repo pull and sync 規則並放到 `.cursor/rules/imported/<repoName>`，屬可重新取得的鏡像 | 官方文件 | 2026-07-29 | — | 移出範圍 |
 
 ## Antigravity
 
-> ⚠️ Antigravity **沒有公開文件站**（`antigravity.google/docs` 為空 stub）。
-> 目前唯一可穩定取得路徑資訊的來源是 `antigravity.google/changelog`。
-> 本區多數項目只能靠實機交接確認。
+> ✅ **2026-08-03 更正**：Antigravity **有完整的官方文件站**（80+ 頁），
+> 涵蓋 `/docs/skills`、`/docs/subagents`、`/docs/hooks`、`/docs/rules-workflows`、
+> `/docs/plugins`、`/docs/cli/*`、`/docs/ide/*` 等。
+>
+> ⚠️ 先前判定「沒有公開文件站」**是錯的** —— 當時只測了索引頁 `antigravity.google/docs`
+> 拿到 345 bytes 的 stub 就下結論，沒有跟著頁面連結往下追。實際文件在 `/docs/<section>` 之下。
+>
+> 產品家族為 **Antigravity 2.0**（套件版本）下轄 **Antigravity CLI**（`agy`，自身版本 1.x）、
+> **Antigravity IDE**、**Antigravity SDK**；官方另有 `/docs/cli/gcli-migration`
+> 說明如何自 Gemini CLI 遷移過來。這解釋了先前 `2.4.3` 與 `agy --version 1.0.13` 的差異 ——
+> 兩個都是真的版本號，分屬套件與 CLI 元件。
+>
+> 本區多條原標為「監控盲區」的主張，因此**具備改由官方文件監控的條件**（尚未套用，見下方待辦）。
 
 | ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
