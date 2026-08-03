@@ -24,6 +24,69 @@
         "~/.gemini/config/projects/"
       ]
     },
+    "antigravity/gcli-migration": {
+      "tokens": [
+        ".agents/mcp_config.json",
+        ".agents/skills/",
+        ".gemini/skills/",
+        "AGENTS.md",
+        "GEMINI.md",
+        "~/.gemini/GEMINI.md",
+        "~/.gemini/antigravity-cli/skills/",
+        "~/.gemini/config/mcp_config.json",
+        "~/.gemini/settings.json",
+        "~/.gemini/skills/"
+      ]
+    },
+    "antigravity/hooks": {
+      "tokens": [
+        ".agents/",
+        "~/.gemini/antigravity",
+        "~/.gemini/antigravity-cli",
+        "~/.gemini/antigravity/brain/ec33ebf9-0cba-4100-8142-c61503f6c587",
+        "~/.gemini/antigravity/brain/ec33ebf9-0cba-4100-8142-c61503f6c587/.system_generated/logs/transcript.jsonl",
+        "~/.gemini/config/"
+      ]
+    },
+    "antigravity/ide-skills": {
+      "tokens": [
+        ".agent/skills",
+        ".agents/skills",
+        ".agents/skills/",
+        ".agents/skills/my-skill/",
+        "/.agents/skills/",
+        "~/.gemini/antigravity/skills/"
+      ]
+    },
+    "antigravity/plugins": {
+      "tokens": [
+        ".agents/plugins/",
+        "~/.gemini/config/plugins/"
+      ]
+    },
+    "antigravity/rules-workflows": {
+      "tokens": [
+        ".agent/rules",
+        ".agents/rules",
+        "~/.gemini/GEMINI.md"
+      ]
+    },
+    "antigravity/skills": {
+      "tokens": [
+        ".agent/skills",
+        ".agents/skills",
+        ".agents/skills/",
+        ".agents/skills/my-skill/",
+        "/.agents/skills/",
+        "~/.gemini/config/skills/"
+      ]
+    },
+    "antigravity/subagents": {
+      "tokens": [
+        ".agents/agents/",
+        "~/.gemini/config/agents/"
+      ]
+    },
     "claude-code/changelog": {
       "tokens": [
         ".claude",
@@ -160,6 +223,35 @@
         ".codex/config.toml",
         "AGENTS.md",
         "~/.codex/config.toml"
+      ]
+    },
+    "copilot/customization": {
+      "tokens": [
+        ".agent.md",
+        ".instructions.md",
+        ".prompt.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "copilot-instructions.md",
+        "review.prompt.md",
+        "reviewer.agent.md",
+        "style.instructions.md"
+      ]
+    },
+    "copilot/prompt-files": {
+      "tokens": [
+        ".github/prompts",
+        ".prompt.md"
+      ]
+    },
+    "copilot/repo-instructions": {
+      "tokens": [
+        ".instructions.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "GEMINI.md",
+        "NAME.instructions.md",
+        "copilot-instructions.md"
       ]
     },
     "gemini-cli/gemini-md": {

@@ -55,6 +55,9 @@ CASES = [
     (".agents/plan_parser_2_gen3/notes.md", True),       # C-56 同上
     (".agents/agents/reviewer/agent.json", False),       # C-54 專案層子代理定義
     (".agents/agents/nested/deep/agent.json", False),    # C-54 深層仍需放行
+    (".agents/rules/style.md", False),                   # C-57 工作區規則，團隊共用
+    (".agent/rules/legacy.md", False),                   # C-57 舊佈局仍向後相容
+    (".agents/mcp_config.json", False),                  # C-58 工作區 MCP 定義
     (".agents/cache/session.db", True),
     (".agents/skills/thirdparty/SKILL.md", True),        # 第三方技能預設不追蹤
     (".antigravitycli/projects.json", True),             # C-45 舊版殘留

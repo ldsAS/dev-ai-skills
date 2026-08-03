@@ -3,16 +3,16 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-08-03（Cursor 移出範圍；更正「Antigravity 無公開文件站」的錯誤判定）
+**最後更新**：2026-08-03（納入 Antigravity 官方文件與 Copilot 監控；新增 C-57、C-58、C-70～C-74）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 36 |
+| 已驗證 | 43 |
 | 待實查 | 0 |
 | 有疑 | 0 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| **總計** | **43** |
+| **總計** | **50** |
 
 ---
 
@@ -53,6 +53,19 @@
 | C-22 | `.agents/skills/` | 為 `.gemini/skills/` 的別名，且**優先權高於**後者 | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-23 | `.geminiignore`、`.aiexclude` | AI 忽略規則檔，官方明示「similar to `.gitignore`」，與 `.gitignore` 同性質 → **應提交**。現行規則不擋（正確），已補進 🟢 清單 | 官方文件 | 2026-07-30 | — | 已驗證 |
 | C-24 | `~/.gemini/tmp/`（session 實際位置） | Session 存於 **家目錄** `~/.gemini/tmp/<project_hash>/chats/`，不寫入專案。專案內 `.gemini/` 以 `settings.json`、`skills/` 等共享內容為主，無需額外 cache 排除規則 | 官方文件 | 2026-07-30 | — | 已驗證 |
+
+## VS Code / GitHub Copilot
+
+> 2026-08-03 建立。此前這個工具**完全沒有監控來源、也沒有任何主張** ——
+> 但它是維護者實際使用的四個工具之一，且早有 `vscode/` 變體。
+
+| ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| C-70 | `copilot-instructions.md`（位於 `.github/`） | 專案指令檔，由 `/init` 產生；官方列為 always-on instructions（與 `AGENTS.md`、`CLAUDE.md` 並列）→ **應提交**。現行規則不擋（正確） | 官方文件 | 2026-08-03 | — | 已驗證 |
+| C-71 | `.github/prompts`、`.prompt.md` | 共享 prompt files，官方：Workspace scope 的預設位置為 `.github/prompts` → **應提交**。現行規則不擋（正確） | 官方文件 | 2026-08-03 | — | 已驗證 |
+| C-72 | `.instructions.md` | 針對特定語言／框架／資料夾的指令檔，官方列為四種自訂檔型別之一 → **應提交**。skill 原本完全未提及 | 官方文件 | 2026-08-03 | — | 已驗證 |
+| C-73 | `.agent.md` | 自訂 agent 定義檔，官方列為四種自訂檔型別之一 → **應提交**。skill 原本完全未提及 | 官方文件 | 2026-08-03 | — | 已驗證 |
+| C-74 | `~/.copilot/skills/` | 使用者層技能安裝路徑（`install.sh` 的 vscode 目標），在家目錄不影響專案 | 實機（本專案安裝器） | 2026-08-03 | — | 已驗證 |
 
 ## Cursor（已移出維護範圍）
 
@@ -101,6 +114,8 @@
 | C-54 | `.agents/agents/<name>/agent.json` | 工作區層級自訂子代理定義，**應提交**（已放行）。依據不是類比其他工具，而是 agy 自身的**對稱設計**：`GetAgentsCreatePath`／`GetGlobalAgentsCreatePath` 與 `GetSkillsCreatePath`／`GetGlobalSkillsCreatePath` 成對存在（各 3 次），即工具把 agents 與 skills 視為同類的兩層結構，而 `.agents/skills/` 本已放行；另有 `writing agent.json`／`marshaling agent.json` 顯示為使用者發起的持久化宣告，且執行期狀態另有去處（C-56 與家目錄 `brain/`）。**殘留未知**：實體檔案內容尚無人目視 | 二進位字串分析（架構對稱） | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-55 | `.agents/ORIGINAL_REQUEST.md` | agent 會把使用者訊息**逐字**附加至此檔（含 UTC 時間戳），亦有 `.agents/<agent_folder>/ORIGINAL_REQUEST.md` 變體。**屬敏感內容，必須排除** | 二進位字串分析 | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-56 | `.agents/<type>_<milestone>[_<N>][_gen<N>]/` | 子代理在**專案內**建立的工作目錄命名規則（二進位字串），內含 `ORIGINAL_REQUEST.md` 等記錄。已被 `.agents/*` 完整涵蓋 | 二進位字串分析 | 2026-07-30 | 1.0.13 | 已驗證 |
+| C-57 | `.agents/rules/`、`.agent/rules/` | 工作區規則資料夾，官方：「Workspace rules live in the `.agents/rules` folder of your workspace or git root」，性質同 `.claude/rules/` → **應提交（已放行）**。官方另載「now defaults to `.agents/rules`, but still maintains backward support for `.agent/rules`」，故舊佈局一併放行 | 官方文件 `/docs/rules-workflows` | 2026-08-03 | 2.x | 已驗證 |
+| C-58 | `.agents/mcp_config.json` | 工作區層級 MCP server 定義，官方：「Workspace servers: `.agents/mcp_config.json`」（全域版為 `~/.gemini/config/mcp_config.json`）→ **應提交（已放行）**。原被 `.agents/*` 誤殺 | 官方文件 `/docs/cli/gcli-migration` | 2026-08-03 | 2.x | 已驗證 |
 
 > 📌 **版本編號說明**（2026-08-03 更正）：Antigravity 有**兩套版本號** ——
 > 產品版本走 2.x（changelog 的發行表：`2.4.3 July 28, 2026`、`2.3.1`、`2.3.0`⋯，最新 2.4.3），

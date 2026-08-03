@@ -62,9 +62,22 @@ SOURCES = [
     ("gemini-cli", "gemini-md", "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/gemini-md.md"),
     ("gemini-cli", "skills", "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/skills.md"),
     ("gemini-cli", "ignore", "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/gemini-ignore.md"),
-    # Antigravity — 官方文件站在 /docs/<section> 之下（索引頁 /docs 只是 stub）。
-    # 目前僅監控 changelog；官方 docs 尚未納入，見 CLAIMS.md 的待辦
+    # Antigravity — 官方文件站在 /docs/<section> 之下（索引頁 /docs 只是 stub，
+    # 2026-07-30 曾因此誤判為「沒有公開文件站」）。
+    # /docs/* 與 /docs/ide/* 兩套並存：前者是 CLI、後者是 IDE，全域路徑不同（見 C-47／C-48）。
     ("antigravity", "changelog", "https://antigravity.google/changelog"),
+    ("antigravity", "skills", "https://antigravity.google/docs/skills"),
+    ("antigravity", "ide-skills", "https://antigravity.google/docs/ide/skills"),
+    ("antigravity", "subagents", "https://antigravity.google/docs/subagents"),
+    ("antigravity", "hooks", "https://antigravity.google/docs/hooks"),
+    ("antigravity", "rules-workflows", "https://antigravity.google/docs/rules-workflows"),
+    ("antigravity", "plugins", "https://antigravity.google/docs/plugins"),
+    ("antigravity", "gcli-migration", "https://antigravity.google/docs/cli/gcli-migration"),
+    # VS Code / GitHub Copilot
+    ("copilot", "customization", "https://code.visualstudio.com/docs/copilot/customization/overview"),
+    ("copilot", "prompt-files", "https://code.visualstudio.com/docs/copilot/customization/prompt-files"),
+    ("copilot", "repo-instructions",
+     "https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions"),
 ]
 
 # npm 版本（僅供參考；預設只有 major 版號跳動才告警）
@@ -107,13 +120,15 @@ TOKEN_RE = re.compile(
     # 例如 docs.claude.com 的 `.claude` 前面是 `s`，直接不視為路徑。
     r"(?<![\w-])"
     r"(?:"
-    r"(?:(?:~|\$HOME|\.{1,2})?[/\\])?"
+    # Copilot 的自訂檔型別（prompt / instructions / agent）必須排在 dot-dir 之前，
+    # 否則 `*.agent.md` 會先被 DOT_NAMES 的 `agent` 吃掉、只留下 `.agent`。
+    r"[\w.\-]*\.(?:prompt|instructions|agent)\.md"
+    r"|(?:(?:~|\$HOME|\.{1,2})?[/\\])?"
     rf"\.(?:{DOT_NAMES})"
     r"(?:[/\\][\w.\-]+)*[/\\]?"
     r"|\.github[/\\]prompts(?:[/\\][\w.\-]+)*[/\\]?"
     r"|(?:CLAUDE|AGENTS|GEMINI|QWEN)\.(?:local\.)?md"
     r"|copilot-instructions\.md"
-    r"|[\w.\-]*\.prompt\.md"
     r"|settings\.local\.json"
     r")"
 )

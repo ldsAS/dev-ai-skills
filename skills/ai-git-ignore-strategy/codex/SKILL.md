@@ -393,6 +393,9 @@ Thumbs.db
 .agent/skills/*
 # !.agent/skills/<project-skill>/
 # !.agent/skills/<project-skill>/**
+# 舊佈局的工作區規則；官方：「now defaults to .agents/rules, but still maintains
+# backward support for .agent/rules」（C-57）
+!.agent/rules/
 # .agents/ 為跨工具共用目錄，非 Antigravity 專屬：
 #   Codex       — 從 CWD 逐層往上掃 .agents/skills；.agents/plugins/marketplace.json 屬團隊共用
 #   Gemini CLI  — .agents/skills/ 是 .gemini/skills/ 的別名，且優先權高於後者
@@ -403,6 +406,12 @@ Thumbs.db
 .agents/skills/*
 # !.agents/skills/<project-skill>/
 # !.agents/skills/<project-skill>/**
+# 工作區規則。官方：「Workspace rules live in the .agents/rules folder of your
+# workspace or git root」，性質同 .claude/rules/，屬團隊共用（C-57）
+!.agents/rules/
+# 工作區層級的 MCP server 定義。官方：「Workspace servers: .agents/mcp_config.json」
+# （全域版在 ~/.gemini/config/mcp_config.json），屬團隊共用（C-58）
+!.agents/mcp_config.json
 # 必須先放行父目錄，否則下一行的 marketplace.json 白名單無效
 # 專案層自訂子代理定義。agy 1.0.13 二進位顯示 agents 與 skills 有完全對稱的
 # 建立路徑函式（GetAgentsCreatePath／GetGlobalAgentsCreatePath 對應
