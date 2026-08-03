@@ -1,0 +1,38 @@
+name: Verify gitignore Template
+
+# 這個 workflow 管的是「我們自己有沒有把範本規則改壞」，
+# 與 check-updates.yml（管「上游文件變了沒」）職責不同，故分開。
+#
+# .gitignore 有兩種靜默失效模式（行尾註解、白名單救不回已忽略目錄底下的檔案），
+# 兩者都不會報錯，只會安靜地讓規則不生效。唯一可靠的檢驗是實際跑 git check-ignore。
+on:
+  push:
+    paths:
+      - 'skills/**'
+      - 'scripts/verify_gitignore_template.py'
+      - '.github/workflows/verify-template.yml'
+  pull_request:
+    paths:
+      - 'skills/**'
+      - 'scripts/verify_gitignore_template.py'
+      - '.github/workflows/verify-template.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify gitignore template boundaries
+        run: python scripts/verify_gitignore_template.py

@@ -84,6 +84,7 @@ description: 一段清楚說明這個 skill 的用途與觸發時機的描述。
 - [ ] 若改動涉及**外部工具的路徑事實**（某工具會在哪產生什麼檔案），先查 `skills/<skill-name>/verification/CLAIMS.md` 的既有依據；新增或推翻主張時同步更新該帳本（含取證日與工具版本）
 - [ ] 撰寫 `skills/<skill-name>/README.md` 說明各版本差異與使用時機
 - [ ] 在 repo 根目錄的 [`README.md`](./README.md) 「目前提供的技能」表格中新增一行
+- [ ] **改過 `.gitignore` 範本規則的話**，跑過 `python scripts/verify_gitignore_template.py`（全綠才算數）—— 行尾註解與白名單邊界都是靜默失效，肉眼審不出來；push 後 CI 也會再跑一次
 - [ ] 本機跑過 `./install.sh` 驗證安裝器能正確鋪到所有目標目錄
 
 ---
