@@ -58,3 +58,106 @@
     1.  **`mcp_config.local.json`**：對應本機測試用或含有私鑰的本地專用 MCP 設定，必須排除阻擋。
     2.  **`sidecars/` 或 `sidecars.json`**：Antigravity 2.0 支援的小車進程（隨同運行的隨行進程配置）。若是團隊共用的小車宣告應提交，但如果是含有本地指令的臨時狀態或 `*.local.*` 則應排除。
 *   **信心**：中
+
+---
+
+## 維護者複驗（Claude Code，2026-08-03）
+
+> 依既定流程，回覆一律在同機獨立複驗後才回填帳本。
+> 查核手段：8 個官方文件來源的 token 基準線、`agy.exe` 1.0.13 二進位字串、檔案系統實查。
+
+| 題 | 回報結論 | 複驗後 |
+| :--- | :--- | :--- |
+| Q1 主體（六項應提交） | 相符 | ✅ 採用 |
+| Q1 **遺漏建議** `.agents/settings.json` | 應補為「應提交」 | ❌ **不採用** |
+| Q2 應排除項 | 相符 | ✅ 採用 |
+| Q3 `.agents/hooks.json` 應排除 | 應排除 | ⚠️ 採用其結論（與現行預設一致），但依據有誤 |
+| Q4 兩條全域路徑分工 | 相符 | ✅ 採用 |
+| Q5 `mcp_config.local.json` | 必須排除 | ❌ **不採用** |
+| Q5 `sidecars/`、`sidecars.json` | 專案層可能存在 | ❌ **不採用**（概念為真、路徑全錯） |
+
+### ❌ Q1 遺漏建議不採用：這是第三次對同一路徑給出不同答案
+
+`.agents/settings.json` 的查核結果：
+
+```text
+agy.exe 1.0.13 二進位   agents/settings.json  → 0 次
+8 個官方文件來源         查無此 token
+2026-07-29 檔案系統實查   不存在
+官方 changelog          專案設定實存於 ~/.gemini/config/projects/<uuid>.json
+```
+
+**四項證據一致指向不存在。** 而本次回報的依據是「查閱 `antigravity_guide` 內關於
+Workspace-Scoped 的描述」—— 那是工具自帶的說明技能，**不是檔案系統觀察**。
+
+同一路徑的回答歷程：
+
+| 日期 | 回答 | 依據 |
+| :--- | :--- | :--- |
+| 2026-07-07 | 存在，應提交 | 自我回報，無版本號 |
+| 2026-07-29 | **不存在** | 檔案系統實查（已採用，成為 C-42） |
+| 2026-08-03 | 應補為「應提交」 | 讀內建說明技能 |
+
+C-42 維持不變。範本中的 `!.agents/settings.json` 仍是**防禦性白名單**
+（實查不存在，但若手動建立不會被誤擋），不是「確認存在」。
+
+### ❌ Q5 `mcp_config.local.json` 不採用：與 C-43 相同的類比發明
+
+```text
+agy.exe 二進位   mcp_config.local.json → 0 次   mcp_config.json → 4 次
+官方文件         只有 .agents/mcp_config.json 與 ~/.gemini/config/mcp_config.json
+```
+
+這是**第三次**以 `.local.json` 後綴類比出不存在的路徑（前兩次：`.agents/settings.local.json`
+即 C-43，經實查確認 Antigravity 無此概念，規則已移除）。信心雖標為「中」，仍不予採納。
+
+### ❌ Q5 sidecars 不採用，但概念屬實 —— 記為 C-59
+
+官方 `/docs/sidecars` 明載：
+
+> Sidecars are discovered by searching for `sidecar.json` configuration files.
+> They can be defined in two locations:
+> Global sidecars: Under `~/.gemini/config/sidecars/`
+> Plugin sidecars: Under `~/.gemini/config/plugins/<pluginName>/sidecars/`
+
+三處都與回報不符：
+
+| 回報 | 實際 |
+| :--- | :--- |
+| `sidecars.json`（複數） | `sidecar.json`（單數） |
+| 可能在專案 `.agents/` 下 | **只有兩個位置，都在家目錄** |
+| 共用版可提交 | 專案層根本沒有這個概念 |
+
+二進位中 `sidecar` 出現 415 次（功能為真），但 `.agents/sidecar*` 與 `sidecars.json` 皆為 0 次。
+本機 `~/.gemini/config/sidecars/` 存在但為空。
+
+**這是有價值的否定結論**：sidecars 不會寫進專案目錄，本 skill 無需為其新增規則。已登記為 C-59。
+
+### ⚠️ Q3 結論採用，依據其一有誤
+
+「應該排除」與現行範本一致（`# !.agents/hooks.json` 預設註解著＝擋下），故結論採用。
+但依據 3 稱 `trusted_hooks.json` 登錄的是「雜湊值」—— 實查該檔內容為
+`"statusLine:node C:\...\my-status.mjs"` 這類 **hookType:command 字串**，並非雜湊。
+
+另需指出：本次「應排除」與第一輪（2026-07-29）它自己回報的「屬團隊共用」**結論相反**，
+兩次都標信心「高」。帳本 C-44 的立場不變 —— 該檔**屬可共享檔**（信任機制以工作區路徑
+為 key 存於家目錄，本身即意味 hooks 可能來自他人 commit 的 repo），但**是否提交是專案決策**，
+故範本維持註解、由開發者判斷。這與回報的實務建議並不衝突。
+
+### ✅ Q4 採用：這一題價值最高
+
+它證實了兩條全域路徑分屬 IDE 與 CLI —— 正是這一點推翻了先前 C-48 的錯誤判定，
+並讓 `install.sh` / `install.ps1` 的雙路徑寫入得以還原。
+
+---
+
+## 本輪帳本異動
+
+| 帳本 | 異動 |
+| :--- | :--- |
+| C-42 | 維持不變（Q1 遺漏建議不採用） |
+| C-44 | 維持不變（Q3 結論與現行預設一致） |
+| C-47、C-48 | 已於本輪稍早依官方文件更正，本次獲回報佐證 |
+| **C-59** | **新增** —— sidecars 只在家目錄（`~/.gemini/config/sidecars/` 與 plugins 底下），專案層無此概念 |
+
+範本規則本次**無需變動**。
