@@ -3,7 +3,8 @@
   "versions": {
     "claude-code": "2.1.220",
     "codex": "0.146.0",
-    "gemini-cli": "0.53.1"
+    "gemini-cli": "0.53.1",
+    "antigravity": "2.4.3"
   },
   "sources": {
     "antigravity/changelog": {

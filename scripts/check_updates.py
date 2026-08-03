@@ -68,12 +68,26 @@ SOURCES = [
     ("antigravity", "changelog", "https://antigravity.google/changelog"),
 ]
 
-# npm 版本（僅供參考；只有 major 版號跳動才告警）
+# npm 版本（僅供參考；預設只有 major 版號跳動才告警）
 NPM_PACKAGES = {
     "claude-code": "@anthropic-ai/claude-code",
     "codex": "@openai/codex",
     "gemini-cli": "@google/gemini-cli",
 }
+
+# Antigravity 不在 npm 上，版本號改由 changelog 的發行表取得
+# （表格形如「2.4.3　July 28, 2026　Preview tabs, ...」）
+ANTIGRAVITY_CHANGELOG = "https://antigravity.google/changelog"
+RELEASE_ROW_RE = re.compile(
+    r"\b(\d+\.\d+\.\d+)\s+(?:January|February|March|April|May|June|July|August|"
+    r"September|October|November|December)\s+\d{1,2},\s+\d{4}"
+)
+
+# 各工具的版本告警門檻。
+# 預設 major —— 那些工具的路徑事實由官方文件監控涵蓋，版本號只是輔助訊號。
+# Antigravity 例外用 minor：它沒有公開文件站，帳本裡有數條主張是自動監控照不到的
+# 盲區（見 `--coverage`），只能靠實機交接維持新鮮度。改版就是該重跑交接的時機。
+ALERT_LEVEL = {"antigravity": "minor"}
 
 # --------------------------------------------------------------------------
 # 路徑 token 抽取
@@ -248,9 +262,21 @@ def fetch_npm_version(package):
     return json.loads(body).get("version")
 
 
-def major_of(version):
-    match = re.match(r"\s*v?(\d+)", version or "")
-    return match.group(1) if match else None
+def fetch_antigravity_version():
+    """從 changelog 的發行表取最高版本號。抓不到就回 None（不當成失敗）。"""
+    text = normalize(fetch(ANTIGRAVITY_CHANGELOG))
+    found = RELEASE_ROW_RE.findall(text)
+    if not found:
+        return None
+    return ".".join(str(n) for n in max(tuple(int(p) for p in v.split(".")) for v in found))
+
+
+def version_key(version, level):
+    """取版本號中決定「是否告警」的前綴：major 取一段，minor 取兩段。"""
+    parts = re.findall(r"\d+", version or "")
+    if not parts:
+        return None
+    return ".".join(parts[:2] if level == "minor" else parts[:1])
 
 
 def load_baseline():
@@ -356,19 +382,25 @@ def main():
     new_versions = dict(baseline_versions)
     version_alerts = []
     version_notes = []
-    for tool, package in NPM_PACKAGES.items():
+    version_sources = [(tool, pkg, lambda p=pkg: fetch_npm_version(p))
+                       for tool, pkg in NPM_PACKAGES.items()]
+    version_sources.append(("antigravity", "antigravity.google/changelog",
+                            fetch_antigravity_version))
+
+    for tool, label, getter in version_sources:
         try:
-            version = fetch_npm_version(package)
+            version = getter()
         except Exception as exc:  # noqa: BLE001
-            failures.append((f"npm/{package}", str(exc)))
+            failures.append((f"version/{label}", str(exc)))
             continue
         if not version:
             continue
         old = baseline_versions.get(tool)
         new_versions[tool] = version
         if old and old != version:
-            if major_of(old) != major_of(version):
-                version_alerts.append((tool, package, old, version))
+            level = ALERT_LEVEL.get(tool, "major")
+            if version_key(old, level) != version_key(version, level):
+                version_alerts.append((tool, label, old, version, level))
             else:
                 version_notes.append((tool, old, version))
 
@@ -443,11 +475,20 @@ def main():
             lines.append("")
 
     if version_alerts:
-        lines.append("## ⬆️ 主版號跳動（機制可能重構）")
+        lines.append("## ⬆️ 版本跳動（機制可能重構）")
         lines.append("")
-        for tool, package, old, new in version_alerts:
-            lines.append(f"- **{tool}**：`{old}` → `{new}`（{package}）")
+        for tool, label, old, new, level in version_alerts:
+            scope = "主版號" if level == "major" else "次版號"
+            lines.append(f"- **{tool}**：`{old}` → `{new}`（{scope}變動；來源 {label}）")
         lines.append("")
+        if any(tool in ALERT_LEVEL for tool, *_ in version_alerts):
+            lines.append("> ⚠️ **這是該重跑實機交接的訊號。** Antigravity 沒有公開文件站，"
+                         "帳本中有數條主張是自動監控照不到的盲區 —— 那些路徑真的改了也不會有告警。")
+            lines.append(">")
+            lines.append("> 1. `python scripts/check_updates.py --coverage` 看目前哪幾條是盲區")
+            lines.append("> 2. 依 `verification/rounds/TEMPLATE.md` 產生交接包，貼給該工具")
+            lines.append("> 3. 回覆務必獨立複驗後才回填帳本")
+            lines.append("")
 
     if failures:
         lines.append("## ⚠️ 檢查失敗的來源")
