@@ -7,12 +7,12 @@
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 44 |
+| 已驗證 | 46 |
 | 待實查 | 0 |
 | 有疑 | 0 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| **總計** | **51** |
+| **總計** | **53** |
 
 ---
 
@@ -30,6 +30,8 @@
 | C-08 | `.claude-plugin/plugin.json`、`.claude-plugin/marketplace.json` | 外掛／市集清單檔，官方定位為「Sharing with teammates, distributing to community」。**若本 repo 本身就是 plugin 或 marketplace，必須提交**。現行規則不擋（正確），已補進 🟢 清單 | 官方文件 | 2026-07-30 | — | 已驗證 |
 | C-09 | `.claude/workflows/`、`.claude/worktrees/` | **兩者相反**。`workflows/` 有 user-scope（`~/.claude/workflows/`）與 project-scope 兩層，屬團隊共用 → **已放行**。`worktrees/` 是 git worktree 實體工作目錄，且官方修過「repository-committed symlink at `.claude/worktrees` 可在 repo 外建檔」的逃逸問題 → **已 explicit 排除** | 官方 CHANGELOG | 2026-07-30 | — | 已驗證 |
 | C-53 | `.claude/skills/verify/SKILL.md` | `/verify` 把可用的建置指令自動寫入 repo root（monorepo 則寫入被動到的套件目錄），官方定位「so later runs and **other agents** follow the same steps」＝設計上要共享 → **已放行**。屬「自動產生但意圖共享」的第三類，補足了原本 CLI 安裝／自撰的二分法 | 官方文件（**由排程監控於 2026-07-30 自動偵測**） | 2026-07-30 | — | 已驗證 |
+| C-61 | `.mcp.json` | Claude Code 的**專案層 MCP server 設定**，官方層級表列於 Project 欄（User 為 `~/.claude.json`）＝團隊共用 → **應提交**。位於 repo 根目錄而非 `.claude/` 底下，現行規則不擋（正確），已補進 🟢 清單。⚠️ 與 Antigravity 的 `.agents/mcp_config.json`（C-58）**檔名與位置皆不同**，不可互相類比 | 官方文件 `settings.md` 層級表 | 2026-08-03 | — | 已驗證 |
+| C-62 | `.claude`（路徑本身作為 symlink） | 官方修復紀錄：「Fixed workflow saves and scheduled-task writes following a symlink at `.claude`, which could redirect writes outside the project」。**比 C-09 的 `.claude/worktrees` 範圍更廣** —— 是 `.claude` 這個路徑本身。已修復但舊版仍受影響：**不要提交 `.claude` 或 `.claude/worktrees` 的 symlink** | 官方 CHANGELOG | 2026-08-03 | — | 已驗證 |
 
 ## Codex
 
@@ -237,4 +239,4 @@
 | 2026-07-29 | Antigravity 1.0.13 | C-41～C-49（新增 C-51、C-52） | [交接包](./rounds/2026-07-29-antigravity.md) | [回覆](./rounds/2026-07-29-antigravity.reply.md)　已回填；其中 C-44、C-48 經維護者複驗後**未採信**回報結論 |
 | 2026-07-30 | Antigravity 1.0.13 | C-48、C-54（Q1 為實驗題） | [交接包](./rounds/2026-07-30-antigravity-round2.md) | [回覆](./rounds/2026-07-30-antigravity-round2.reply.md)　C-48 結案（實驗方法正確）；C-54 與自由敘述的 4 條路徑未採信，C-54 改由二進位對稱設計自行結案 |
 | 2026-07-30 | 官方文件研究（無需交接） | C-08、C-09、C-15～C-17、C-23、C-24、C-32、C-53 | — | 九項全部由官方文件直接定案，未動用交接輪次 |
-| 2026-08-03 | **四工具交叉檢視** | 全部主線工具 | [交叉檢視文件](./rounds/2026-08-03-cross-tool-review.md) | Antigravity [已回覆](./rounds/2026-08-03-antigravity.reply.md)（6 項中 3 項複驗未採用，新增 C-59）；其餘三工具待回覆 |
+| 2026-08-03 | **四工具交叉檢視** | 全部主線工具 | [交叉檢視文件](./rounds/2026-08-03-cross-tool-review.md) | Antigravity [已回覆](./rounds/2026-08-03-antigravity.reply.md)（6 項中 3 項複驗未採用，新增 C-59）；Claude Code [已自答](./rounds/2026-08-03-claude-code.reply.md)（新增 C-61、C-62）；Codex 與 Copilot 待回覆 |

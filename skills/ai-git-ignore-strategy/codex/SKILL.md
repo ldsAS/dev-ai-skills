@@ -96,7 +96,7 @@ git -c core.fileMode=false diff --summary
 - 跨平台 repo policy：`.gitattributes`, `.editorconfig`, `.nvmrc`。
 - 專案自動化參考：Windows Task Scheduler 匯出 XML、systemd service sample、Docker / CI config。
 - 專案設計 source of truth：`design-system/MASTER.md`、有意義的 page override。
-- 團隊 AI 指令與共享 AI 設定：`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`（Copilot 共享 prompt）, `.agents/plugins/marketplace.json`（Codex 團隊共用外掛市集）, `.claude/settings.json`（團隊權限／hooks）, `.claude/commands/`, `.geminiignore`、`.aiexclude`（AI 忽略規則，與 `.gitignore` 同性質）、`.claude-plugin/plugin.json`、`.codex-plugin/plugin.json`（本 repo 本身是外掛時的清單檔）、`.claude/rules/`（團隊共用分檔規則）, `.codex/config.toml`（專案層設定覆寫）, `.gemini/settings.json`（Workspace 設定），或明確要共享的 project-specific skill files。
+- 團隊 AI 指令與共享 AI 設定：`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`（Copilot 共享 prompt）, `.agents/plugins/marketplace.json`（Codex 團隊共用外掛市集）, `.claude/settings.json`（團隊權限／hooks）, `.claude/commands/`, `.geminiignore`、`.aiexclude`（AI 忽略規則，與 `.gitignore` 同性質）、`.claude-plugin/plugin.json`、`.codex-plugin/plugin.json`（本 repo 本身是外掛時的清單檔）、`.mcp.json`（Claude Code 專案層 MCP server 設定，官方層級表列為 Project 層）、`.claude/rules/`（團隊共用分檔規則）, `.codex/config.toml`（專案層設定覆寫）, `.gemini/settings.json`（Workspace 設定），或明確要共享的 project-specific skill files。
 - 客製專案 skills：例如 `.codex/skills/<project-skill>/SKILL.md`，但必須先確認它不是本機安裝的第三方 skill。
 
 #### 🔴 應該排除或取消追蹤 (Ignore Or Untrack)
@@ -380,9 +380,11 @@ Thumbs.db
 !.claude/workflows/
 # 個人本機設定：即使有上方白名單也 explicit 擋一次
 .claude/settings.local.json
-# git worktree 的實體工作目錄，執行期產物。官方曾修過
-# 「repository-committed symlink at .claude/worktrees 可在 repo 外建檔」的問題，
-# 這條務必保持排除，且不要提交該路徑的 symlink（C-09）
+# git worktree 的實體工作目錄，執行期產物。官方修過兩條相關的 symlink 逃逸：
+#   1. .claude/worktrees 的 committed symlink 可在 repo 外建檔（C-09）
+#   2. .claude 這個路徑本身若是 symlink，workflow 儲存與排程任務的寫入
+#      都可能被導向專案之外（C-62）—— 範圍比 1 更廣
+# 兩者官方皆已修復，但舊版仍受影響：**不要提交 .claude 或 .claude/worktrees 的 symlink**
 .claude/worktrees/
 # Cursor 已於 2026-08-03 移出本 skill 的維護範圍（維護者未使用該工具）。
 # 若你的專案有用 Cursor，需自行補上 .cursor/* 與 !.cursor/rules/ 規則。

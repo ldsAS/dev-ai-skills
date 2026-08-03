@@ -85,6 +85,7 @@ CASES = [
     (".claude/worktrees/feat-x/main.py", True),          # C-09 git worktree，且有逃逸風險
     (".claude-plugin/plugin.json", False),               # C-08
     (".claude-plugin/marketplace.json", False),          # C-08
+    (".mcp.json", False),                                # C-61 專案層 MCP 設定
     # --- Gemini CLI（C-21～C-23）---
     (".gemini/settings.json", False),                    # C-21 Workspace 設定
     (".geminiignore", False),                            # C-23 忽略規則，與 .gitignore 同性質
