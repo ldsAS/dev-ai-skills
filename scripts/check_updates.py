@@ -76,6 +76,8 @@ SOURCES = [
     # VS Code / GitHub Copilot
     ("copilot", "customization", "https://code.visualstudio.com/docs/copilot/customization/overview"),
     ("copilot", "prompt-files", "https://code.visualstudio.com/docs/copilot/customization/prompt-files"),
+    ("copilot", "agent-skills", "https://code.visualstudio.com/docs/copilot/customization/agent-skills"),
+    ("copilot", "hooks", "https://code.visualstudio.com/docs/copilot/customization/hooks"),
     ("copilot", "repo-instructions",
      "https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions"),
 ]
@@ -113,6 +115,7 @@ DOT_NAMES = "|".join([
     "antigravity-cli", "antigravitycli", "antigravity",
     "agents", "agent",
     "aiexclude", "aiignore",
+    "copilot",
 ])
 
 TOKEN_RE = re.compile(
@@ -126,9 +129,13 @@ TOKEN_RE = re.compile(
     r"|(?:(?:~|\$HOME|\.{1,2})?[/\\])?"
     rf"\.(?:{DOT_NAMES})"
     r"(?:[/\\][\w.\-]+)*[/\\]?"
-    r"|\.github[/\\]prompts(?:[/\\][\w.\-]+)*[/\\]?"
+    # Copilot 的專案層自訂目錄全在 .github/ 底下（官方 monorepo 範例：
+    # .github/{copilot-instructions.md, instructions/, prompts/, agents/}，另有 skills/ 與 hooks/）
+    r"|\.github[/\\](?:prompts|skills|hooks|instructions|agents)(?:[/\\][\w.\-]+)*[/\\]?"
     r"|(?:CLAUDE|AGENTS|GEMINI|QWEN)\.(?:local\.)?md"
     r"|copilot-instructions\.md"
+    # Claude Code 的專案層 MCP 設定，位於 repo 根目錄而非 .claude/ 底下（C-61）
+    r"|\.mcp\.json"
     r"|settings\.local\.json"
     r")"
 )

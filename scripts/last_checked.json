@@ -103,6 +103,7 @@
         ".claude/workflows/",
         ".claude/worktrees",
         ".claude/worktrees/",
+        ".mcp.json",
         "CLAUDE.md",
         "~/.claude",
         "~/.claude/",
@@ -151,6 +152,7 @@
         ".claude/settings.json",
         ".claude/settings.local.json",
         ".claude/skills/",
+        ".mcp.json",
         "/.claude/settings.local.json",
         "CLAUDE.local.md",
         "CLAUDE.md",
@@ -181,6 +183,7 @@
         ".claude/skills/deploy/SKILL.md",
         ".claude/skills/run-",
         ".claude/skills/verify/SKILL.md",
+        ".mcp.json",
         "/.claude/hooks/helper.sh",
         "CLAUDE.md",
         "~/.claude/skills/",
@@ -199,6 +202,7 @@
         ".codex-plugin/plugin.json",
         ".codex/",
         ".codex/skills",
+        ".mcp.json",
         "AGENTS.md",
         "~/.agents/plugins/marketplace.json",
         "~/.codex/",
@@ -225,9 +229,21 @@
         "~/.codex/config.toml"
       ]
     },
+    "copilot/agent-skills": {
+      "tokens": [
+        ".agents/skills/",
+        ".claude/skills/",
+        ".copilot",
+        ".github/skills/",
+        "~/.agents/skills/",
+        "~/.claude/skills/",
+        "~/.copilot/skills/"
+      ]
+    },
     "copilot/customization": {
       "tokens": [
         ".agent.md",
+        ".copilot",
         ".instructions.md",
         ".prompt.md",
         "AGENTS.md",
@@ -238,14 +254,35 @@
         "style.instructions.md"
       ]
     },
+    "copilot/hooks": {
+      "tokens": [
+        ".agent.md",
+        ".claude/settings.json",
+        ".claude/settings.local.json",
+        ".copilot",
+        ".github/hooks",
+        ".github/hooks/",
+        ".github/hooks/approval.json",
+        ".github/hooks/audit.json",
+        ".github/hooks/audit.log",
+        ".github/hooks/context.json",
+        ".github/hooks/format.json",
+        ".github/hooks/formatting.json",
+        ".github/hooks/security.json",
+        "~/.claude/settings.json",
+        "~/.copilot/hooks"
+      ]
+    },
     "copilot/prompt-files": {
       "tokens": [
+        ".copilot",
         ".github/prompts",
         ".prompt.md"
       ]
     },
     "copilot/repo-instructions": {
       "tokens": [
+        ".github/instructions",
         ".instructions.md",
         "AGENTS.md",
         "CLAUDE.md",

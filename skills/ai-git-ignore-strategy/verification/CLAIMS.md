@@ -3,16 +3,16 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-08-03（納入 Antigravity 官方文件與 Copilot 監控；新增 C-57、C-58、C-70～C-74）
+**最後更新**：2026-08-03（四工具交叉檢視回填完畢；新增 C-57～C-62、C-70～C-77）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 46 |
+| 已驗證 | 49 |
 | 待實查 | 0 |
 | 有疑 | 0 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| **總計** | **53** |
+| **總計** | **56** |
 
 ---
 
@@ -65,9 +65,12 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-70 | `copilot-instructions.md`（位於 `.github/`） | 專案指令檔，由 `/init` 產生；官方列為 always-on instructions（與 `AGENTS.md`、`CLAUDE.md` 並列）→ **應提交**。現行規則不擋（正確） | 官方文件 | 2026-08-03 | — | 已驗證 |
 | C-71 | `.github/prompts`、`.prompt.md` | 共享 prompt files，官方：Workspace scope 的預設位置為 `.github/prompts` → **應提交**。現行規則不擋（正確） | 官方文件 | 2026-08-03 | — | 已驗證 |
-| C-72 | `.instructions.md` | 針對特定語言／框架／資料夾的指令檔，官方列為四種自訂檔型別之一 → **應提交**。skill 原本完全未提及 | 官方文件 | 2026-08-03 | — | 已驗證 |
-| C-73 | `.agent.md` | 自訂 agent 定義檔，官方列為四種自訂檔型別之一 → **應提交**。skill 原本完全未提及 | 官方文件 | 2026-08-03 | — | 已驗證 |
-| C-74 | `~/.copilot/skills/` | 使用者層技能安裝路徑（`install.sh` 的 vscode 目標），在家目錄不影響專案 | 實機（本專案安裝器） | 2026-08-03 | — | 已驗證 |
+| C-72 | `.instructions.md`（位於 `.github/instructions/`） | 針對特定語言／框架／資料夾的指令檔，官方列為四種自訂檔型別之一 → **應提交**。skill 原本完全未提及 | 官方文件 | 2026-08-03 | — | 已驗證 |
+| C-73 | `.agent.md`（位於 `.github/agents/`） | 自訂 agent 定義檔，官方列為四種自訂檔型別之一 → **應提交**。skill 原本完全未提及 | 官方文件 | 2026-08-03 | — | 已驗證 |
+| C-74 | `~/.copilot/skills/` | 使用者層技能安裝路徑（`install.sh` 的 vscode 目標），在家目錄不影響專案 | 官方文件 agent-skills 頁 | 2026-08-03 | — | 已驗證 |
+| C-75 | `.github/skills/` | Copilot 專案層技能位置之一（官方另列 `.claude/skills/`、`.agents/skills/`）→ **應提交**。現行規則不擋（正確） | 官方文件 agent-skills 頁 | 2026-08-03 | — | 已驗證 |
+| C-76 | `.github/hooks/*.json` | Copilot 工作區 hooks，官方列為 Workspace 預設位置 → **應提交**（與 `.github/workflows` 同性質）。⚠️ 內含可執行指令，提交前應審查 | 官方文件 hooks 頁 | 2026-08-03 | — | 已驗證 |
+| C-77 | Copilot 跨工具讀取 `.claude/`、`.agents/` | 官方明載 Copilot 會讀 `.claude/skills/`、`.agents/skills/`、`~/.claude/skills/`、`~/.agents/skills/`，以及 Claude 格式的 `.claude/settings.json`、`.claude/settings.local.json`（hooks）。**`.claude/` 並非 Claude Code 專屬** —— 繼 C-60 的 `.agents/` 之後，`.claude/` 同樣是跨工具目錄。`.claude/skills/*` 的 scoped allowlist 因此同時影響 Copilot | 官方文件 agent-skills／hooks 頁 | 2026-08-03 | — | 已驗證 |
 
 ## Cursor（已移出維護範圍）
 
@@ -96,7 +99,7 @@
 > 說明如何自 Gemini CLI 遷移過來。這解釋了先前 `2.4.3` 與 `agy --version 1.0.13` 的差異 ——
 > 兩個都是真的版本號，分屬套件與 CLI 元件。
 >
-> 本區多條原標為「監控盲區」的主張，因此**具備改由官方文件監控的條件**（尚未套用，見下方待辦）。
+> 已於 2026-08-03 納入 7 個官方文件來源，本區原本 6 條監控盲區**全數消除**。
 
 | ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -239,4 +242,4 @@
 | 2026-07-29 | Antigravity 1.0.13 | C-41～C-49（新增 C-51、C-52） | [交接包](./rounds/2026-07-29-antigravity.md) | [回覆](./rounds/2026-07-29-antigravity.reply.md)　已回填；其中 C-44、C-48 經維護者複驗後**未採信**回報結論 |
 | 2026-07-30 | Antigravity 1.0.13 | C-48、C-54（Q1 為實驗題） | [交接包](./rounds/2026-07-30-antigravity-round2.md) | [回覆](./rounds/2026-07-30-antigravity-round2.reply.md)　C-48 結案（實驗方法正確）；C-54 與自由敘述的 4 條路徑未採信，C-54 改由二進位對稱設計自行結案 |
 | 2026-07-30 | 官方文件研究（無需交接） | C-08、C-09、C-15～C-17、C-23、C-24、C-32、C-53 | — | 九項全部由官方文件直接定案，未動用交接輪次 |
-| 2026-08-03 | **四工具交叉檢視** | 全部主線工具 | [交叉檢視文件](./rounds/2026-08-03-cross-tool-review.md) | Antigravity [已回覆](./rounds/2026-08-03-antigravity.reply.md)（6 項中 3 項複驗未採用，新增 C-59）；Claude Code [已自答](./rounds/2026-08-03-claude-code.reply.md)（新增 C-61、C-62）；Codex 與 Copilot 待回覆 |
+| 2026-08-03 | **四工具交叉檢視** | 全部主線工具 | [交叉檢視文件](./rounds/2026-08-03-cross-tool-review.md) | Antigravity [已回覆](./rounds/2026-08-03-antigravity.reply.md)（6 項中 3 項複驗未採用，新增 C-59）；Claude Code [已自答](./rounds/2026-08-03-claude-code.reply.md)（新增 C-61、C-62）；Codex 與 Copilot 的文件端問題已由 [docs 查證](./rounds/2026-08-03-codex-copilot.docs.md) 定案（新增 C-75～C-77），各剩 1 題待工具本身確認 |
