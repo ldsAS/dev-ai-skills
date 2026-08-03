@@ -68,7 +68,6 @@ CASES = [
     (".codex/hooks.json", False),                        # C-17 專案層 hooks
     (".codex/hooks/session_start.py", False),            # C-17 hook 腳本
     (".codex/rules/default.rules", False),               # C-17 沙箱指令規則
-    (".codex/rollout.jsonl", True),                      # C-17 session 執行期紀錄
     (".codex/skills/thirdparty/SKILL.md", True),
     (".codex-plugin/plugin.json", False),                # C-16 外掛清單檔
     (".agents/plugins/marketplace.json", False),         # C-14 團隊共用市集

@@ -7,12 +7,12 @@
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 50 |
+| 已驗證 | 52 |
 | 待實查 | 0 |
 | 有疑 | 0 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| **總計** | **57** |
+| **總計** | **59** |
 
 ---
 
@@ -39,12 +39,14 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-10 | `.codex/*` | 擋直接子項 | 結構性 | — | — | 結構性 |
 | C-11 | `.codex/config.toml` | 專案層設定覆寫，官方明示放進 repo，應提交 | 官方文件 | 2026-07-29 | — | 已驗證 |
-| C-12 | `.codex/skills/` | 需逐案確認 | 官方文件 | 2026-07-29 | — | 已驗證 |
+| C-12 | `.codex/skills/` | ~~需逐案確認~~ → **不是官方 REPO 路徑**。官方 skills scope 表列的是 `$CWD/.agents/skills`、`$CWD/../.agents/skills`、`$REPO_ROOT/.agents/skills`（REPO）、`$HOME/.agents/skills`（USER）、`/etc/codex/skills`（ADMIN）—— `.codex/skills` 在該表**出現 0 次**。保留為舊版相容路徑，範本已加註；專案技能請優先用 `.agents/skills/` | 官方文件 build-skills | 2026-08-03 | — | 已驗證 |
 | C-13 | `.agents/skills` | Codex 從 CWD 逐層往上掃到 repo root | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-14 | `.agents/plugins/marketplace.json` | 專案層外掛市集，官方定位為團隊共用，應提交 | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-15 | `.agents/plugins/*` | 官方寫明專案層只放 `.agents/plugins/marketplace.json`，**外掛本體另存於 repo-local 目錄（如 `./plugins/`）**，不在 `.agents/plugins/` 底下。現行「放行 manifest、擋其餘」的三段式規則正確 | 官方 changelog | 2026-07-30 | — | 已驗證 |
 | C-16 | `.codex-plugin/plugin.json` | 外掛必備清單檔（`Every plugin is a folder with a required .codex-plugin/plugin.json manifest`）。與 C-08 同性質，若本 repo 是外掛則必須提交。現行規則不擋（正確），已補進 🟢 清單 | 官方 changelog | 2026-07-30 | — | 已驗證 |
-| C-17 | `.codex/hooks.json`、`.codex/hooks/`、`.codex/rules/`、`.codex/rollout.jsonl` | **原規則誤殺三項**：`.codex/hooks.json`、`.codex/hooks/*.py`、`.codex/rules/*.rules` 都是官方列出的專案層設定層（未信任專案會跳過這些 layer），屬團隊共用 → **已放行**。`.codex/rollout.jsonl` 為 session 執行期紀錄 → **已 explicit 排除** | 官方文件（hooks／rules 指南） | 2026-07-30 | — | 已驗證 |
+| C-17 | `.codex/hooks.json`、`.codex/hooks/`、`.codex/rules/` | **原規則誤殺三項**：三者都是官方列出的專案層設定層（未信任專案會跳過這些 layer），屬團隊共用 → **已放行**。⚠️ **2026-08-03 更正**：先前把 `.codex/rollout.jsonl` 列為專案層 session 紀錄並加了排除規則 —— **那是錯的**。該 token 取自官方 hooks 文件中傳給 hook 的**範例 payload**（`"transcript_path": "/workspace/.codex/rollout.jsonl"`），不是真實預設路徑。實際 rollout 位於 `$CODEX_HOME/sessions/YYYY/MM/DD/rollout-<ts>-<id>.jsonl`（`CODEX_HOME` 預設 `~/.codex`），本機實查一致。誤植規則已自五版移除 | 官方文件＋Codex 實機回覆＋本機實查 | 2026-08-03 | 0.146.0-alpha.9.2 | 已驗證 |
+| C-63 | Codex 官方文件站位置 | 文件已自 `developers.openai.com/codex/*` **搬遷至** `learn.chatgpt.com/docs/*`（舊網址仍 302 導向）。監控來源已改指正式網址並補上 `build-skills`、`hooks` 兩頁 | Codex 實機回覆＋重導向實測 | 2026-08-03 | — | 已驗證 |
+| C-64 | `~/.agents/skills/` | Codex 官方 USER scope 路徑；亦為 Gemini CLI 與 Copilot 的使用者層技能位置，屬**跨工具共用**。本專案安裝器原本只寫 `~/.codex/skills`（該路徑實查僅有我方寫入的內容，屬 C-48 同型的循環證據），已補上此路徑 | 官方文件 build-skills | 2026-08-03 | — | 已驗證 |
 
 ## Gemini CLI
 
@@ -249,4 +251,4 @@
 | 2026-07-29 | Antigravity 1.0.13 | C-41～C-49（新增 C-51、C-52） | [交接包](./rounds/2026-07-29-antigravity.md) | [回覆](./rounds/2026-07-29-antigravity.reply.md)　已回填；其中 C-44、C-48 經維護者複驗後**未採信**回報結論 |
 | 2026-07-30 | Antigravity 1.0.13 | C-48、C-54（Q1 為實驗題） | [交接包](./rounds/2026-07-30-antigravity-round2.md) | [回覆](./rounds/2026-07-30-antigravity-round2.reply.md)　C-48 結案（實驗方法正確）；C-54 與自由敘述的 4 條路徑未採信，C-54 改由二進位對稱設計自行結案 |
 | 2026-07-30 | 官方文件研究（無需交接） | C-08、C-09、C-15～C-17、C-23、C-24、C-32、C-53 | — | 九項全部由官方文件直接定案，未動用交接輪次 |
-| 2026-08-03 | **四工具交叉檢視** | 全部主線工具 | [交叉檢視文件](./rounds/2026-08-03-cross-tool-review.md) | Antigravity [已回覆](./rounds/2026-08-03-antigravity.reply.md)（6 項中 3 項複驗未採用，新增 C-59）；Claude Code [已自答](./rounds/2026-08-03-claude-code.reply.md)（新增 C-61、C-62）；Codex 與 Copilot 的文件端問題已由 [docs 查證](./rounds/2026-08-03-codex-copilot.docs.md) 定案（新增 C-75～C-77）；Copilot [已實機回覆](./rounds/2026-08-03-vscode-copilot.reply.md)（新增 C-78，無需新增 project `.gitignore` 規則）；僅 Codex Q2 尚待工具本身確認 |
+| 2026-08-03 | **四工具交叉檢視** | 全部主線工具 | [交叉檢視文件](./rounds/2026-08-03-cross-tool-review.md) | Antigravity [已回覆](./rounds/2026-08-03-antigravity.reply.md)（6 項中 3 項複驗未採用，新增 C-59）；Claude Code [已自答](./rounds/2026-08-03-claude-code.reply.md)（新增 C-61、C-62）；Codex 與 Copilot 的文件端問題已由 [docs 查證](./rounds/2026-08-03-codex-copilot.docs.md) 定案（新增 C-75～C-77）；Copilot [已實機回覆](./rounds/2026-08-03-vscode-copilot.reply.md)（新增 C-78，無需新增 project `.gitignore` 規則）；Codex [已實機回覆](./rounds/2026-08-03-codex.reply.md)（**推翻我方 C-17 的 rollout 誤植**，新增 C-63、C-64）；四工具交叉檢視全部完成 |

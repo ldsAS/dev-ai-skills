@@ -45,7 +45,11 @@ $SkillsDir         = Join-Path $ScriptDir 'skills'
 $ClaudeTarget        = Join-Path $env:USERPROFILE '.claude\skills'
 $AntigravityTargetV2 = Join-Path $env:USERPROFILE '.gemini\config\skills'       # Antigravity CLI 全域
 $AntigravityTargetV1 = Join-Path $env:USERPROFILE '.gemini\antigravity\skills'  # Antigravity IDE 全域
-$CodexTarget         = Join-Path $env:USERPROFILE '.codex\skills'
+# 官方 skills scope 表（2026-08-03）列的 USER 路徑是 $HOME/.agents/skills，
+# .codex\skills 未出現於該表；保留為舊版相容，但務必同時寫入 .agents\skills
+# （同 C-48 的教訓）。該路徑亦為 Gemini CLI 與 Copilot 的使用者層技能位置。
+$CodexTarget         = Join-Path $env:USERPROFILE '.codex\skills'   # 舊版相容
+$AgentsTarget        = Join-Path $env:USERPROFILE '.agents\skills'  # 官方 USER 路徑（跨工具）
 $VSCodeTarget        = Join-Path $env:USERPROFILE '.copilot\skills'
 
 function Write-Info  { param($msg) Write-Host "[info] $msg" -ForegroundColor Cyan }
@@ -69,6 +73,7 @@ if ($HasClaude)        { Write-Ok    "Claude Code       → $ClaudeTarget" }    
 if ($HasAntigravityV2) { Write-Ok    "Antigravity CLI   → $AntigravityTargetV2" } else { Write-Warn2 'Antigravity CLI   → 未偵測到 ~/.gemini/config' }
 if ($HasAntigravityV1) { Write-Ok    "Antigravity IDE   → $AntigravityTargetV1" } else { Write-Warn2 'Antigravity IDE   → 未偵測到 ~/.gemini/antigravity' }
 if ($HasCodex)         { Write-Ok    "Codex             → $CodexTarget" }         else { Write-Warn2 'Codex             → 未偵測到 ~/.codex' }
+if ($HasCodex)         { Write-Ok    "  └ 跨工具 USER    → $AgentsTarget" }
 if ($HasVSCode)        { Write-Ok    "VS Code Copilot   → $VSCodeTarget" }        else { Write-Warn2 'VS Code Copilot   → 未偵測到 code 指令或 ~/.copilot，仍可用 vscode 模式強制安裝' }
 
 if (-not $HasClaude -and -not $HasAntigravityV1 -and -not $HasAntigravityV2 -and -not $HasCodex -and -not $HasVSCode) {
@@ -130,6 +135,7 @@ switch ($Mode) {
         if ($HasAntigravityV2) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTargetV2 }
         if ($HasAntigravityV1) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTargetV1 }
         if ($HasCodex)         { Install-AllForTool -Tool 'codex'       -Target $CodexTarget }
+        if ($HasCodex)         { Install-AllForTool -Tool 'codex'       -Target $AgentsTarget }
         if ($HasVSCode)        { Install-AllForTool -Tool 'vscode'      -Target $VSCodeTarget }
     }
     'claude' {
@@ -146,6 +152,7 @@ switch ($Mode) {
     'codex' {
         if (-not $HasCodex) { Write-Err2 '未偵測到 ~/.codex/'; exit 1 }
         Install-AllForTool -Tool 'codex' -Target $CodexTarget
+        Install-AllForTool -Tool 'codex' -Target $AgentsTarget
     }
     'vscode' {
         # ~/.copilot/skills/ 是 VS Code Copilot 原生掃描的個人 skill 目錄
@@ -157,6 +164,7 @@ switch ($Mode) {
         if ($HasAntigravityV2) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTargetV2 -ForceVariant 'generic' }
         if ($HasAntigravityV1) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTargetV1 -ForceVariant 'generic' }
         if ($HasCodex)         { Install-AllForTool -Tool 'codex'       -Target $CodexTarget         -ForceVariant 'generic' }
+        if ($HasCodex)         { Install-AllForTool -Tool 'codex'       -Target $AgentsTarget        -ForceVariant 'generic' }
         if ($HasVSCode)        { Install-AllForTool -Tool 'vscode'      -Target $VSCodeTarget        -ForceVariant 'generic' }
     }
 }

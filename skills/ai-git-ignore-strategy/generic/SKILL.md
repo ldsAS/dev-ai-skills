@@ -373,12 +373,18 @@ Thumbs.db
 !.codex/hooks/
 # 沙箱指令規則（experimental）：控制哪些指令可在沙箱外執行，屬專案層政策（C-17）
 !.codex/rules/
+# ⚠️ .codex/skills 未見於官方 skills scope 表（REPO 為 .agents/skills、
+# USER 為 $HOME/.agents/skills、ADMIN 為 /etc/codex/skills）。
+# 保留為舊版相容路徑；專案技能請優先用上方的 .agents/skills/。見 C-12
 !.codex/skills/
 .codex/skills/*
 # !.codex/skills/<project-skill>/
 # !.codex/skills/<project-skill>/**
-# session rollout 紀錄，執行期產物（C-17）
-.codex/rollout.jsonl
+# ⚠️ 2026-08-03 移除誤植規則：先前依官方 hooks 文件中的一段 token 判定
+# .codex/rollout.jsonl 是專案層 session 紀錄 —— 那其實是傳給 hook 的
+# 範例 payload（"transcript_path": "/workspace/.codex/rollout.jsonl"），
+# 不是真實預設路徑。實際 rollout 在 $CODEX_HOME/sessions/YYYY/MM/DD/
+# （CODEX_HOME 預設 ~/.codex），不寫入專案。見 C-17。
 .gemini/*
 !.gemini/settings.json
 !.gemini/skills/

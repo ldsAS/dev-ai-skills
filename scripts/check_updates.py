@@ -53,10 +53,14 @@ SOURCES = [
     ("claude-code", "memory", "https://docs.claude.com/en/docs/claude-code/memory.md"),
     ("claude-code", "skills", "https://docs.claude.com/en/docs/claude-code/skills.md"),
     ("claude-code", "changelog", "https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md"),
-    # Codex — repo 內的 docs/*.md 多已改為導向連結，實質內容在 developers.openai.com
-    ("codex", "config-reference", "https://developers.openai.com/codex/config-reference"),
-    ("codex", "config-basic", "https://developers.openai.com/codex/config-basic"),
-    ("codex", "changelog", "https://developers.openai.com/codex/changelog"),
+    # Codex — repo 內的 docs/*.md 多已改為導向連結；官方文件已自
+    # developers.openai.com 搬遷至 learn.chatgpt.com（舊網址仍 302 導向，
+    # 但直接指向正式位置以免日後斷鏈）。2026-08-03 由 Codex 實機回覆指出。
+    ("codex", "config-reference", "https://learn.chatgpt.com/docs/config-file/config-reference"),
+    ("codex", "config-basic", "https://learn.chatgpt.com/docs/config-file/config-basic"),
+    ("codex", "changelog", "https://learn.chatgpt.com/docs/changelog"),
+    ("codex", "skills", "https://learn.chatgpt.com/docs/build-skills"),
+    ("codex", "hooks", "https://learn.chatgpt.com/docs/hooks"),
     # Gemini CLI — repo docs 內容完整，直接讀 raw markdown
     ("gemini-cli", "settings", "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/settings.md"),
     ("gemini-cli", "gemini-md", "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/gemini-md.md"),

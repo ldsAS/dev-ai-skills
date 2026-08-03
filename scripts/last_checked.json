@@ -229,6 +229,36 @@
         "~/.codex/config.toml"
       ]
     },
+    "codex/hooks": {
+      "tokens": [
+        ".codex-plugin/plugin.json",
+        ".codex/",
+        ".codex/hooks/",
+        ".codex/rollout.jsonl",
+        "/.codex/config.toml",
+        "/.codex/hooks.json",
+        "/.codex/hooks/permission_request.py",
+        "/.codex/hooks/post_tool_use_review.py",
+        "/.codex/hooks/pre_tool_use_policy.py",
+        "/.codex/hooks/session_start.py",
+        "/.codex/hooks/stop_continue.py",
+        "/.codex/hooks/user_prompt_submit_data_flywheel.py",
+        "AGENTS.md",
+        "~/.codex/config.toml",
+        "~/.codex/hooks.json",
+        "~/.codex/hooks/session_end.py",
+        "~/.codex/hooks/session_start.py"
+      ]
+    },
+    "codex/skills": {
+      "tokens": [
+        "$HOME/.agents/skills",
+        "../.agents/skills",
+        ".agents/skills",
+        "AGENTS.md",
+        "~/.codex/config.toml"
+      ]
+    },
     "copilot/agent-skills": {
       "tokens": [
         ".agents/skills/",

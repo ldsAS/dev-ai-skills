@@ -16,10 +16,11 @@
 | Q1 專案層 config／hooks／rules 是否都在 `.codex/` 下 | ✅ **確認** | 官方 config-reference：「Untrusted projects skip project-scoped `.codex/` layers, including project-local **config, hooks, and rules**」；hooks 指南列出 `<repo>/.codex/hooks.json`、`.codex/hooks/*.py`；rules 指南列出 `rules/` 資料夾與 `.rules` 副檔名 |
 | Q3 `.agents/skills` 掃描規則 | ✅ **確認** | 官方：「Codex scans `.agents/skills` in every directory from your current working directory up to the repository root」 |
 | Q4 外掛本體位置 | ✅ **確認** | 官方：「for everyone on a project with `.agents/plugins/marketplace.json` and **a repo-local plugin directory such as `./plugins/`**」 |
-| Q2 `.codex/` 還有什麼自動產生物 | ⚠️ **部分** | 已知 `.codex/rollout.jsonl`（session 執行期紀錄，C-17 已涵蓋）。**其餘待工具確認** |
+| Q2 `.codex/` 還有什麼自動產生物 | ✅ **確認：預設沒有** | Codex 實機回覆＋本機實查。⚠️ 此列原稱 `.codex/rollout.jsonl` 是專案層 session 紀錄 —— **那是誤讀**：該 token 取自 hooks 文件的範例 payload，實際 rollout 在 `$CODEX_HOME/sessions/YYYY/MM/DD/`。見 [Codex 實機回覆](./2026-08-03-codex.reply.md) |
 
-**待 Codex 確認**：專案層 `.codex/` 除 `config.toml`、`hooks.json`、`hooks/`、`rules/`、
-`rollout.jsonl` 之外，是否還有 cache、索引、session 等自動產生物。
+✅ **已由 Codex 實機回覆定案**：專案層 `.codex/` 只有人工建立的設定層
+（`config.toml`、`hooks.json`、`hooks/`、`rules/`），無任何自動產生物。
+唯一例外是刻意設 `CODEX_HOME=<repo>/.codex`，那會把整套使用者狀態搬進 repo。
 
 ---
 
@@ -113,8 +114,5 @@ runtime 檔。詳見 [VS Code 實機回覆](./2026-08-03-vscode-copilot.reply.md
 
 ## 仍需交給工具本身的問題
 
-| 工具 | 問題 |
-| :--- | :--- |
-| Codex | 專案層 `.codex/` 除已知五項外，還有什麼自動產生物？ |
-
-Copilot Q3 已由 [VS Code 實機回覆](./2026-08-03-vscode-copilot.reply.md) 定案；其餘問題已由官方文件定案，無需再問。
+**四工具交叉檢視至此全部完成。** Copilot Q3 由 [VS Code 實機回覆](./2026-08-03-vscode-copilot.reply.md) 定案，
+Codex Q2 由 [Codex 實機回覆](./2026-08-03-codex.reply.md) 定案（並推翻我方 C-17 的一項誤植）。

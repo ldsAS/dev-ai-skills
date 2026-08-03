@@ -32,7 +32,12 @@ SKILLS_DIR="$SCRIPT_DIR/skills"
 CLAUDE_TARGET="$HOME/.claude/skills"
 ANTIGRAVITY_TARGET_V2="$HOME/.gemini/config/skills"       # Antigravity CLI 全域
 ANTIGRAVITY_TARGET_V1="$HOME/.gemini/antigravity/skills"  # Antigravity IDE 全域
-CODEX_TARGET="$HOME/.codex/skills"
+# ⚠️ 官方 skills scope 表（2026-08-03 查證）列的 USER 路徑是 $HOME/.agents/skills，
+#    .codex/skills 在該表中完全沒出現。~/.codex/skills 保留為舊版相容，
+#    但務必同時寫入 ~/.agents/skills，否則可能裝到 Codex 不讀的位置（同 C-48 的教訓）。
+#    ~/.agents/skills 亦為 Gemini CLI 與 Copilot 的使用者層技能路徑，屬跨工具共用。
+CODEX_TARGET="$HOME/.codex/skills"          # 舊版相容
+AGENTS_TARGET="$HOME/.agents/skills"        # 官方 USER 路徑（跨工具）
 VSCODE_TARGET="$HOME/.copilot/skills"
 
 MODE="${1:-auto}"
@@ -65,6 +70,7 @@ $has_claude         && ok "Claude Code       → $CLAUDE_TARGET"         || warn
 $has_antigravity_v2 && ok "Antigravity CLI   → $ANTIGRAVITY_TARGET_V2" || warn "Antigravity CLI   → 未偵測到 ~/.gemini/config"
 $has_antigravity_v1 && ok "Antigravity IDE   → $ANTIGRAVITY_TARGET_V1" || warn "Antigravity IDE   → 未偵測到 ~/.gemini/antigravity"
 $has_codex          && ok "Codex             → $CODEX_TARGET"          || warn "Codex             → 未偵測到 ~/.codex"
+$has_codex          && ok "  └ 跨工具 USER    → $AGENTS_TARGET"        || true
 $has_vscode         && ok "VS Code Copilot   → $VSCODE_TARGET"         || warn "VS Code Copilot   → 未偵測到 code 指令或 ~/.copilot，仍可用 vscode 模式強制安裝"
 
 if ! $has_claude && ! $has_antigravity_v1 && ! $has_antigravity_v2 && ! $has_codex && ! $has_vscode; then
@@ -130,6 +136,7 @@ case "$MODE" in
     $has_antigravity_v2 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V2"
     $has_antigravity_v1 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V1"
     $has_codex          && install_all_for_tool "codex"       "$CODEX_TARGET"
+    $has_codex          && install_all_for_tool "codex"       "$AGENTS_TARGET"
     $has_vscode         && install_all_for_tool "vscode"      "$VSCODE_TARGET"
     ;;
   claude)
@@ -146,6 +153,7 @@ case "$MODE" in
   codex)
     if ! $has_codex; then err "未偵測到 ~/.codex/"; exit 1; fi
     install_all_for_tool "codex" "$CODEX_TARGET"
+    install_all_for_tool "codex" "$AGENTS_TARGET"
     ;;
   vscode)
     # ~/.copilot/skills/ 是 GitHub Copilot 原生掃描的個人 skill 目錄
@@ -157,6 +165,7 @@ case "$MODE" in
     $has_antigravity_v2 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V2" "generic"
     $has_antigravity_v1 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V1" "generic"
     $has_codex          && install_all_for_tool "codex"       "$CODEX_TARGET"          "generic"
+    $has_codex          && install_all_for_tool "codex"       "$AGENTS_TARGET"         "generic"
     $has_vscode         && install_all_for_tool "vscode"      "$VSCODE_TARGET"         "generic"
     ;;
   *)
