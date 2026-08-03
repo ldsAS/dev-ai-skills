@@ -92,8 +92,8 @@
 | C-44 | `.agents/hooks.json` | 工作區層級 hooks；**會合併多個 hooks.json 檔**（二進位字串 `loaded %d named hooks from %d hooks.json file(s)` 為複數）。信任狀態以工作區絕對路徑為 key 存於家目錄 `~/.gemini/trusted_hooks.json` —— 此設計意味 hooks 定義可來自他人 commit 的 repo，故**屬可共享檔**；是否提交屬專案決策，非待驗事實 | 二進位字串分析＋`trusted_hooks.json` 結構 | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-45 | `.antigravitycli/` | 舊版工作區對應檔，現行版本不再產生；規則保留供舊專案 | 官方 changelog＋實機 | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-46 | `.agent/` | 舊版佈局的專案工作區暫存，現行版本不再產生；規則保留供舊專案 | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
-| C-47 | `~/.gemini/config/skills/` | **現行**全域 skills 路徑；實查含工具自身的 `.datacloud_skills_manifest` 與 22 個內建技能 | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
-| C-48 | `~/.gemini/antigravity/skills/` | ~~1.x 全域路徑~~ → **死路徑，1.0.13 已不掃描**。標記技能實驗：探針只放此路徑，開全新子代理重新初始化後不在可用技能中，且子代理指認實際載入路徑為 `~/.gemini/config/skills/`。安裝器偵測邏輯已連帶修正 | 實驗（探針技能＋對照組） | 2026-07-30 | 1.0.13 | 已驗證 |
+| C-47 | `~/.gemini/config/skills/` | **Antigravity CLI** 的全域 skills 路徑（官方 `/docs/skills`）；實查含工具自身的 `.datacloud_skills_manifest` 與 22 個內建技能。與 C-48 的 IDE 路徑並存 | 官方文件＋實機 | 2026-08-03 | 2.x | 已驗證 |
+| C-48 | `~/.gemini/antigravity/skills/` | ~~死路徑，已不掃描~~ → **是 Antigravity IDE 的全域 skills 路徑，仍然有效**。官方 `/docs/ide/skills` 與 `/docs/skills` 兩頁文字幾乎相同，只差一行：IDE 用 `~/.gemini/antigravity/skills/`、CLI 用 `~/.gemini/config/skills/`，**兩者並存而非新舊關係**。2026-07-30 的探針實驗是在子代理（CLI 情境）跑的，只證明「CLI 不讀這條」，卻被推論成「沒人讀」—— **實驗範圍比結論窄**。安裝器已還原雙路徑寫入 | 官方文件 `/docs/ide/skills` | 2026-08-03 | 2.x | 已驗證 |
 | C-49 | Antigravity 對話紀錄位置 | 在家目錄 `~/.gemini/antigravity/conversations/`（實查 21 項）與 `~/.gemini/antigravity-cli/conversations/`（1 項），**不寫入專案** | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-50 | `AGENTS.md`（根目錄） | Antigravity 已支援讀取，與 `GEMINI.md` 並列 | 官方 changelog＋實機 | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-51 | 技能觸發語法 | `@skill-name` **已不適用**；技能由 Agent 依任務自動掃描載入 | 實機（回報） | 2026-07-29 | 1.0.13 | 已驗證 |
