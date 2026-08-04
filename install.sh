@@ -53,6 +53,8 @@ has_claude=false
 has_antigravity_v1=false
 has_antigravity_v2=false
 has_codex=false
+has_codex_legacy=false
+has_vscode_legacy=false
 has_vscode=false
 [[ -d "$HOME/.claude" ]]              && has_claude=true
 # 兩條全域路徑**都要寫**，它們屬於不同產品，不是新舊關係（官方文件明載）：
@@ -63,15 +65,21 @@ has_vscode=false
 [[ -d "$HOME/.gemini/antigravity" ]] && has_antigravity_v1=true
 [[ -d "$HOME/.gemini/config" ]]       && has_antigravity_v2=true
 [[ -d "$HOME/.codex" ]]               && has_codex=true
+# P1-2a：下列兩條沒有官方依據 —— .codex/skills 未見於 Codex 官方 scope 表（C-12），
+# 而 Copilot 亦讀 ~/.agents/skills（C-77）。降為相容模式：只在該目錄「已經存在」
+# 時才續寫，不再為新安裝主動建立，以減少同名技能的重複份數。
+[[ -d "$CODEX_TARGET" ]]              && has_codex_legacy=true
+[[ -d "$VSCODE_TARGET" ]]             && has_vscode_legacy=true
 { command -v code >/dev/null 2>&1 || [[ -d "$HOME/.copilot" ]]; } && has_vscode=true
 
 info "偵測到的 AI 工具："
 $has_claude         && ok "Claude Code       → $CLAUDE_TARGET"         || warn "Claude Code       → 未偵測到 ~/.claude"
 $has_antigravity_v2 && ok "Antigravity CLI   → $ANTIGRAVITY_TARGET_V2" || warn "Antigravity CLI   → 未偵測到 ~/.gemini/config"
 $has_antigravity_v1 && ok "Antigravity IDE   → $ANTIGRAVITY_TARGET_V1" || warn "Antigravity IDE   → 未偵測到 ~/.gemini/antigravity"
-$has_codex          && ok "Codex             → $CODEX_TARGET"          || warn "Codex             → 未偵測到 ~/.codex"
-$has_codex          && ok "  └ 跨工具 USER    → $AGENTS_TARGET"        || true
-$has_vscode         && ok "VS Code Copilot   → $VSCODE_TARGET"         || warn "VS Code Copilot   → 未偵測到 code 指令或 ~/.copilot，仍可用 vscode 模式強制安裝"
+$has_codex          && ok "Codex             → $AGENTS_TARGET"         || warn "Codex             → 未偵測到 ~/.codex"
+$has_codex_legacy   && warn "  └ 相容路徑       → $CODEX_TARGET（已存在才續寫）" || true
+$has_vscode_legacy  && warn "  └ 相容路徑       → $VSCODE_TARGET（已存在才續寫）" || true
+$has_vscode         && ok "VS Code Copilot   → 經 $AGENTS_TARGET（Copilot 亦讀此路徑）" || warn "VS Code Copilot   → 未偵測到 code 指令或 ~/.copilot，仍可用 vscode 模式強制安裝"
 
 if ! $has_claude && ! $has_antigravity_v1 && ! $has_antigravity_v2 && ! $has_codex && ! $has_vscode; then
   err "沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity、Codex 或 VS Code (Copilot)。"
@@ -135,9 +143,11 @@ case "$MODE" in
     $has_claude         && install_all_for_tool "claude"      "$CLAUDE_TARGET"
     $has_antigravity_v2 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V2"
     $has_antigravity_v1 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V1"
-    $has_codex          && install_all_for_tool "codex"       "$CODEX_TARGET"
-    $has_codex          && install_all_for_tool "codex"       "$AGENTS_TARGET"
-    $has_vscode         && install_all_for_tool "vscode"      "$VSCODE_TARGET"
+    # 共用路徑放 generic：~/.agents/skills 同時被 Codex、Gemini CLI、Copilot 讀取，
+    # 放任一工具的專屬變體都會讓其他工具讀到不對的工具名（見 C-79）
+    $has_codex          && install_all_for_tool "codex"       "$AGENTS_TARGET" "generic"
+    $has_codex_legacy   && install_all_for_tool "codex"       "$CODEX_TARGET"
+    $has_vscode_legacy  && install_all_for_tool "vscode"      "$VSCODE_TARGET"
     ;;
   claude)
     if ! $has_claude; then err "未偵測到 ~/.claude/"; exit 1; fi

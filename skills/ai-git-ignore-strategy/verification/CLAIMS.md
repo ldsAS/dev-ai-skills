@@ -7,12 +7,12 @@
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 52 |
+| 已驗證 | 53 |
 | 待實查 | 0 |
 | 有疑 | 0 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| **總計** | **59** |
+| **總計** | **60** |
 
 ---
 
@@ -73,6 +73,7 @@
 | C-75 | `.github/skills/` | Copilot 專案層技能位置之一（官方另列 `.claude/skills/`、`.agents/skills/`）→ **應提交**。現行規則不擋（正確） | 官方文件 agent-skills 頁 | 2026-08-03 | — | 已驗證 |
 | C-76 | `.github/hooks/*.json` | Copilot 工作區 hooks，官方列為 Workspace 預設位置 → **應提交**（與 `.github/workflows` 同性質）。⚠️ 內含可執行指令，提交前應審查 | 官方文件 hooks 頁 | 2026-08-03 | — | 已驗證 |
 | C-77 | Copilot 跨工具讀取 `.claude/`、`.agents/` | 官方明載 Copilot 會讀 `.claude/skills/`、`.agents/skills/`、`~/.claude/skills/`、`~/.agents/skills/`，以及 Claude 格式的 `.claude/settings.json`、`.claude/settings.local.json`（hooks）。**`.claude/` 並非 Claude Code 專屬** —— 繼 C-60 的 `.agents/` 之後，`.claude/` 同樣是跨工具目錄。`.claude/skills/*` 的 scoped allowlist 因此同時影響 Copilot | 官方文件 agent-skills／hooks 頁 | 2026-08-03 | — | 已驗證 |
+| C-79 | 跨工具共用路徑 vs 逐工具變體 | `~/.agents/skills/` 由 Codex（C-64）、Gemini CLI（C-22）、Copilot（C-77）共同讀取；`~/.claude/skills/` 由 Claude Code **與 Copilot** 共同讀取（C-77）。本 skill 提供逐工具變體，**放進共用路徑會讓其他工具讀到不屬於自己的工具名**。實查本機：Copilot 同時看得到 `~/.copilot/skills`（vscode 變體）與 `~/.claude/skills`（claude 變體）兩份**同名**技能；Codex 官方文件明載同名技能不合併、兩者都會出現在選單。→ 共用路徑一律放 `generic` 變體（與上游 `uipro init --ai universal` 同解法） | 帳本交叉推導＋本機實查 | 2026-08-04 | — | 已驗證 |
 | C-78 | `User/workspaceStorage/<workspace-id>/`、`User/globalStorage/github.copilot-chat/`（均相對於 VS Code user-data root） | VS Code Copilot Chat 的 session、transcript、debug log、editing state 與 tool-embeddings cache 寫入 **VS Code user data**，不是 repository。active session 實查確認 workspace storage 對應目前 repo、其下出現 `chatSessions/`、`chatEditingSessions/`、`GitHub.copilot-chat/transcripts/`、`GitHub.copilot-chat/debug-logs/`；同時 repo Git 狀態沒有新的 Copilot runtime 檔。**不應新增專案層 `.copilot/`、cache、log 或 session ignore 規則。** | [Windows 實機回覆](./rounds/2026-08-03-vscode-copilot.reply.md)＋已安裝 extension package | 2026-08-03 | VS Code 1.125.1／Copilot Chat 0.53.1 | 已驗證 |
 
 ## Cursor（已移出維護範圍）
