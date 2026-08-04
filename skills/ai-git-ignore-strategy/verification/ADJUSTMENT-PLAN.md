@@ -70,10 +70,28 @@
 
 # 第二部分：全域 vs 專案的結論
 
-## 實證：PM Dashboard 的現況
+## ⚠️ 本節於 2026-08-04 更正
 
-`ui-ux-pro-max` 依上游建議以 CLI 逐專案安裝（`cd <project>` → `uipro init --ai <tool>`），
-結果在同一個專案內：
+初版把 `ui-ux-pro-max` 歸為「該放全域」，並把 PM Dashboard 的版本漂移歸因於
+「專案層安裝」。**兩點都錯**，維護者指正後重查上游 README 確認：
+
+1. 上游標 **Recommended** 的正是**專案層**（`cd <project>` → `uipro init --ai <tool>`），
+   全域只是次要選項。維護者的實際用法一直也是專案層。
+2. 版本漂移的成因**不是專案層安裝，而是逐工具安裝**。
+
+## 上游其實提供 2×2 安裝矩陣
+
+| | 專案層 | 全域 |
+| :--- | :--- | :--- |
+| **逐工具** | `uipro init --ai claude` ← **Recommended** | `--ai claude --global` → `~/.claude/skills/` |
+| **跨工具單一** | `--ai universal` → `.agents/skills/` | `--ai universal --global` → `~/.agents/skills/` |
+| 全部 | `--ai all` | — |
+
+另有 `uipro update` / `uipro update --global` 可刷新既有安裝。
+
+## 修正後的因果：真正的軸線是「複製份數」
+
+PM Dashboard 的三版本並存：
 
 ```text
 .agent/skills/ui-ux-pro-max/SKILL.md    bf780c3091e4   10651 bytes
@@ -83,50 +101,51 @@
 .claude/skills/ui-ux-pro-max/SKILL.md   07b87b8998b5   14105 bytes  ┘
 ```
 
-**同一個技能、同一個專案、三個不同版本並存**，約 3.2 MB 重複內容。
-這是複製式安裝的必然結果：更新時總會漏掉幾份。
+成因是用了 `--ai claude`＋`--ai antigravity`＋⋯（或 `--ai all`）逐工具安裝。
+若改用 `--ai universal`，只會有 `.agents/skills/` **一份**，不會漂移。
 
-而該專案的 `.gitignore` 用的正是本 skill 教的三段式 scoped allowlist：
+**所以「全域 vs 專案」與「逐工具 vs 單一路徑」是兩條獨立的軸，初版把它們混為一談。**
 
-```text
-.claude/*
-!.claude/skills/
-.claude/skills/*
-!.claude/skills/audit-import/      ← 只放行專案自撰的
-!.claude/skills/audit-import/**
-```
-
-外來的 `ui-ux-pro-max` 一個檔都沒進 git；專案自撰的 `audit-import` 被正確提交。
-
-## 由此得出的判準
-
-真正的分野不是「全域 vs 專案」，而是**技能的性質**：
-
-| 性質 | 例子 | 該放哪 | 理由 |
-| :--- | :--- | :--- | :--- |
-| 外來通用工具 | `ui-ux-pro-max`、**本 skill** | **全域** | 跨專案通用；裝專案層會複製 N 份並版本漂移 |
-| 專案自撰 | `audit-import` | **專案層並提交** | 綁定該專案的資料與流程，團隊必須共用 |
-
-**本 skill 自己早就寫了這個判準**（❓ 需確認段）：
-
-> 透過 CLI 工具安裝的（如 `uipro init --ai claude`）→ **不需要** Git 傳承，
-> 在 `DEPLOY.md` 記錄安裝指令即可
-> 開發者自行撰寫的客製技能 → **應該提交**
-
-按此判準，`ai-git-ignore-strategy` 屬前者 → **全域為正解**。
-
-## 那「各專案情境不同」的顧慮怎麼辦
-
-顧慮成立，但解法不是把 skill 搬進專案，而是**把方法與決定分開**：
-
-| | 內容 | 存放位置 |
+| 軸 | 選項 | 影響 |
 | :--- | :--- | :--- |
-| **方法**（通用、不因專案而異） | 五階段審查流程、`git check-ignore` 邊界驗證、行尾與 fileMode 處理 | 全域 skill |
-| **決定**（因專案而異） | 這個專案哪些檔案該提交、哪個 skill 要放行 | 該專案的 `.gitignore` ＋ `DEPLOY.md` |
+| 範圍 | 全域／專案層 | 影響「要不要隨 repo 傳承」「版本能不能被釘住」 |
+| **份數** | 逐工具／跨工具單一 | **影響版本漂移風險** —— 這才是 PM Dashboard 問題的根因 |
 
-PM Dashboard 已經是這個模式的實例：skill 提供方法，`.gitignore` 承載
-「放行 `audit-import`、擋掉 `ui-ux-pro-max`」這個專案專屬的決定。
-**判斷本來就不在 skill 裡。**
+## 專案層的正當理由（初版低估了）
+
+- 團隊要**釘住版本**，確保所有成員用同一版審查流程
+- 技能內容需依專案調整（例如某專案的設計系統規格）
+- 上游本來就把它當 Recommended，代表這是設計者預期的主要用法
+
+## 全域的正當理由
+
+- 跨專案通用、不隨 repo 傳承的工具
+- 不必在每個新專案重跑安裝
+
+## 對本 skill 的結論（修正版）
+
+**兩者皆可，取決於團隊要不要釘版本。** 但無論選哪個，
+**都應該優先用單一跨工具路徑 `.agents/skills/`（專案層）或 `~/.agents/skills/`（全域）**，
+而不是逐工具複製 —— 這是漂移的真正解方。
+
+依本輪帳本已驗證的事實：`.agents/skills/` 由 Codex（C-13）、Gemini CLI（C-22）、
+Copilot（C-77）、Antigravity 共同讀取，是名副其實的跨工具標準路徑。
+
+## 🔴 連帶發現：我們自己的安裝器也在複製
+
+以帳本對照現行六個全域目標：
+
+| 目標 | 誰讀 | 必要性 |
+| :--- | :--- | :--- |
+| `~/.agents/skills` | Codex（C-64）、Gemini CLI（C-22）、Copilot（C-77） | ✅ 必要 |
+| `~/.claude/skills` | Claude Code | ✅ 必要 |
+| `~/.gemini/config/skills` | Antigravity CLI（C-47） | ✅ 必要 |
+| `~/.gemini/antigravity/skills` | Antigravity IDE（C-48） | ✅ 必要 |
+| `~/.codex/skills` | 無官方依據（C-12：官方 scope 表 0 次） | ⚠️ **冗餘** |
+| `~/.copilot/skills` | Copilot 亦讀 `~/.agents/skills`（C-77） | ⚠️ **冗餘** |
+
+**我們正在做 PM Dashboard 同樣的事** —— 寫六份，其中兩份多餘。
+兩者都不會出錯（多寫無害），但同樣有「更新時漏掉某份」的漂移風險。
 
 ---
 
@@ -173,15 +192,28 @@ PM Dashboard 已經是這個模式的實例：skill 提供方法，`.gitignore` 
 **驗收**：五個工具各實測一次「幫我 commit 前審查」與
 「幫我看哪些檔案不該進 git」，確認挑到預期的 skill。
 
-## P1-2　安裝器加 `--project` 模式（可選）
+## P1-2　安裝器：先減少冗餘複製，再談專案層
 
-**現況**：五個目標全部是全域，無專案層選項。
-**調整**：新增 `--project` 模式，寫入 `./.agents/skills/`（**單一路徑**，
-因為 Codex／Gemini CLI／Copilot／Antigravity 都讀這條，不必複製五份）。
-**適用情境**：團隊要把審查流程的版本釘進 repo。
-**注意**：裝進專案後需在該專案 `.gitignore` 用 scoped allowlist 放行自己 ——
-這點要寫進安裝器的輸出提示，否則會被 skill 自己的規則擋掉。
-**驗收**：假 HOME／假專案各測一次；放行規則以 `git check-ignore` 驗證。
+初版把這項寫成「加 `--project` 模式」，經 2026-08-04 更正後拆為兩步。
+
+### P1-2a　移除冗餘的全域目標（優先）
+
+**現況**：六個全域目標中有兩個沒有官方依據 ——
+`~/.codex/skills`（官方 scope 表 0 次，見 C-12）與 `~/.copilot/skills`
+（Copilot 亦讀 `~/.agents/skills`，見 C-77）。
+**調整**：降為「僅在該目錄已存在時才寫」的相容模式，不再主動建立。
+**理由**：我們自己正在犯 PM Dashboard 的同型問題 —— 多份複製、更新時易漏。
+**風險**：低。兩條路徑本來就有 `~/.agents/skills` 覆蓋。
+**驗收**：假 HOME 三情境（全新／已有舊目錄／只有部分工具）各測一次。
+
+### P1-2b　`--project` 模式（可選）
+
+**調整**：新增 `--project`，只寫 `./.agents/skills/` **單一路徑** ——
+這正是上游 `uipro init --ai universal` 的作法，不是新發明。
+**適用**：團隊要把審查流程的版本釘進 repo。
+**注意**：裝進專案後需在該專案 `.gitignore` 用 scoped allowlist 放行自己，
+否則會被本 skill 自己的規則擋掉。這點必須寫進安裝器的輸出提示。
+**驗收**：假專案測一次；放行規則以 `git check-ignore` 驗證。
 
 ## P2-1　重跑安裝器同步版本
 
@@ -196,7 +228,7 @@ PM Dashboard 已經是這個模式的實例：skill 提供方法，`.gitignore` 
 
 | 提議 | 為何不做 |
 | :--- | :--- |
-| 把 skill 改成只裝專案層 | PM Dashboard 已證實會造成 N 份複製與版本漂移 |
+| ~~把 skill 改成只裝專案層~~ | **此列於 2026-08-04 撤回** —— 原理由（會造成 N 份複製）已證實歸因錯誤：漂移來自逐工具安裝，與專案層無關。專案層是上游 Recommended 的作法，若團隊要釘版本則完全合理 |
 | 把專案專屬判斷寫進 skill | 判斷屬於專案的 `.gitignore`／`DEPLOY.md`，寫進 skill 會讓通用方法被單一專案綁架 |
 | 移除 `permissioned-github` 等既有機制 | 職責不重疊，互補共存 |
 
@@ -205,4 +237,5 @@ PM Dashboard 已經是這個模式的實例：skill 提供方法，`.gitignore` 
 ## 待決事項
 
 1. P1-1 改觸發詞的風險是否可接受（會影響 skill 挑選）
-2. P1-2 的 `--project` 模式是否現在就做，或先只做 P0
+2. P1-2a 移除兩個冗餘全域目標 —— 是否現在就做
+3. P1-2b `--project` 模式是否需要（取決於是否要釘版本給團隊）
