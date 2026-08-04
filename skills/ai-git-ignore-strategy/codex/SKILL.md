@@ -99,10 +99,22 @@ git -c core.fileMode=false diff --summary
 - 團隊 AI 指令與共享 AI 設定：`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`（Copilot 共享 prompt）, `.agents/plugins/marketplace.json`（Codex 團隊共用外掛市集）, `.claude/settings.json`（團隊權限／hooks）, `.claude/commands/`, `.geminiignore`、`.aiexclude`（AI 忽略規則，與 `.gitignore` 同性質）、`.claude-plugin/plugin.json`、`.codex-plugin/plugin.json`（本 repo 本身是外掛時的清單檔）、`.mcp.json`（Claude Code 專案層 MCP server 設定，官方層級表列為 Project 層）、`.claude/rules/`（團隊共用分檔規則）, `.codex/config.toml`（專案層設定覆寫）, `.gemini/settings.json`（Workspace 設定），或明確要共享的 project-specific skill files。
 - 客製專案 skills：例如 `.codex/skills/<project-skill>/SKILL.md`，但必須先確認它不是本機安裝的第三方 skill。
 
+> **白名單錯了，代價不只是 repo 不乾淨。** 下列機制都會產生「應該提交」的檔案，
+> 而它們能不能被團隊共用，完全取決於本 skill 的白名單是否正確：
+>
+> | 產生者 | 產物 | 誤殺的後果 |
+> | :--- | :--- | :--- |
+> | Claude Code 的 `/verify` | `.claude/skills/verify/SKILL.md` | 團隊失去共用的建置指令紀錄 |
+> | 權限／設定調整機制 | 專案 `.claude/settings.json` | 團隊各自重複被權限提示打斷 |
+> | 專案初始化機制 | `CLAUDE.md`／`AGENTS.md` | 團隊失去專案指令檔 |
+>
+> 所以**不能用「一律擋掉比較安全」的心態處理白名單**。擋錯的成本是別人的機制失效，
+> 而且失效時**不會有任何錯誤訊息** —— 沒有人會發現，只會覺得那個功能「好像沒什麼用」。
+
 #### 🔴 應該排除或取消追蹤 (Ignore Or Untrack)
 
 - 本機 AI 工作區與 cache：`.agent/`（Antigravity 1.x）、`.antigravitycli/`（Antigravity CLI 舊版的工作區對應檔；新版已改集中到 `~/.gemini/antigravity-cli/cache/projects.json` 並淘汰此目錄，舊專案仍會殘留） 的工作區暫存、`.codex/`、`.gemini/` 的快取，但 confirmed project skills 例外。
-  - ⚠️ 注意（最容易誤殺）：專案內 `.claude/`（`settings.json`, `commands/`, `skills/`）、`.github/prompts/*.prompt.md` 多半是刻意共享的設定與規則，屬於 🟢 或 ⚠️ 類；專案內 `.agents/` 的 `AGENTS.md`、`settings.json` 與 `skills/` 也是刻意共享的設定，不要整包封殺；多數工具的對話紀錄存在使用者家目錄（如 `~/.claude/projects/`），不在專案內。 另外，`.agents/` 並非 Antigravity 專屬，而是**跨工具共用目錄** — Codex 會從當前工作目錄逐層往上掃 `.agents/skills`、Gemini CLI 以 `.agents/skills/` 作為 `.gemini/skills/` 的高優先別名、Antigravity 讀 `.agents/hooks.json`；只裝 Codex 的專案一樣會出現 `.agents/`，不要當成 Antigravity 殘留。　Antigravity 實查（1.0.13，2026-07-30）：對話紀錄位於 `~/.gemini/antigravity/conversations/` 等家目錄，**但專案內並非乾淨** — agent 會把使用者訊息**逐字**附加到 `.agents/ORIGINAL_REQUEST.md`（含 UTC 時間戳），屬本 skill 開頭所述的 Security Risks，必須排除。
+  - ⚠️ 注意（最容易誤殺）：專案內 `.claude/`（`settings.json`, `commands/`, `skills/`）、`.github/prompts/*.prompt.md` 多半是刻意共享的設定與規則，屬於 🟢 或 ⚠️ 類；專案內 `.agents/` 的 `skills/`、`rules/` 也是刻意共享的設定，不要整包封殺（`.agents/AGENTS.md`、`.agents/settings.json` 曾列於此，2026-08-04 查證為**不存在的檔案**，規則與敘述均已移除；Antigravity 只讀**根目錄**的 `AGENTS.md`）；多數工具的對話紀錄存在使用者家目錄（如 `~/.claude/projects/`），不在專案內。 另外，`.agents/` 並非 Antigravity 專屬，而是**跨工具共用目錄** — Codex 會從當前工作目錄逐層往上掃 `.agents/skills`、Gemini CLI 以 `.agents/skills/` 作為 `.gemini/skills/` 的高優先別名、Antigravity 讀 `.agents/hooks.json`；只裝 Codex 的專案一樣會出現 `.agents/`，不要當成 Antigravity 殘留。　Antigravity 實查（1.0.13，2026-07-30）：對話紀錄位於 `~/.gemini/antigravity/conversations/` 等家目錄，**但專案內並非乾淨** — agent 會把使用者訊息**逐字**附加到 `.agents/ORIGINAL_REQUEST.md`（含 UTC 時間戳），屬本 skill 開頭所述的 Security Risks，必須排除。
 - Runtime logs：`*.log`，通常會自動輪替或持續增長，沒有版本控制價值。
 - 每次執行會覆寫的 runtime state：`last_run.txt`, `last_*.txt`。這些會讓 `git status` 長期保持 dirty。
 - 機密：`.env`, `.env.*`，但保留 `!.env.example`；另排除 `*.pem`, `*.key`, `credentials.json`, `certs/`。
@@ -111,15 +123,48 @@ git -c core.fileMode=false diff --summary
 
 如專案另有 `*.jsonl`、`*.pid`、`*.lock` 等 runtime 檔，先審查用途再加入，不要把特定專案的歷史檔名硬寫進通用 skill。
 
+> **與安全審查機制的分工**：安全審查（如 Claude Code 的 `security-review`）檢查**變更內容**
+> 有沒有安全問題 —— 屬**事後偵測**；本 skill 讓機密檔案**根本不被追蹤** —— 屬**事前預防**。
+> 兩者互補，跑過其一不能取代另一：
+>
+> - 已提交檔案裡的硬編碼金鑰，**只有安全審查抓得到**
+> - 尚未追蹤、但下一個 `git add .` 就會被掃進去的 `.env`，**只有本 skill 擋得住**
+
 #### ⚠️ 需要跟開發者確認 (Ask Before Deciding)
 
 - `.codex/skills/`, `.claude/skills/`, `.agents/skills/`（跨工具：Codex／Gemini CLI／Antigravity 共用）, `.agent/skills/`（1.x）, `.gemini/skills/`：是本機安裝的第三方 skill、project-owned custom skill，還是**工具自動記錄但官方定位為要共享的**？第三類例如 Claude Code 的 `/verify` 會把可用的建置指令寫進 `.claude/skills/verify/SKILL.md`，官方說明為「so later runs and other agents follow the same steps」—— 這類**應該提交**。
+  → 完整判準見下方「技能庫 (Skills) 的性質判準」——**先問技能是怎麼來的，不要憑目錄名決定**。
 - **Antigravity 工作區 agent 定義**：`.agents/agents/<name>/agent.json`（由 agy 1.0.13 二進位內的路徑模板 `{workspace}/.agents/agents/{agent_name}/agent.json` 證實）。agy 1.0.13 二進位顯示 agents 與 skills 有**完全對稱**的 workspace／global 建立路徑函式，且執行期狀態另有去處，故已比照 `.claude/agents/` 放行。但**尚無人目視過實體檔案** —— 提交前請確認內容是角色宣告而非執行狀態。
 - `$env:USERPROFILE\.codex\skills\` / `~/.codex/skills/`：這是 user-level Codex skill installation，通常不要整包複製進專案 repo。
 - `*.json`：runtime data，還是 `package.json`, `tsconfig.json`, `manifest.json` 這類 source/config？
 - `*.json.bak`：可丟棄備份，還是 DEPLOY 文件提到的唯一可還原資料？
 - `.vscode/`：個人設定，還是團隊共享的 `extensions.json` / `launch.json`？
 - 大型 PDF、XML、export：部署參考，還是已過期的靜態快照？
+
+#### 📦 技能庫 (Skills) 的性質判準
+
+`.claude/skills/`、`.agents/skills/`、`.gemini/skills/` 這類目錄**不能一律提交，也不能一律排除**。
+判準是「這個技能是怎麼來的」：
+
+| 來源 | 處置 | 理由 |
+| :--- | :--- | :--- |
+| CLI 工具安裝的第三方技能（如 `uipro init`） | **不提交**，在 `DEPLOY.md` 記錄安裝指令 | 提交等於把上游的複本釘進 repo，上游更新後就開始漂移 |
+| 開發者自行撰寫的客製技能 | **提交** | 是專案的一部分，沒有別的傳承管道 |
+| 工具自動產生、但官方定位為要共享的 | **提交** | 例：`/verify` 寫入 `.claude/skills/verify/SKILL.md`，官方說明「so later runs and other agents follow the same steps」 |
+
+**判斷關鍵**：官方文件有沒有講明「讓後續執行或其他 agent 沿用」。
+有 → 屬第三類，應提交；沒有 → 回到前兩類，問開發者。
+
+> 🔍 **這個 skill 的誕生原因，就是它自己最好的反例。**
+> 維護者在 PM Dashboard 專案使用 `ui-ux-pro-max` 時，是**逐工具各裝一次**的
+> （`--ai claude` ＋ `--ai antigravity` ＋⋯⋯），於是同一個技能在專案裡留下三份複本，
+> 之後各自過期、彼此不一致 —— 而**沒有任何機制會為此報錯**。
+> 上游其實提供 `--ai universal`，只寫一份到 `.agents/skills/`。
+>
+> 教訓是：**技能的「份數」比它裝在全域還是專案更關鍵。**
+> 審查時看到多份同名技能，那是訊號，不是巧合 —— 先問「為什麼有三份」，再問「要不要提交」。
+
+**必問開發者**：「這個技能是透過 CLI 安裝的、您自己寫的，還是工具自動記錄的？」
 
 ### 第三階段：向開發者報告 (Report Shape)
 
