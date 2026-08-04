@@ -146,6 +146,7 @@ python scripts/check_updates.py --coverage
 | 檔案 | 用途 |
 | :--- | :--- |
 | [`CLAIMS.md`](./CLAIMS.md) | 主帳本，唯一真相來源 |
+| [`ADJUSTMENT-PLAN.md`](./ADJUSTMENT-PLAN.md) | 安裝範圍與機制邊界的調整規劃（含與其他 skill 的重疊檢核） |
 | [`rounds/TEMPLATE.md`](./rounds/TEMPLATE.md) | 交接包模板 |
 | `rounds/YYYY-MM-DD-<tool>.md` | 送出的交接包 |
 | `rounds/YYYY-MM-DD-<tool>.reply.md` | 收回的結果 |
