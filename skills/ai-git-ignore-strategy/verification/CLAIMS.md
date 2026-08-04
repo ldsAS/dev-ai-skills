@@ -3,16 +3,16 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-08-03（四工具交叉檢視回填完畢；新增 C-57～C-62、C-70～C-78）
+**最後更新**：2026-08-04（Antigravity 2.5.0 版本告警查核；新增 C-79、C-80）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 53 |
+| 已驗證 | 54 |
 | 待實查 | 0 |
 | 有疑 | 0 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| **總計** | **60** |
+| **總計** | **61** |
 
 ---
 
@@ -123,6 +123,7 @@
 | C-54 | `.agents/agents/<name>/agent.json` | 工作區層級自訂子代理定義，**應提交**（已放行）。依據不是類比其他工具，而是 agy 自身的**對稱設計**：`GetAgentsCreatePath`／`GetGlobalAgentsCreatePath` 與 `GetSkillsCreatePath`／`GetGlobalSkillsCreatePath` 成對存在（各 3 次），即工具把 agents 與 skills 視為同類的兩層結構，而 `.agents/skills/` 本已放行；另有 `writing agent.json`／`marshaling agent.json` 顯示為使用者發起的持久化宣告，且執行期狀態另有去處（C-56 與家目錄 `brain/`）。**殘留未知**：實體檔案內容尚無人目視 | 二進位字串分析（架構對稱） | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-55 | `.agents/ORIGINAL_REQUEST.md` | agent 會把使用者訊息**逐字**附加至此檔（含 UTC 時間戳），亦有 `.agents/<agent_folder>/ORIGINAL_REQUEST.md` 變體。**屬敏感內容，必須排除** | 二進位字串分析 | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-56 | `.agents/<type>_<milestone>[_<N>][_gen<N>]/` | 子代理在**專案內**建立的工作目錄命名規則（二進位字串），內含 `ORIGINAL_REQUEST.md` 等記錄。已被 `.agents/*` 完整涵蓋 | 二進位字串分析 | 2026-07-30 | 1.0.13 | 已驗證 |
+| C-80 | Antigravity 的 worktree 處理 | 2.5.0 changelog 提到「environment selector 記住上次使用的 worktree」「側欄可依 worktree 排序」，但二進位中 worktree 相關字串全是 git 操作（`gitdir:`、`rev-parse`、`worktree list`、`repo root`），查無 `.agents/worktree*` 或 `~/.gemini/*/worktree*`。→ **Antigravity 讀取標準 git worktree，不自建工具管理的 worktree 目錄**，與 Claude Code 的 `.claude/worktrees/`（C-09）不同，**本 skill 無需為其新增規則** | 官方 changelog＋二進位字串分析 | 2026-08-04 | 2.5.0 | 已驗證 |
 | C-57 | `.agents/rules/`、`.agent/rules/` | 工作區規則資料夾，官方：「Workspace rules live in the `.agents/rules` folder of your workspace or git root」，性質同 `.claude/rules/` → **應提交（已放行）**。官方另載「now defaults to `.agents/rules`, but still maintains backward support for `.agent/rules`」，故舊佈局一併放行 | 官方文件 `/docs/rules-workflows` | 2026-08-03 | 2.x | 已驗證 |
 | C-58 | `.agents/mcp_config.json` | 工作區層級 MCP server 定義，官方：「Workspace servers: `.agents/mcp_config.json`」（全域版為 `~/.gemini/config/mcp_config.json`）→ **應提交（已放行）**。原被 `.agents/*` 誤殺 | 官方文件 `/docs/cli/gcli-migration` | 2026-08-03 | 2.x | 已驗證 |
 | C-59 | `~/.gemini/config/sidecars/`、`~/.gemini/config/plugins/<name>/sidecars/` | Sidecar 設定檔為 **`sidecar.json`（單數）**，官方明載只有這兩個位置、**都在家目錄**；專案層無此概念 → 本 skill **無需新增規則**。2026-08-03 回報曾稱專案 `.agents/` 下可能有 `sidecars.json`，經查二進位與官方文件皆無，不予採納 | 官方文件 `/docs/sidecars` | 2026-08-03 | 2.x | 已驗證 |
