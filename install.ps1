@@ -22,6 +22,10 @@
   codex        Only install codex/ variant to ~/.codex/skills/
   vscode       Only install vscode/ variant to ~/.copilot/skills/ (GitHub Copilot in VS Code)
   generic      Install generic/ variant to all detected AI tool dirs (fallback)
+  project      Install ONE copy into <ProjectPath>\.agents\skills\ (cross-tool path)
+
+.PARAMETER ProjectPath
+  Target repo for 'project' mode. Defaults to the current directory.
 
 .EXAMPLE
   .\install.ps1
@@ -29,12 +33,17 @@
   .\install.ps1 codex
   .\install.ps1 vscode
   .\install.ps1 generic
+  .\install.ps1 project
+  .\install.ps1 project C:\path	oepo
 #>
 
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('auto', 'claude', 'antigravity', 'codex', 'vscode', 'generic')]
-    [string]$Mode = 'auto'
+    [ValidateSet('auto', 'claude', 'antigravity', 'codex', 'vscode', 'generic', 'project')]
+    [string]$Mode = 'auto',
+
+    [Parameter(Position = 1)]
+    [string]$ProjectPath = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -72,6 +81,9 @@ $HasCodexLegacy   = Test-Path $CodexTarget
 $HasVSCodeLegacy  = Test-Path $VSCodeTarget
 $HasVSCode        = ((Get-Command code -ErrorAction SilentlyContinue) -ne $null) -or (Test-Path (Join-Path $env:USERPROFILE '.copilot'))
 
+# project 模式是專案層安裝，不依賴任何全域工具目錄 —— 跳過偵測與「找不到工具」的中止
+if ($Mode -ne 'project') {
+
 Write-Info '偵測到的 AI 工具：'
 if ($HasClaude)        { Write-Ok    "Claude Code       → $ClaudeTarget" }        else { Write-Warn2 'Claude Code       → 未偵測到 ~/.claude' }
 if ($HasAntigravityV2) { Write-Ok    "Antigravity CLI   → $AntigravityTargetV2" } else { Write-Warn2 'Antigravity CLI   → 未偵測到 ~/.gemini/config' }
@@ -84,6 +96,8 @@ if ($HasVSCode)        { Write-Ok    "VS Code Copilot   → 經 $AgentsTarget（
 if (-not $HasClaude -and -not $HasAntigravityV1 -and -not $HasAntigravityV2 -and -not $HasCodex -and -not $HasVSCode) {
     Write-Err2 '沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity、Codex 或 VS Code。'
     exit 1
+}
+
 }
 
 # ---- install one skill variant to one target -----------------------
@@ -133,6 +147,48 @@ function Install-AllForTool {
     Write-Ok "完成：$count 個 skill 已安裝到 $Tool"
 }
 
+# ---- project-scoped install -----------------------------------------
+# 只寫 <repo>\.agents\skills\ 一條路徑、一份複製 —— 與上游 uipro init --ai universal 同作法。
+# 不逐工具各裝一份：.agents\skills 已同時被 Codex、Gemini CLI、Copilot、Antigravity
+# 讀取（C-13、C-22、C-60、C-77），分開裝只會製造多份會各自過期的複本。
+function Install-Project {
+    param([string]$Root)
+
+    if (-not $Root) { $Root = (Get-Location).Path }
+    if (-not (Test-Path $Root)) { Write-Err2 "找不到目錄：$Root"; exit 1 }
+    $Root = (Resolve-Path $Root).Path
+
+    $inGit = $false
+    & git -C $Root rev-parse --show-toplevel *> $null
+    if ($LASTEXITCODE -eq 0) { $inGit = $true }
+    if (-not $inGit) { Write-Warn2 "$Root 不是 git repo；安裝照做，但下方的 .gitignore 提示要 git init 之後才有意義" }
+
+    Install-AllForTool -Tool 'project' -Target (Join-Path $Root '.agents\skills') -ForceVariant 'generic'
+
+    Write-Host ''
+    Write-Info '還有兩件事要手動做：'
+    Write-Host ''
+    Write-Host '  1. 在專案 .gitignore 放行剛裝的技能'
+    Write-Host '     本 skill 自己的範本會擋掉 .agents/skills/* —— 不放行的話它會把自己藏起來：'
+    Write-Host ''
+    Get-ChildItem -Path $SkillsDir -Directory | ForEach-Object {
+        Write-Host "       !.agents/skills/$($_.Name)/"
+        Write-Host "       !.agents/skills/$($_.Name)/**"
+    }
+    Write-Host ''
+    Write-Host '     驗證：git check-ignore -v .agents/skills/<name>/SKILL.md'
+    Write-Host '     （輸出以 ! 開頭＝已放行；無輸出＝沒被任何規則命中，也算放行）'
+    Write-Host ''
+    Write-Host '  2. 在專案 AGENTS.md 寫明什麼時候要用它'
+    Write-Host '     專案層技能不該只靠觸發詞被撞到，講清楚使用時機比較可靠：'
+    Write-Host ''
+    Write-Host '       ## 專案技能'
+    Write-Host '       - 要調整 .gitignore／.gitattributes，或 commit 前要確認哪些檔案會被提交時，'
+    Write-Host '         使用 .agents/skills/ai-git-ignore-strategy/'
+    Write-Host ''
+    if ($inGit) { Write-Ok "專案層安裝完成：$Root\.agents\skills\" }
+}
+
 # ---- main -----------------------------------------------------------
 switch ($Mode) {
     'auto' {
@@ -164,6 +220,9 @@ switch ($Mode) {
         # ~/.copilot/skills/ 是 VS Code Copilot 原生掃描的個人 skill 目錄
         # 不強制要求 code 指令存在，允許手動指定路徑情境
         Install-AllForTool -Tool 'vscode' -Target $VSCodeTarget   # 明確指定 vscode 模式時仍寫
+    }
+    'project' {
+        Install-Project -Root $ProjectPath
     }
     'generic' {
         if ($HasClaude)        { Install-AllForTool -Tool 'claude'      -Target $ClaudeTarget        -ForceVariant 'generic' }

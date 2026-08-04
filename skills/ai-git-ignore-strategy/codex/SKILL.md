@@ -1,6 +1,6 @@
 ---
 name: ai-git-ignore-strategy
-description: 建立、檢核並修正 Codex 工作中的 Git 追蹤規則，包含 .gitignore、.gitattributes、AI agent folders、本機 Codex skills、runtime logs、line-ending noise、file mode drift 與 commit-before-push hygiene。當使用者要求「檢核 gitignore」「整理 repo」「commit 前審查」「清理 AI 追蹤紀錄」「行尾 CRLF 問題」「0 byte diff」「file mode 漂移」或類似 Git hygiene 任務時觸發。
+description: 建立、檢核並修正 Codex 工作中的 Git 追蹤規則，包含 .gitignore、.gitattributes、AI agent folders、本機 Codex skills、runtime logs、line-ending noise、file mode drift 與 commit-before-push hygiene。當使用者要求「檢核 gitignore」「哪些檔案不該進 git」「commit 前確認會提交哪些檔案」「整理 repo 的 AI 產生物」「清理 AI 追蹤紀錄」「行尾 CRLF 問題」「0 byte diff」「file mode 漂移」或類似 Git hygiene 任務時觸發。本 skill 只判斷**檔案該不該被 git 追蹤**，不做程式碼安全稽核，也不做重構或簡化 —— 那兩類請交給對應的 skill。
 ---
 
 # AI 工作區 Git 管控最佳實務 for Codex

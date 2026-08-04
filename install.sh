@@ -9,6 +9,8 @@
 #   ./install.sh codex           # only install codex/ variant to ~/.codex/skills/
 #   ./install.sh vscode          # only install vscode/ variant to ~/.copilot/skills/ (GitHub Copilot)
 #   ./install.sh generic         # install generic/ variant to all detected AI tool dirs (fallback)
+#   ./install.sh --project [dir] # install ONE copy into <dir>/.agents/skills/ (default: cwd)
+#                                #   cross-tool path — Codex / Gemini CLI / Copilot / Antigravity all read it
 #   ./install.sh --help          # show this help
 #
 # Behaviour: COPY mode (not symlink). Re-run after git pull to sync updates.
@@ -43,7 +45,7 @@ VSCODE_TARGET="$HOME/.copilot/skills"
 MODE="${1:-auto}"
 
 show_help() {
-  sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'
   exit 0
 }
 [[ "$MODE" == "--help" || "$MODE" == "-h" ]] && show_help
@@ -72,6 +74,8 @@ has_vscode=false
 [[ -d "$VSCODE_TARGET" ]]             && has_vscode_legacy=true
 { command -v code >/dev/null 2>&1 || [[ -d "$HOME/.copilot" ]]; } && has_vscode=true
 
+# --project 是專案層安裝，不依賴任何全域工具目錄 —— 跳過偵測與「找不到工具」的中止
+if [[ "$MODE" != "--project" ]]; then
 info "偵測到的 AI 工具："
 $has_claude         && ok "Claude Code       → $CLAUDE_TARGET"         || warn "Claude Code       → 未偵測到 ~/.claude"
 $has_antigravity_v2 && ok "Antigravity CLI   → $ANTIGRAVITY_TARGET_V2" || warn "Antigravity CLI   → 未偵測到 ~/.gemini/config"
@@ -84,6 +88,7 @@ $has_vscode         && ok "VS Code Copilot   → 經 $AGENTS_TARGET（Copilot �
 if ! $has_claude && ! $has_antigravity_v1 && ! $has_antigravity_v2 && ! $has_codex && ! $has_vscode; then
   err "沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity、Codex 或 VS Code (Copilot)。"
   exit 1
+fi
 fi
 
 # ---- install one skill to one target -------------------------------
@@ -137,6 +142,50 @@ install_all_for_tool() {
   ok "完成：$count 個 skill 已安裝到 $tool"
 }
 
+# ---- project-scoped install -----------------------------------------
+# 只寫 <repo>/.agents/skills/ 一條路徑、一份複製 —— 與上游 uipro init --ai universal 同作法。
+# 不逐工具各裝一份：`.agents/skills` 已同時被 Codex、Gemini CLI、Copilot、Antigravity
+# 讀取（C-13、C-22、C-60、C-77），分開裝只會製造多份會各自過期的複本。
+install_project() {
+  local root="$1"
+  [[ -d "$root" ]] || { err "找不到目錄：$root"; exit 1; }
+  root="$(cd "$root" && pwd)"
+
+  local in_git=true
+  git -C "$root" rev-parse --show-toplevel >/dev/null 2>&1 || in_git=false
+  $in_git || warn "$root 不是 git repo；安裝照做，但下方的 .gitignore 提示要 git init 之後才有意義"
+
+  install_all_for_tool "project" "$root/.agents/skills" "generic"
+
+  echo
+  info "${C_BOLD}還有兩件事要手動做：${C_RESET}"
+  echo
+  echo "  ${C_BOLD}1. 在專案 .gitignore 放行剛裝的技能${C_RESET}"
+  echo "     本 skill 自己的範本會擋掉 .agents/skills/* —— 不放行的話它會把自己藏起來："
+  echo
+  local skill_dir n
+  for skill_dir in "$SKILLS_DIR"/*/; do
+    [[ -d "$skill_dir" ]] || continue
+    n="$(basename "${skill_dir%/}")"
+    echo "       !.agents/skills/$n/"
+    echo "       !.agents/skills/$n/**"
+  done
+  echo
+  echo "     ${C_INFO}驗證：git check-ignore -v .agents/skills/<name>/SKILL.md${C_RESET}"
+  echo "     （輸出以 ! 開頭＝已放行；無輸出＝沒被任何規則命中，也算放行）"
+  echo
+  echo "  ${C_BOLD}2. 在專案 AGENTS.md 寫明什麼時候要用它${C_RESET}"
+  echo "     專案層技能不該只靠觸發詞被撞到，講清楚使用時機比較可靠："
+  echo
+  echo "       ## 專案技能"
+  echo "       - 要調整 .gitignore／.gitattributes，或 commit 前要確認哪些檔案會被提交時，"
+  echo "         使用 .agents/skills/ai-git-ignore-strategy/"
+  echo
+  # 用 if 而非 `$in_git && ok`：後者在 in_git=false 時會讓函式回傳 1，
+  # 配上 set -e 會讓整個安裝在最後一步無聲失敗
+  if $in_git; then ok "專案層安裝完成：$root/.agents/skills/"; fi
+}
+
 # ---- main -----------------------------------------------------------
 case "$MODE" in
   auto|"")
@@ -177,6 +226,9 @@ case "$MODE" in
     $has_codex          && install_all_for_tool "codex"       "$CODEX_TARGET"          "generic"
     $has_codex          && install_all_for_tool "codex"       "$AGENTS_TARGET"         "generic"
     $has_vscode         && install_all_for_tool "vscode"      "$VSCODE_TARGET"         "generic"
+    ;;
+  --project)
+    install_project "${2:-$PWD}"
     ;;
   *)
     err "未知選項：$MODE"
