@@ -6,8 +6,9 @@
 #   ./install.sh claude          # only install claude/ variant to ~/.claude/skills/
 #   ./install.sh antigravity     # install antigravity/ variant to BOTH global paths:
 #                                #   ~/.gemini/config/skills/ (CLI) and ~/.gemini/antigravity/skills/ (IDE)
-#   ./install.sh codex           # only install codex/ variant to ~/.codex/skills/
-#   ./install.sh vscode          # only install vscode/ variant to ~/.copilot/skills/ (GitHub Copilot)
+#   ./install.sh codex           # install to ~/.agents/skills/ (official USER path, generic variant)
+#                                #   ~/.codex/skills/ only if a copy is already installed there
+#   ./install.sh vscode          # force-install vscode/ variant to ~/.copilot/skills/ (GitHub Copilot)
 #   ./install.sh generic         # install generic/ variant to all detected AI tool dirs (fallback)
 #   ./install.sh --project [dir] # install ONE copy into <dir>/.agents/skills/ (default: cwd)
 #                                #   cross-tool path — Codex / Gemini CLI / Copilot / Antigravity all read it
@@ -68,10 +69,23 @@ has_vscode=false
 [[ -d "$HOME/.gemini/config" ]]       && has_antigravity_v2=true
 [[ -d "$HOME/.codex" ]]               && has_codex=true
 # P1-2a：下列兩條沒有官方依據 —— .codex/skills 未見於 Codex 官方 scope 表（C-12），
-# 而 Copilot 亦讀 ~/.agents/skills（C-77）。降為相容模式：只在該目錄「已經存在」
-# 時才續寫，不再為新安裝主動建立，以減少同名技能的重複份數。
-[[ -d "$CODEX_TARGET" ]]              && has_codex_legacy=true
-[[ -d "$VSCODE_TARGET" ]]             && has_vscode_legacy=true
+# 而 Copilot 亦讀 ~/.agents/skills（C-77）。降為相容模式：只續寫「已經裝過本專案技能」
+# 的目錄，不再為新安裝主動建立，以減少同名技能的重複份數。
+#
+# ⚠️ 判準是「該目錄裡已經有我們的技能」，**不是「目錄存在」**。
+#    ~/.codex/skills 底下有 Codex 內建的 .system/，該目錄永遠存在；
+#    用「目錄存在」當判準的話，使用者手動刪掉的舊複本會在下次安裝時復活。
+skill_installed_in() {
+  local target="$1" d
+  [[ -d "$target" ]] || return 1
+  for d in "$SKILLS_DIR"/*/; do
+    [[ -d "$d" ]] || continue
+    [[ -d "$target/$(basename "${d%/}")" ]] && return 0
+  done
+  return 1
+}
+skill_installed_in "$CODEX_TARGET"    && has_codex_legacy=true
+skill_installed_in "$VSCODE_TARGET"   && has_vscode_legacy=true
 { command -v code >/dev/null 2>&1 || [[ -d "$HOME/.copilot" ]]; } && has_vscode=true
 
 # --project 是專案層安裝，不依賴任何全域工具目錄 —— 跳過偵測與「找不到工具」的中止
@@ -81,8 +95,8 @@ $has_claude         && ok "Claude Code       → $CLAUDE_TARGET"         || warn
 $has_antigravity_v2 && ok "Antigravity CLI   → $ANTIGRAVITY_TARGET_V2" || warn "Antigravity CLI   → 未偵測到 ~/.gemini/config"
 $has_antigravity_v1 && ok "Antigravity IDE   → $ANTIGRAVITY_TARGET_V1" || warn "Antigravity IDE   → 未偵測到 ~/.gemini/antigravity"
 $has_codex          && ok "Codex             → $AGENTS_TARGET"         || warn "Codex             → 未偵測到 ~/.codex"
-$has_codex_legacy   && warn "  └ 相容路徑       → $CODEX_TARGET（已存在才續寫）" || true
-$has_vscode_legacy  && warn "  └ 相容路徑       → $VSCODE_TARGET（已存在才續寫）" || true
+$has_codex_legacy   && warn "  └ 相容路徑       → $CODEX_TARGET（已裝過才續寫，不主動建立）" || true
+$has_vscode_legacy  && warn "  └ 相容路徑       → $VSCODE_TARGET（已裝過才續寫，不主動建立）" || true
 $has_vscode         && ok "VS Code Copilot   → 經 $AGENTS_TARGET（Copilot 亦讀此路徑）" || warn "VS Code Copilot   → 未偵測到 code 指令或 ~/.copilot，仍可用 vscode 模式強制安裝"
 
 if ! $has_claude && ! $has_antigravity_v1 && ! $has_antigravity_v2 && ! $has_codex && ! $has_vscode; then
@@ -211,8 +225,8 @@ case "$MODE" in
     ;;
   codex)
     if ! $has_codex; then err "未偵測到 ~/.codex/"; exit 1; fi
-    install_all_for_tool "codex" "$CODEX_TARGET"
-    install_all_for_tool "codex" "$AGENTS_TARGET"
+    install_all_for_tool "codex" "$AGENTS_TARGET" "generic"
+    $has_codex_legacy && install_all_for_tool "codex" "$CODEX_TARGET"
     ;;
   vscode)
     # ~/.copilot/skills/ 是 GitHub Copilot 原生掃描的個人 skill 目錄
@@ -223,9 +237,9 @@ case "$MODE" in
     $has_claude         && install_all_for_tool "claude"      "$CLAUDE_TARGET"         "generic"
     $has_antigravity_v2 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V2" "generic"
     $has_antigravity_v1 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V1" "generic"
-    $has_codex          && install_all_for_tool "codex"       "$CODEX_TARGET"          "generic"
     $has_codex          && install_all_for_tool "codex"       "$AGENTS_TARGET"         "generic"
-    $has_vscode         && install_all_for_tool "vscode"      "$VSCODE_TARGET"         "generic"
+    $has_codex_legacy   && install_all_for_tool "codex"       "$CODEX_TARGET"          "generic"
+    $has_vscode_legacy  && install_all_for_tool "vscode"      "$VSCODE_TARGET"         "generic"
     ;;
   --project)
     install_project "${2:-$PWD}"

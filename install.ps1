@@ -19,7 +19,8 @@
   claude       Only install claude/ variant to ~/.claude/skills/
   antigravity  Install antigravity/ variant to BOTH global paths:
                ~/.gemini/config/skills/ (CLI) and ~/.gemini/antigravity/skills/ (IDE)
-  codex        Only install codex/ variant to ~/.codex/skills/
+  codex        Install to ~/.agents/skills/ (official USER path, generic variant);
+               ~/.codex/skills/ only if a copy is already installed there
   vscode       Only install vscode/ variant to ~/.copilot/skills/ (GitHub Copilot in VS Code)
   generic      Install generic/ variant to all detected AI tool dirs (fallback)
   project      Install ONE copy into <ProjectPath>\.agents\skills\ (cross-tool path)
@@ -66,6 +67,18 @@ function Write-Ok    { param($msg) Write-Host "[ ok ] $msg" -ForegroundColor Gre
 function Write-Warn2 { param($msg) Write-Host "[warn] $msg" -ForegroundColor Yellow }
 function Write-Err2  { param($msg) Write-Host "[err ] $msg" -ForegroundColor Red }
 
+# 相容路徑的判準是「該目錄裡已經有本專案裝過的技能」，**不是「目錄存在」**。
+# ~/.codex/skills 底下有 Codex 內建的 .system/，該目錄永遠存在；用「目錄存在」
+# 當判準的話，使用者手動刪掉的舊複本會在下次安裝時復活。
+function Test-SkillInstalledIn {
+    param([string]$Target)
+    if (-not (Test-Path $Target)) { return $false }
+    foreach ($d in Get-ChildItem -Path $SkillsDir -Directory) {
+        if (Test-Path (Join-Path $Target $d.Name)) { return $true }
+    }
+    return $false
+}
+
 # ---- detection ------------------------------------------------------
 $HasClaude        = Test-Path (Join-Path $env:USERPROFILE '.claude')
 # 兩條全域路徑都要寫，它們屬於不同產品，不是新舊關係（官方文件明載）：
@@ -76,9 +89,10 @@ $HasAntigravityV1 = Test-Path (Join-Path $env:USERPROFILE '.gemini\antigravity')
 $HasAntigravityV2 = Test-Path (Join-Path $env:USERPROFILE '.gemini\config')
 $HasCodex         = Test-Path (Join-Path $env:USERPROFILE '.codex')
 # P1-2a：下列兩條沒有官方依據 —— .codex\skills 未見於 Codex 官方 scope 表（C-12），
-# 而 Copilot 亦讀 ~/.agents/skills（C-77）。降為相容模式：只在該目錄已存在時才續寫。
-$HasCodexLegacy   = Test-Path $CodexTarget
-$HasVSCodeLegacy  = Test-Path $VSCodeTarget
+# 而 Copilot 亦讀 ~/.agents/skills（C-77）。降為相容模式：只續寫已經裝過的目錄，
+# 不主動建立（判準見上方 Test-SkillInstalledIn 的說明）。
+$HasCodexLegacy   = Test-SkillInstalledIn $CodexTarget
+$HasVSCodeLegacy  = Test-SkillInstalledIn $VSCodeTarget
 $HasVSCode        = ((Get-Command code -ErrorAction SilentlyContinue) -ne $null) -or (Test-Path (Join-Path $env:USERPROFILE '.copilot'))
 
 # project 模式是專案層安裝，不依賴任何全域工具目錄 —— 跳過偵測與「找不到工具」的中止
@@ -89,8 +103,8 @@ if ($HasClaude)        { Write-Ok    "Claude Code       → $ClaudeTarget" }    
 if ($HasAntigravityV2) { Write-Ok    "Antigravity CLI   → $AntigravityTargetV2" } else { Write-Warn2 'Antigravity CLI   → 未偵測到 ~/.gemini/config' }
 if ($HasAntigravityV1) { Write-Ok    "Antigravity IDE   → $AntigravityTargetV1" } else { Write-Warn2 'Antigravity IDE   → 未偵測到 ~/.gemini/antigravity' }
 if ($HasCodex)         { Write-Ok    "Codex             → $AgentsTarget" }        else { Write-Warn2 'Codex             → 未偵測到 ~/.codex' }
-if ($HasCodexLegacy)   { Write-Warn2 "  └ 相容路徑       → $CodexTarget（已存在才續寫）" }
-if ($HasVSCodeLegacy)  { Write-Warn2 "  └ 相容路徑       → $VSCodeTarget（已存在才續寫）" }
+if ($HasCodexLegacy)   { Write-Warn2 "  └ 相容路徑       → $CodexTarget（已裝過才續寫，不主動建立）" }
+if ($HasVSCodeLegacy)  { Write-Warn2 "  └ 相容路徑       → $VSCodeTarget（已裝過才續寫，不主動建立）" }
 if ($HasVSCode)        { Write-Ok    "VS Code Copilot   → 經 $AgentsTarget（Copilot 亦讀此路徑）" } else { Write-Warn2 'VS Code Copilot   → 未偵測到 code 指令或 ~/.copilot，仍可用 vscode 模式強制安裝' }
 
 if (-not $HasClaude -and -not $HasAntigravityV1 -and -not $HasAntigravityV2 -and -not $HasCodex -and -not $HasVSCode) {

@@ -3,16 +3,16 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-08-04（推測性規則稽核；C-54 依據升級、C-41／C-42 規則移除、新增 C-81）
+**最後更新**：2026-08-04（安裝路徑收斂；新增 C-82 —— `.codex/skills/.system` 使「目錄存在」不可用作判準）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 55 |
+| 已驗證 | 56 |
 | 待實查 | 0 |
 | 有疑 | 0 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| **總計** | **61** |
+| **總計** | **63** |
 
 ---
 
@@ -125,6 +125,7 @@
 | C-56 | `.agents/<type>_<milestone>[_<N>][_gen<N>]/` | 子代理在**專案內**建立的工作目錄命名規則（二進位字串），內含 `ORIGINAL_REQUEST.md` 等記錄。已被 `.agents/*` 完整涵蓋 | 二進位字串分析 | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-80 | Antigravity 的 worktree 處理 | 2.5.0 changelog 提到「environment selector 記住上次使用的 worktree」「側欄可依 worktree 排序」，但二進位中 worktree 相關字串全是 git 操作（`gitdir:`、`rev-parse`、`worktree list`、`repo root`），查無 `.agents/worktree*` 或 `~/.gemini/*/worktree*`。→ **Antigravity 讀取標準 git worktree，不自建工具管理的 worktree 目錄**，與 Claude Code 的 `.claude/worktrees/`（C-09）不同，**本 skill 無需為其新增規則** | 官方 changelog＋二進位字串分析 | 2026-08-04 | 2.5.0 | 已驗證 |
 | C-81 | `.agent/skills/<name>/` | 舊佈局的專案技能目錄。**官方向後相容只明載 `.agent/rules`**（見 C-57），**未提及 skills**；現行 agy 1.0.13 二進位對 `.agent/` 0 命中。本條規則的真實依據是**實地觀察**：`PM-tools-Dashboard-docker` 存在 `.agent/skills/ui-ux-pro-max/`，由第三方安裝器（`uipro init --ai antigravity`）寫入，非 Antigravity 自身產生。⚠️ 依此，規則的正當性是「使用者刻意放的技能應提交」，**不是**「工具會讀這個路徑」—— 後者無依據，勿據以推論。範本已加註，無此目錄的專案可整組刪除 | 實地觀察（第三方安裝器產物）＋二進位反證 | 2026-08-04 | 1.0.13 | 已驗證 |
+| C-82 | `~/.codex/skills/.system/` | Codex **內建系統技能**的存放處（含 `.codex-system-skills.marker`，底下有 `imagegen`、`skill-creator`、`review-agent` 等）。意義：`~/.codex/skills/` 這個目錄**永遠存在**，不論使用者有沒有裝過第三方技能。⚠️ 因此安裝器判斷「舊版相容路徑要不要續寫」時，**不能用「目錄是否存在」當判準** —— 否則使用者手動刪掉的舊複本會在下次安裝時復活。判準已改為「該目錄裡是否已有本專案裝過的技能」 | 本機實查 | 2026-08-04 | 0.146.0-alpha.9.2 | 已驗證 |
 | C-57 | `.agents/rules/`、`.agent/rules/` | 工作區規則資料夾，官方：「Workspace rules live in the `.agents/rules` folder of your workspace or git root」，性質同 `.claude/rules/` → **應提交（已放行）**。官方另載「now defaults to `.agents/rules`, but still maintains backward support for `.agent/rules`」，故舊佈局一併放行 | 官方文件 `/docs/rules-workflows` | 2026-08-03 | 2.x | 已驗證 |
 | C-58 | `.agents/mcp_config.json` | 工作區層級 MCP server 定義，官方：「Workspace servers: `.agents/mcp_config.json`」（全域版為 `~/.gemini/config/mcp_config.json`）→ **應提交（已放行）**。原被 `.agents/*` 誤殺 | 官方文件 `/docs/cli/gcli-migration` | 2026-08-03 | 2.x | 已驗證 |
 | C-59 | `~/.gemini/config/sidecars/`、`~/.gemini/config/plugins/<name>/sidecars/` | Sidecar 設定檔為 **`sidecar.json`（單數）**，官方明載只有這兩個位置、**都在家目錄**；專案層無此概念 → 本 skill **無需新增規則**。2026-08-03 回報曾稱專案 `.agents/` 下可能有 `sidecars.json`，經查二進位與官方文件皆無，不予採納 | 官方文件 `/docs/sidecars` | 2026-08-03 | 2.x | 已驗證 |
