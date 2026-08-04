@@ -45,8 +45,9 @@ FENCE_RE = re.compile(r"(?ms)^```[a-zA-Z]*\n(.*?)^```$")
 # (路徑, 是否應該被擋)；括號內為對應的帳本編號，依據見 verification/CLAIMS.md
 CASES = [
     # --- Antigravity 工作區（C-41～C-56）---
-    (".agents/AGENTS.md", False),                        # C-41 實查不存在，防禦性放行
-    (".agents/settings.json", False),                    # C-42 同上
+    # 原有 .agents/AGENTS.md、.agents/settings.json 兩案（預期放行）已於 2026-08-04 移除：
+    # 兩者皆為不存在的檔案，白名單規則本身已刪（見 C-41、C-42）。對不存在的路徑斷言行為
+    # 沒有保護價值，且會讓人誤以為該路徑有效 —— 與 .codex/rollout.jsonl 同樣的處置
     (".agents/settings.local.json", True),               # C-43 規則已移除，仍被 .agents/* 涵蓋
     (".agents/hooks.json", True),                        # C-44 白名單預設註解，由開發者決定
     (".agents/ORIGINAL_REQUEST.md", True),               # C-55 逐字記錄使用者訊息，敏感

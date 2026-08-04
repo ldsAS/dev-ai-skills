@@ -3,11 +3,11 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-08-04（Antigravity 2.5.0 版本告警查核；新增 C-79、C-80）
+**最後更新**：2026-08-04（推測性規則稽核；C-54 依據升級、C-41／C-42 規則移除、新增 C-81）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 54 |
+| 已驗證 | 55 |
 | 待實查 | 0 |
 | 有疑 | 0 |
 | 結構性 | 4 |
@@ -108,8 +108,8 @@
 | ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-40 | `.agents/*` | 擋直接子項 | 結構性 | — | — | 結構性 |
-| C-41 | `.agents/AGENTS.md` | ~~專案級自訂規則，應提交~~ → **不存在**；Antigravity 只讀根目錄的 `AGENTS.md` | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
-| C-42 | `.agents/settings.json` | ~~專案共用設定，應提交~~ → **不存在**；專案設定實存於 `~/.gemini/config/projects/<uuid>.json` | 實機＋官方 changelog（雙重佐證） | 2026-07-29 | 1.0.13 | 已驗證 |
+| C-41 | `.agents/AGENTS.md` | ~~專案級設定，應提交~~ → **不存在**；Antigravity 只讀根目錄的 `AGENTS.md`。**2026-08-04 白名單規則已自五版移除**：agy 1.0.13 二進位中 `{workspace}/.agents/` 的路徑模板完整清單只有 `skills`、`agents`、`ORIGINAL_REQUEST.md` 三條，本條不在內；本機五個實際專案的 `.agents/` 亦 0 次出現。原先保留為「防禦性白名單」，但為不存在的路徑留規則會讓讀者誤以為該路徑有效 —— 同 `.codex/rollout.jsonl` 的處置 | 實機＋維護者複驗 | 2026-08-04 | 1.0.13 | 已驗證 |
+| C-42 | `.agents/settings.json` | ~~專案級設定，應提交~~ → **不存在**；專案設定實存於 `~/.gemini/config/projects/<uuid>.json`。**2026-08-04 白名單規則已自五版移除**：agy 1.0.13 二進位中 `{workspace}/.agents/` 的路徑模板完整清單只有 `skills`、`agents`、`ORIGINAL_REQUEST.md` 三條，本條不在內；本機五個實際專案的 `.agents/` 亦 0 次出現。原先保留為「防禦性白名單」，但為不存在的路徑留規則會讓讀者誤以為該路徑有效 —— 同 `.codex/rollout.jsonl` 的處置 | 實機＋官方 changelog（雙重佐證） | 2026-08-04 | 1.0.13 | 已驗證 |
 | C-43 | `.agents/settings.local.json` | ~~個人本機設定~~ → **不存在**，係誤類比 Claude Code；規則已移除 | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-44 | `.agents/hooks.json` | 工作區層級 hooks；**會合併多個 hooks.json 檔**（二進位字串 `loaded %d named hooks from %d hooks.json file(s)` 為複數）。信任狀態以工作區絕對路徑為 key 存於家目錄 `~/.gemini/trusted_hooks.json` —— 此設計意味 hooks 定義可來自他人 commit 的 repo，故**屬可共享檔**；是否提交屬專案決策，非待驗事實 | 二進位字串分析＋`trusted_hooks.json` 結構 | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-45 | `.antigravitycli/` | 舊版工作區對應檔，現行版本不再產生；規則保留供舊專案 | 官方 changelog＋實機 | 2026-07-29 | 1.0.13 | 已驗證 |
@@ -120,10 +120,11 @@
 | C-50 | `AGENTS.md`（根目錄） | Antigravity 已支援讀取，與 `GEMINI.md` 並列 | 官方 changelog＋實機 | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-51 | 技能觸發語法 | `@skill-name` **已不適用**；技能由 Agent 依任務自動掃描載入 | 實機（回報） | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-52 | 專案目錄自動產生物 | ~~不在專案目錄產生任何 cache／log~~ → **回報有誤**：對話紀錄確實在家目錄，但 agent 會寫入 `.agents/ORIGINAL_REQUEST.md`（見 C-55） | 二進位字串分析**推翻**回報結論 | 2026-07-30 | 1.0.13 | 已驗證 |
-| C-54 | `.agents/agents/<name>/agent.json` | 工作區層級自訂子代理定義，**應提交**（已放行）。依據不是類比其他工具，而是 agy 自身的**對稱設計**：`GetAgentsCreatePath`／`GetGlobalAgentsCreatePath` 與 `GetSkillsCreatePath`／`GetGlobalSkillsCreatePath` 成對存在（各 3 次），即工具把 agents 與 skills 視為同類的兩層結構，而 `.agents/skills/` 本已放行；另有 `writing agent.json`／`marshaling agent.json` 顯示為使用者發起的持久化宣告，且執行期狀態另有去處（C-56 與家目錄 `brain/`）。**殘留未知**：實體檔案內容尚無人目視 | 二進位字串分析（架構對稱） | 2026-07-30 | 1.0.13 | 已驗證 |
+| C-54 | `.agents/agents/<name>/agent.json` | 工作區層級自訂子代理定義，**應提交**（已放行）。依據為二進位中的**明確路徑模板**：`{workspace}/.agents/agents/{agent_name}/agent.json`（另有全域對應 `{appDataDir}/agents/{agent_name}/agent.json`）—— 不是類比、也不只是架構對稱。`writing agent.json`／`marshaling agent.json` 顯示為使用者發起的持久化宣告，執行期狀態另有去處（C-56 與家目錄 `brain/`）。**殘留未知**：實體檔案內容尚無人目視，且本機五個實際專案的 `.agents/` 皆未出現 `agents/`（工具支援但使用者未用過） | 二進位字串分析（明確路徑模板） | 2026-08-04 | 1.0.13 | 已驗證 |
 | C-55 | `.agents/ORIGINAL_REQUEST.md` | agent 會把使用者訊息**逐字**附加至此檔（含 UTC 時間戳），亦有 `.agents/<agent_folder>/ORIGINAL_REQUEST.md` 變體。**屬敏感內容，必須排除** | 二進位字串分析 | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-56 | `.agents/<type>_<milestone>[_<N>][_gen<N>]/` | 子代理在**專案內**建立的工作目錄命名規則（二進位字串），內含 `ORIGINAL_REQUEST.md` 等記錄。已被 `.agents/*` 完整涵蓋 | 二進位字串分析 | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-80 | Antigravity 的 worktree 處理 | 2.5.0 changelog 提到「environment selector 記住上次使用的 worktree」「側欄可依 worktree 排序」，但二進位中 worktree 相關字串全是 git 操作（`gitdir:`、`rev-parse`、`worktree list`、`repo root`），查無 `.agents/worktree*` 或 `~/.gemini/*/worktree*`。→ **Antigravity 讀取標準 git worktree，不自建工具管理的 worktree 目錄**，與 Claude Code 的 `.claude/worktrees/`（C-09）不同，**本 skill 無需為其新增規則** | 官方 changelog＋二進位字串分析 | 2026-08-04 | 2.5.0 | 已驗證 |
+| C-81 | `.agent/skills/<name>/` | 舊佈局的專案技能目錄。**官方向後相容只明載 `.agent/rules`**（見 C-57），**未提及 skills**；現行 agy 1.0.13 二進位對 `.agent/` 0 命中。本條規則的真實依據是**實地觀察**：`PM-tools-Dashboard-docker` 存在 `.agent/skills/ui-ux-pro-max/`，由第三方安裝器（`uipro init --ai antigravity`）寫入，非 Antigravity 自身產生。⚠️ 依此，規則的正當性是「使用者刻意放的技能應提交」，**不是**「工具會讀這個路徑」—— 後者無依據，勿據以推論。範本已加註，無此目錄的專案可整組刪除 | 實地觀察（第三方安裝器產物）＋二進位反證 | 2026-08-04 | 1.0.13 | 已驗證 |
 | C-57 | `.agents/rules/`、`.agent/rules/` | 工作區規則資料夾，官方：「Workspace rules live in the `.agents/rules` folder of your workspace or git root」，性質同 `.claude/rules/` → **應提交（已放行）**。官方另載「now defaults to `.agents/rules`, but still maintains backward support for `.agent/rules`」，故舊佈局一併放行 | 官方文件 `/docs/rules-workflows` | 2026-08-03 | 2.x | 已驗證 |
 | C-58 | `.agents/mcp_config.json` | 工作區層級 MCP server 定義，官方：「Workspace servers: `.agents/mcp_config.json`」（全域版為 `~/.gemini/config/mcp_config.json`）→ **應提交（已放行）**。原被 `.agents/*` 誤殺 | 官方文件 `/docs/cli/gcli-migration` | 2026-08-03 | 2.x | 已驗證 |
 | C-59 | `~/.gemini/config/sidecars/`、`~/.gemini/config/plugins/<name>/sidecars/` | Sidecar 設定檔為 **`sidecar.json`（單數）**，官方明載只有這兩個位置、**都在家目錄**；專案層無此概念 → 本 skill **無需新增規則**。2026-08-03 回報曾稱專案 `.agents/` 下可能有 `sidecars.json`，經查二進位與官方文件皆無，不予採納 | 官方文件 `/docs/sidecars` | 2026-08-03 | 2.x | 已驗證 |
@@ -253,4 +254,5 @@
 | 2026-07-29 | Antigravity 1.0.13 | C-41～C-49（新增 C-51、C-52） | [交接包](./rounds/2026-07-29-antigravity.md) | [回覆](./rounds/2026-07-29-antigravity.reply.md)　已回填；其中 C-44、C-48 經維護者複驗後**未採信**回報結論 |
 | 2026-07-30 | Antigravity 1.0.13 | C-48、C-54（Q1 為實驗題） | [交接包](./rounds/2026-07-30-antigravity-round2.md) | [回覆](./rounds/2026-07-30-antigravity-round2.reply.md)　C-48 結案（實驗方法正確）；C-54 與自由敘述的 4 條路徑未採信，C-54 改由二進位對稱設計自行結案 |
 | 2026-07-30 | 官方文件研究（無需交接） | C-08、C-09、C-15～C-17、C-23、C-24、C-32、C-53 | — | 九項全部由官方文件直接定案，未動用交接輪次 |
+| 2026-08-04 | 維護者自查（縱向稽核） | 全範本每條規則的依據強度 | [稽核紀錄](./rounds/2026-08-04-speculation-audit.md) | 三條篩出：C-54 依據**被低估**（實為明確路徑模板，非對稱推論）；`.agent/skills/` 缺主張且規則寬於官方向後相容範圍 → 新增 C-81；`!.agents/AGENTS.md`／`!.agents/settings.json` 為**不存在的檔案**留白名單 → **已自五版移除**。另記三條假陽性係帳本路徑欄索引不足所致 |
 | 2026-08-03 | **四工具交叉檢視** | 全部主線工具 | [交叉檢視文件](./rounds/2026-08-03-cross-tool-review.md) | Antigravity [已回覆](./rounds/2026-08-03-antigravity.reply.md)（6 項中 3 項複驗未採用，新增 C-59）；Claude Code [已自答](./rounds/2026-08-03-claude-code.reply.md)（新增 C-61、C-62）；Codex 與 Copilot 的文件端問題已由 [docs 查證](./rounds/2026-08-03-codex-copilot.docs.md) 定案（新增 C-75～C-77）；Copilot [已實機回覆](./rounds/2026-08-03-vscode-copilot.reply.md)（新增 C-78，無需新增 project `.gitignore` 規則）；Codex [已實機回覆](./rounds/2026-08-03-codex.reply.md)（**推翻我方 C-17 的 rollout 誤植**，新增 C-63、C-64）；四工具交叉檢視全部完成 |

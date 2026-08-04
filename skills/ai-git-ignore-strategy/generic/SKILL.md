@@ -323,6 +323,9 @@ Thumbs.db
 # Cursor 已於 2026-08-03 移出本 skill 的維護範圍（維護者未使用該工具）。
 # 若你的專案有用 Cursor，需自行補上 .cursor/* 與 !.cursor/rules/ 規則。
 .agent/*
+# 官方僅明載 `.agent/rules` 向後相容，**未提及 skills**；現行 agy 1.0.13 二進位對
+# `.agent/` 亦 0 命中。本組依據是實地觀察：舊專案存在第三方安裝器寫入的
+# `.agent/skills/<name>/`（C-81）。專案若無此目錄，本組可整組刪除
 !.agent/skills/
 .agent/skills/*
 # !.agent/skills/<project-skill>/
@@ -352,10 +355,12 @@ Thumbs.db
 !.agents/plugins/
 .agents/plugins/*
 !.agents/plugins/marketplace.json
-# 下兩條：Antigravity 1.0.13 實機查核（2026-07-29）確認不存在，
-# 專案設定實際存放於 ~/.gemini/config/projects/<uuid>.json，保留為防禦性白名單（C-41、C-42）
-!.agents/AGENTS.md
-!.agents/settings.json
+# ⚠️ 此處原有 `!.agents/AGENTS.md`、`!.agents/settings.json` 兩條白名單，2026-08-04 移除。
+# 移除理由：兩者皆為**不存在的檔案**。agy 1.0.13 二進位中 `{workspace}/.agents/` 的路徑
+# 模板完整清單只有三條 —— `skills`、`agents`、`ORIGINAL_REQUEST.md`，兩者都不在內；
+# 本機五個實際專案的 `.agents/` 亦 0 次出現。Antigravity 只讀**根目錄**的 `AGENTS.md`，
+# 專案設定實存於 `~/.gemini/config/projects/<uuid>.json`。
+# 為不存在的路徑留白名單會讓讀者誤以為該路徑有效 —— 請勿補回（C-41、C-42）
 # agent 會把使用者訊息逐字寫入下列檔案（含 UTC 時間戳），可能含對話中貼過的敏感資訊。
 # 已被上方 .agents/* 涵蓋，仍 explicit 列名一次 —— 廣域規則日後若被放寬仍有保護
 .agents/ORIGINAL_REQUEST.md
