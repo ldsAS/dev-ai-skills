@@ -1,9 +1,9 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.222",
-    "codex": "0.146.0",
-    "gemini-cli": "0.53.1",
+    "claude-code": "2.1.223",
+    "codex": "0.146.1",
+    "gemini-cli": "0.54.0",
     "antigravity": "2.5.0"
   },
   "sources": {
@@ -281,7 +281,9 @@
         "copilot-instructions.md",
         "review.prompt.md",
         "reviewer.agent.md",
-        "style.instructions.md"
+        "style.instructions.md",
+        "~/.claude",
+        "~/.copilot"
       ]
     },
     "copilot/hooks": {
