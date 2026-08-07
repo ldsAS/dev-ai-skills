@@ -38,6 +38,10 @@ Codex user skills 通常位於 Windows 的 `$env:USERPROFILE\.codex\skills\<skil
 
 ### 第一階段：診斷 (Diagnose First)
 
+> 📒 **先看 `git-tracking/MASTER.md`**（若專案有的話）—— 那是這個專案先前的追蹤決定。
+> 本階段的目標是找出「決定、路徑事實、`.gitignore` 實際行為」三者的不一致，
+> 而不是從零重新判斷一遍。詳見下方〈專案追蹤決定表〉。
+
 修改 ignore 規則前，先讀取 repo 規則與 Git 狀態：
 
 ```powershell
@@ -98,6 +102,8 @@ git -c core.fileMode=false diff --summary
 - 專案設計 source of truth：`design-system/MASTER.md`、有意義的 page override。
 - 團隊 AI 指令與共享 AI 設定：`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`（Copilot 共享 prompt）, `.agents/plugins/marketplace.json`（Codex 團隊共用外掛市集）, `.claude/settings.json`（團隊權限／hooks）, `.claude/commands/`, `.geminiignore`、`.aiexclude`（AI 忽略規則，與 `.gitignore` 同性質）、`.claude-plugin/plugin.json`、`.codex-plugin/plugin.json`（本 repo 本身是外掛時的清單檔）、`.mcp.json`（Claude Code 專案層 MCP server 設定，官方層級表列為 Project 層）、`.claude/rules/`（團隊共用分檔規則）, `.codex/config.toml`（專案層設定覆寫）, `.gemini/settings.json`（Workspace 設定），或明確要共享的 project-specific skill files。
 - 客製專案 skills：例如 `.codex/skills/<project-skill>/SKILL.md`，但必須先確認它不是本機安裝的第三方 skill。
+
+- **本技能的專案決定表**：`git-tracking/MASTER.md` —— 記錄這個專案對各路徑的追蹤決定與刻意偏離之處。它是判斷依據而非個人設定，**必須提交**，否則下次執行只能從零重問一輪。
 
 > **白名單錯了，代價不只是 repo 不乾淨。** 下列機制都會產生「應該提交」的檔案，
 > 而它們能不能被團隊共用，完全取決於本 skill 的白名單是否正確：
@@ -558,6 +564,84 @@ last_*.txt
 > 必須使用 `.codex/*`（只擋直接子項）搭配 `!.codex/skills/` 才能正確放行。同理適用 `.claude/`、`.gemini/` 和其他需要部分追蹤的 AI agent folder。
 > 若只想追蹤單一 project skill，還要先用 `.codex/skills/*` 重新擋住 skills 目錄內容，再用 `!.codex/skills/<project-skill>/` 與 `!.codex/skills/<project-skill>/**` 精準放行，避免把本機安裝的第三方 skills 一起提交。
 > 檔案型規則不受此限：`*.json` 搭配 `!seed.json` 直接有效，不需要母目錄星號。
+
+---
+
+## 📒 專案追蹤決定表（`git-tracking/MASTER.md`）
+
+上面的範本是**起點**，不是答案。每個專案會產生的檔案不同，「該不該提交」也常常
+是專案自己的決定 —— 這份決定必須留在專案裡，否則每次執行都要重問一輪，
+而刻意的偏離會被誤判成漂移。
+
+作法比照 `ui-ux-pro-max` 的 `design-system/MASTER.md`：**技能是方法，決定留在專案**。
+
+### 執行時做三方比對
+
+```text
+① git-tracking/MASTER.md  這個專案先前的決定
+② 本技能目前的路徑事實    工具官方怎麼定位這條路徑（會隨工具改版更新）
+③ git check-ignore        .gitignore 現在實際上擋不擋
+```
+
+**三者一致 → 不必報告。任兩者不一致 → 列進報告，但不要自動改。**
+
+三種不一致各代表不同的事，處置也不同：
+
+| 不一致 | 意思 | 該做什麼 |
+| :--- | :--- | :--- |
+| ① ≠ ③ | 決定過，但 `.gitignore` 沒照做（或後來被改掉） | 修 `.gitignore` |
+| ② ≠ ③、① 沒記載 | 工具有這條路徑，本專案從沒決定過 | 問開發者，然後記進 ①（**最常見**） |
+| ② 變了、① 有記載 | 工具改版，原決定的前提可能不成立 | 帶著新事實重問一次 |
+
+> 沒有 ① 的專案，第一次執行時先建立它 —— 把現行 `.gitignore` 的既有決定補記進去，
+> 而不是推倒重來。既有決定多半有理由，只是沒寫下來。
+
+### 檔案格式
+
+```markdown
+# Git 追蹤決定表 (MASTER)
+
+> **LOGIC**：本檔記錄「這個專案」對各路徑的追蹤決定，**優先於技能的預設範本**。
+> 技能每次執行時做三方比對（本檔 ↔ 技能的路徑事實 ↔ `git check-ignore`），
+> 只報告不一致處，不自動修改。
+
+**專案**：<專案名>
+**建立**：YYYY-MM-DD
+**最後比對**：YYYY-MM-DD
+
+## A. AI 工具路徑
+
+| 路徑 | 決定 | 理由 | 決定日 |
+| :--- | :--- | :--- | :--- |
+| `.claude/skills/<自建技能>/` | 提交 | 自建團隊技能，需跨裝置同步 | 2026-07-11 |
+| `.agent/skills/ui-ux-pro-max/` | 排除 | CLI 安裝，安裝指令記於 `DEPLOY.md` | 2026-07-11 |
+
+## B. 本專案特有的產出物
+
+| 路徑 | 決定 | 理由 | 決定日 |
+| :--- | :--- | :--- | :--- |
+| `data/*`（保留 `.gitkeep`） | 排除 | runtime 資料，非原始碼 | 2026-07-11 |
+
+## C. 刻意偏離技能預設之處　⭐
+
+| 路徑 | 技能預設 | 本專案 | 為什麼 |
+| :--- | :--- | :--- | :--- |
+| `.claude/settings.json` | 提交（團隊共用） | 排除 | 本專案不共用權限設定 |
+
+## D. 尚未決定
+
+| 路徑 | 卡在哪 |
+| :--- | :--- |
+| `.claude/launch.json` | 需先確認裡面沒有個人絕對路徑 |
+```
+
+**C 節是這份檔最重要的部分。** 沒有記錄的偏離，下次比對只會看到「和技能預設不一樣」，
+於是重問一次；記下來之後，它就是一個有理由的決定，不再是待辦。
+
+### 這份檔要提交
+
+它是專案的判斷依據，不是個人設定 —— 團隊成員與未來的你都需要它。
+若專案用不到跨裝置協作，也至少讓下一次執行的 AI 讀得到。
 
 ---
 
