@@ -75,6 +75,7 @@ CASES = [
     (".agents/plugins/some-plugin/index.js", True),      # C-15 外掛本體不在此
     # --- Claude Code（C-02～C-09、C-53）---
     (".claude/settings.json", False),                    # C-02
+    (".claude/launch.json", False),                     # C-83 開發伺服器啟動設定，團隊共用
     (".claude/settings.local.json", True),               # C-03
     (".claude/commands/deploy.md", False),               # C-04
     (".claude/agents/reviewer.md", False),               # C-04

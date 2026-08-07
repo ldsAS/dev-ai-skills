@@ -406,6 +406,11 @@ Thumbs.db
 .claude/*
 # 團隊共用設定（權限、hooks）
 !.claude/settings.json
+# 開發伺服器啟動設定：Claude Code 依此啟動專案（等同 `.vscode/launch.json` 的地位，
+# 而本 skill 早已把後者列為團隊共用可保留）。內容是具名的執行指令（runtimeExecutable／
+# runtimeArgs／port），屬專案層級 → 應提交。Claude Code 的個人檔一律走 `.local.json`
+# 後綴，此檔沒有該後綴。⚠️ 若你的 launch.json 寫了個人絕對路徑，請改為相對路徑再提交（C-83）
+!.claude/launch.json
 # 團隊共用 slash commands
 !.claude/commands/
 # 團隊共用 subagents

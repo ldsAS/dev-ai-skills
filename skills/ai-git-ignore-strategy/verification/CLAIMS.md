@@ -3,16 +3,16 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-08-04（安裝路徑收斂；新增 C-82 —— `.codex/skills/.system` 使「目錄存在」不可用作判準）
+**最後更新**：2026-08-04（比對 PM-tools-Dashboard-docker 實際運作；新增 C-83 —— `.claude/launch.json` 原被靜默擋下）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 56 |
+| 已驗證 | 57 |
 | 待實查 | 0 |
 | 有疑 | 0 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| **總計** | **63** |
+| **總計** | **64** |
 
 ---
 
@@ -29,6 +29,7 @@
 | C-07 | `~/.claude/projects/` | 對話紀錄與 memory 在家目錄，不在專案內 | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-08 | `.claude-plugin/plugin.json`、`.claude-plugin/marketplace.json` | 外掛／市集清單檔，官方定位為「Sharing with teammates, distributing to community」。**若本 repo 本身就是 plugin 或 marketplace，必須提交**。現行規則不擋（正確），已補進 🟢 清單 | 官方文件 | 2026-07-30 | — | 已驗證 |
 | C-09 | `.claude/workflows/`、`.claude/worktrees/` | **兩者相反**。`workflows/` 有 user-scope（`~/.claude/workflows/`）與 project-scope 兩層，屬團隊共用 → **已放行**。`worktrees/` 是 git worktree 實體工作目錄，且官方修過「repository-committed symlink at `.claude/worktrees` 可在 repo 外建檔」的逃逸問題 → **已 explicit 排除** | 官方 CHANGELOG | 2026-07-30 | — | 已驗證 |
+| C-83 | `.claude/launch.json` | Claude Code 的**開發伺服器啟動設定**：以具名 configuration 記錄啟動指令（`runtimeExecutable`／`runtimeArgs`／`port`），供工具直接跑起專案 → **應提交**（已放行）。地位等同 `.vscode/launch.json`，而本 skill 早已將後者列為團隊共用可保留 —— 先前**漏了 Claude Code 的對應檔**，被 `.claude/*` 靜默擋下。Claude Code 的個人層檔案一律走 `.local.json` 後綴（見 C-03），此檔無該後綴。⚠️ 殘留風險：launch.json 可能寫入個人絕對路徑，提交前應確認為相對路徑。**發現經過**：比對 PM-tools-Dashboard-docker 的實際運作情況時，在該專案發現此檔存在、內容為三組專案級啟動設定（Docker Compose／Flask／Gunicorn），但被 `.claude/*` 擋下且未追蹤 | 工具文件（launch 設定格式）＋實地觀察 | 2026-08-04 | — | 已驗證 |
 | C-53 | `.claude/skills/verify/SKILL.md` | `/verify` 把可用的建置指令自動寫入 repo root（monorepo 則寫入被動到的套件目錄），官方定位「so later runs and **other agents** follow the same steps」＝設計上要共享 → **已放行**。屬「自動產生但意圖共享」的第三類，補足了原本 CLI 安裝／自撰的二分法 | 官方文件（**由排程監控於 2026-07-30 自動偵測**） | 2026-07-30 | — | 已驗證 |
 | C-61 | `.mcp.json` | Claude Code 的**專案層 MCP server 設定**，官方層級表列於 Project 欄（User 為 `~/.claude.json`）＝團隊共用 → **應提交**。位於 repo 根目錄而非 `.claude/` 底下，現行規則不擋（正確），已補進 🟢 清單。⚠️ 與 Antigravity 的 `.agents/mcp_config.json`（C-58）**檔名與位置皆不同**，不可互相類比 | 官方文件 `settings.md` 層級表 | 2026-08-03 | — | 已驗證 |
 | C-62 | `.claude`（路徑本身作為 symlink） | 官方修復紀錄：「Fixed workflow saves and scheduled-task writes following a symlink at `.claude`, which could redirect writes outside the project」。**比 C-09 的 `.claude/worktrees` 範圍更廣** —— 是 `.claude` 這個路徑本身。已修復但舊版仍受影響：**不要提交 `.claude` 或 `.claude/worktrees` 的 symlink** | 官方 CHANGELOG | 2026-08-03 | — | 已驗證 |
