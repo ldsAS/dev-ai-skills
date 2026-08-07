@@ -1,8 +1,8 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.223",
-    "codex": "0.146.1",
+    "claude-code": "2.1.224",
+    "codex": "0.147.0",
     "gemini-cli": "0.54.0",
     "antigravity": "2.5.0"
   },
