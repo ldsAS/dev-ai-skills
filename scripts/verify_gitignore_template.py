@@ -54,8 +54,8 @@ CASES = [
     (".agents/sentinel/ORIGINAL_REQUEST.md", True),      # C-55 子目錄變體
     (".agents/impl_lexer/ORIGINAL_REQUEST.md", True),    # C-56 子代理工作目錄
     (".agents/plan_parser_2_gen3/notes.md", True),       # C-56 同上
-    (".agents/agents/reviewer/agent.json", False),       # C-54 專案層子代理定義
-    (".agents/agents/nested/deep/agent.json", False),    # C-54 深層仍需放行
+    (".agents/agents/reviewer/agent.json", True),        # C-54 白名單預設註解：尚無人目視過內容
+    (".agents/agents/nested/deep/agent.json", True),     # C-54 同上
     (".agents/rules/style.md", False),                   # C-57 工作區規則，團隊共用
     (".agent/rules/legacy.md", False),                   # C-57 舊佈局仍向後相容
     (".agents/mcp_config.json", False),                  # C-58 工作區 MCP 定義
@@ -75,7 +75,7 @@ CASES = [
     (".agents/plugins/some-plugin/index.js", True),      # C-15 外掛本體不在此
     # --- Claude Code（C-02～C-09、C-53）---
     (".claude/settings.json", False),                    # C-02
-    (".claude/launch.json", False),                     # C-83 開發伺服器啟動設定，團隊共用
+    (".claude/launch.json", True),                      # C-83 白名單預設註解：可能含個人絕對路徑
     (".claude/settings.local.json", True),               # C-03
     (".claude/commands/deploy.md", False),               # C-04
     (".claude/agents/reviewer.md", False),               # C-04

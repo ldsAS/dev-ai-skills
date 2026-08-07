@@ -134,7 +134,8 @@ git -c core.fileMode=false diff --summary
 
 - `.codex/skills/`, `.claude/skills/`, `.agents/skills/`（跨工具：Codex／Gemini CLI／Antigravity 共用）, `.agent/skills/`（1.x）, `.gemini/skills/`：是本機安裝的第三方 skill、project-owned custom skill，還是**工具自動記錄但官方定位為要共享的**？第三類例如 Claude Code 的 `/verify` 會把可用的建置指令寫進 `.claude/skills/verify/SKILL.md`，官方說明為「so later runs and other agents follow the same steps」—— 這類**應該提交**。
   → 完整判準見下方「技能庫 (Skills) 的性質判準」——**先問技能是怎麼來的，不要憑目錄名決定**。
-- **Antigravity 工作區 agent 定義**：`.agents/agents/<name>/agent.json`（由 agy 1.0.13 二進位內的路徑模板 `{workspace}/.agents/agents/{agent_name}/agent.json` 證實）。agy 1.0.13 二進位顯示 agents 與 skills 有**完全對稱**的 workspace／global 建立路徑函式，且執行期狀態另有去處，故已比照 `.claude/agents/` 放行。但**尚無人目視過實體檔案** —— 提交前請確認內容是角色宣告而非執行狀態。
+- **Antigravity 工作區 agent 定義**：`.agents/agents/<name>/agent.json`（由 agy 1.0.13 二進位內的路徑模板 `{workspace}/.agents/agents/{agent_name}/agent.json` 證實）。agy 1.0.13 二進位顯示 agents 與 skills 有**完全對稱**的 workspace／global 建立路徑函式，且執行期狀態另有去處，性質看似角色宣告。但**尚無人目視過實體檔案** —— **範本預設不放行**，確認內容是角色宣告而非執行狀態後，再把 `# !.agents/agents/` 的註解拿掉。
+- **Claude Code 開發伺服器啟動設定**：`.claude/launch.json`（C-83）。內容是具名的啟動指令（`runtimeExecutable`／`runtimeArgs`／`port`），性質等同 `.vscode/launch.json`。**範本預設不放行** —— 它可能寫入個人絕對路徑，而且「要不要公開建置方式」是專案決定。確認過內容是相對路徑後，把範本裡 `# !.claude/launch.json` 的註解拿掉即可。
 - `$env:USERPROFILE\.codex\skills\` / `~/.codex/skills/`：這是 user-level Codex skill installation，通常不要整包複製進專案 repo。
 - `*.json`：runtime data，還是 `package.json`, `tsconfig.json`, `manifest.json` 這類 source/config？
 - `*.json.bak`：可丟棄備份，還是 DEPLOY 文件提到的唯一可還原資料？
@@ -361,6 +362,11 @@ git -c core.fileMode=false diff --summary
 
 ```gitignore
 # =========================================
+# ⚠️ 白名單（! 開頭）預設啟用的門檻：**官方明文說它是團隊共用／要分享的**。
+# 依據若是推論、內容觀察或跨工具類比，一律保持「註解狀態」並列入 ⚠️ 需確認 ——
+# 路徑事實看得見（不會被靜默漏掉），但提交與否由你決定。
+# 註解狀態的規則長這樣：# !.claude/launch.json
+# =========================================
 # ⚠️ .gitignore 的 # 只有在「行首」才算註解
 # 寫成  !.claude/settings.json   # 團隊共用設定
 # 會讓整條規則連同註解一起被當成檔名比對而完全失效 —
@@ -407,11 +413,12 @@ Thumbs.db
 .claude/*
 # 團隊共用設定（權限、hooks）
 !.claude/settings.json
-# 開發伺服器啟動設定：Claude Code 依此啟動專案（等同 .vscode/launch.json 的地位，
-# 而本 skill 早已把後者列為團隊共用可保留）。內容是具名的執行指令（runtimeExecutable／
-# runtimeArgs／port），屬專案層級 → 應提交。Claude Code 的個人檔一律走 .local.json
-# 後綴，此檔沒有該後綴。⚠️ 若你的 launch.json 寫了個人絕對路徑，請改為相對路徑再提交（C-83）
-!.claude/launch.json
+# 開發伺服器啟動設定：Claude Code 依此啟動專案（等同 .vscode/launch.json 的地位）。
+# 內容是具名的執行指令（runtimeExecutable／runtimeArgs／port），屬專案層級；
+# Claude Code 的個人檔一律走 .local.json 後綴，此檔沒有該後綴。
+# ⚠️ 預設不啟用 —— 它可能寫入個人絕對路徑，且「要不要公開建置方式」是專案決定，不是路徑事實。
+# 看過內容、確認是相對路徑後再取消註解（C-83）
+# !.claude/launch.json
 # 團隊共用 slash commands
 !.claude/commands/
 # 團隊共用 subagents
@@ -468,11 +475,11 @@ Thumbs.db
 # （全域版在 ~/.gemini/config/mcp_config.json），屬團隊共用（C-58）
 !.agents/mcp_config.json
 # 必須先放行父目錄，否則下一行的 marketplace.json 白名單無效
-# 專案層自訂子代理定義。agy 1.0.13 二進位顯示 agents 與 skills 有完全對稱的
-# 建立路徑函式（GetAgentsCreatePath／GetGlobalAgentsCreatePath 對應
-# GetSkillsCreatePath／GetGlobalSkillsCreatePath），且執行期狀態另有去處
-# （.agents/<type>_<milestone>/ 與家目錄 brain/），故視同 .claude/agents/ 放行。見 C-54
-!.agents/agents/
+# 專案層自訂子代理定義。agy 1.0.13 二進位有明確路徑模板
+# {workspace}/.agents/agents/{agent_name}/agent.json，且執行期狀態另有去處
+# （.agents/<type>_<milestone>/ 與家目錄 brain/）。
+# ⚠️ 預設不啟用 —— 尚無人目視過實體檔案內容。確認是角色宣告而非執行狀態後再取消註解（C-54）
+# !.agents/agents/
 !.agents/plugins/
 # 外掛本體多為安裝產物，不追蹤
 .agents/plugins/*
