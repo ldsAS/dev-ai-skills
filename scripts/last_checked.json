@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.224",
+    "claude-code": "2.1.226",
     "codex": "0.147.0",
-    "gemini-cli": "0.54.0",
-    "antigravity": "2.5.0"
+    "gemini-cli": "0.54.4",
+    "antigravity": "2.6.0"
   },
   "sources": {
     "antigravity/changelog": {
