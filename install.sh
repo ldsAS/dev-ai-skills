@@ -56,9 +56,11 @@ has_claude=false
 has_antigravity_v1=false
 has_antigravity_v2=false
 has_codex=false
+has_gemini_cli=false
 has_codex_legacy=false
 has_vscode_legacy=false
 has_vscode=false
+needs_agents_target=false
 [[ -d "$HOME/.claude" ]]              && has_claude=true
 # 兩條全域路徑**都要寫**，它們屬於不同產品，不是新舊關係（官方文件明載）：
 #   Antigravity IDE  → ~/.gemini/antigravity/skills/   (/docs/ide/skills)
@@ -68,6 +70,7 @@ has_vscode=false
 [[ -d "$HOME/.gemini/antigravity" ]] && has_antigravity_v1=true
 [[ -d "$HOME/.gemini/config" ]]       && has_antigravity_v2=true
 [[ -d "$HOME/.codex" ]]               && has_codex=true
+command -v gemini >/dev/null 2>&1       && has_gemini_cli=true
 # P1-2a：下列兩條沒有官方依據 —— .codex/skills 未見於 Codex 官方 scope 表（C-12），
 # 而 Copilot 亦讀 ~/.agents/skills（C-77）。降為相容模式：只續寫「已經裝過本專案技能」
 # 的目錄，不再為新安裝主動建立，以減少同名技能的重複份數。
@@ -87,6 +90,9 @@ skill_installed_in() {
 skill_installed_in "$CODEX_TARGET"    && has_codex_legacy=true
 skill_installed_in "$VSCODE_TARGET"   && has_vscode_legacy=true
 { command -v code >/dev/null 2>&1 || [[ -d "$HOME/.copilot" ]]; } && has_vscode=true
+if $has_codex || $has_gemini_cli || $has_vscode; then
+  needs_agents_target=true
+fi
 
 # --project 是專案層安裝，不依賴任何全域工具目錄 —— 跳過偵測與「找不到工具」的中止
 if [[ "$MODE" != "--project" ]]; then
@@ -95,12 +101,13 @@ $has_claude         && ok "Claude Code       → $CLAUDE_TARGET"         || warn
 $has_antigravity_v2 && ok "Antigravity CLI   → $ANTIGRAVITY_TARGET_V2" || warn "Antigravity CLI   → 未偵測到 ~/.gemini/config"
 $has_antigravity_v1 && ok "Antigravity IDE   → $ANTIGRAVITY_TARGET_V1" || warn "Antigravity IDE   → 未偵測到 ~/.gemini/antigravity"
 $has_codex          && ok "Codex             → $AGENTS_TARGET"         || warn "Codex             → 未偵測到 ~/.codex"
+$has_gemini_cli     && ok "Gemini CLI        → 經 $AGENTS_TARGET"       || warn "Gemini CLI        → 未偵測到 gemini 指令"
 $has_codex_legacy   && warn "  └ 相容路徑       → $CODEX_TARGET（已裝過才續寫，不主動建立）" || true
 $has_vscode_legacy  && warn "  └ 相容路徑       → $VSCODE_TARGET（已裝過才續寫，不主動建立）" || true
 $has_vscode         && ok "VS Code Copilot   → 經 $AGENTS_TARGET（Copilot 亦讀此路徑）" || warn "VS Code Copilot   → 未偵測到 code 指令或 ~/.copilot，仍可用 vscode 模式強制安裝"
 
-if ! $has_claude && ! $has_antigravity_v1 && ! $has_antigravity_v2 && ! $has_codex && ! $has_vscode; then
-  err "沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity、Codex 或 VS Code (Copilot)。"
+if ! $has_claude && ! $has_antigravity_v1 && ! $has_antigravity_v2 && ! $has_codex && ! $has_gemini_cli && ! $has_vscode; then
+  err "沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity、Codex、Gemini CLI 或 VS Code (Copilot)。"
   exit 1
 fi
 fi
@@ -206,9 +213,8 @@ case "$MODE" in
     $has_claude         && install_all_for_tool "claude"      "$CLAUDE_TARGET"
     $has_antigravity_v2 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V2"
     $has_antigravity_v1 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V1"
-    # 共用路徑放 generic：~/.agents/skills 同時被 Codex、Gemini CLI、Copilot 讀取，
-    # 放任一工具的專屬變體都會讓其他工具讀到不對的工具名（見 C-79）
-    $has_codex          && install_all_for_tool "codex"       "$AGENTS_TARGET" "generic"
+    # 共用路徑放 generic：Codex、Gemini CLI、Copilot 任一存在就寫入一次（C-79）
+    $needs_agents_target && install_all_for_tool "shared"      "$AGENTS_TARGET" "generic"
     $has_codex_legacy   && install_all_for_tool "codex"       "$CODEX_TARGET"
     $has_vscode_legacy  && install_all_for_tool "vscode"      "$VSCODE_TARGET"
     ;;
@@ -237,7 +243,7 @@ case "$MODE" in
     $has_claude         && install_all_for_tool "claude"      "$CLAUDE_TARGET"         "generic"
     $has_antigravity_v2 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V2" "generic"
     $has_antigravity_v1 && install_all_for_tool "antigravity" "$ANTIGRAVITY_TARGET_V1" "generic"
-    $has_codex          && install_all_for_tool "codex"       "$AGENTS_TARGET"         "generic"
+    $needs_agents_target && install_all_for_tool "shared"      "$AGENTS_TARGET"         "generic"
     $has_codex_legacy   && install_all_for_tool "codex"       "$CODEX_TARGET"          "generic"
     $has_vscode_legacy  && install_all_for_tool "vscode"      "$VSCODE_TARGET"         "generic"
     ;;

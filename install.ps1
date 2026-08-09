@@ -95,12 +95,14 @@ $HasClaude        = Test-Path (Join-Path $env:USERPROFILE '.claude')
 $HasAntigravityV1 = Test-Path (Join-Path $env:USERPROFILE '.gemini\antigravity')
 $HasAntigravityV2 = Test-Path (Join-Path $env:USERPROFILE '.gemini\config')
 $HasCodex         = Test-Path (Join-Path $env:USERPROFILE '.codex')
+$HasGeminiCli     = ((Get-Command gemini -ErrorAction SilentlyContinue) -ne $null)
 # P1-2a：下列兩條沒有官方依據 —— .codex\skills 未見於 Codex 官方 scope 表（C-12），
 # 而 Copilot 亦讀 ~/.agents/skills（C-77）。降為相容模式：只續寫已經裝過的目錄，
 # 不主動建立（判準見上方 Test-SkillInstalledIn 的說明）。
 $HasCodexLegacy   = Test-SkillInstalledIn $CodexTarget
 $HasVSCodeLegacy  = Test-SkillInstalledIn $VSCodeTarget
 $HasVSCode        = ((Get-Command code -ErrorAction SilentlyContinue) -ne $null) -or (Test-Path (Join-Path $env:USERPROFILE '.copilot'))
+$NeedsAgentsTarget = $HasCodex -or $HasGeminiCli -or $HasVSCode
 
 # project 模式是專案層安裝，不依賴任何全域工具目錄 —— 跳過偵測與「找不到工具」的中止
 if ($Mode -ne 'project') {
@@ -110,12 +112,13 @@ if ($HasClaude)        { Write-Ok    "Claude Code       → $ClaudeTarget" }    
 if ($HasAntigravityV2) { Write-Ok    "Antigravity CLI   → $AntigravityTargetV2" } else { Write-Warn2 'Antigravity CLI   → 未偵測到 ~/.gemini/config' }
 if ($HasAntigravityV1) { Write-Ok    "Antigravity IDE   → $AntigravityTargetV1" } else { Write-Warn2 'Antigravity IDE   → 未偵測到 ~/.gemini/antigravity' }
 if ($HasCodex)         { Write-Ok    "Codex             → $AgentsTarget" }        else { Write-Warn2 'Codex             → 未偵測到 ~/.codex' }
+if ($HasGeminiCli)     { Write-Ok    "Gemini CLI        → 經 $AgentsTarget" }      else { Write-Warn2 'Gemini CLI        → 未偵測到 gemini 指令' }
 if ($HasCodexLegacy)   { Write-Warn2 "  └ 相容路徑       → $CodexTarget（已裝過才續寫，不主動建立）" }
 if ($HasVSCodeLegacy)  { Write-Warn2 "  └ 相容路徑       → $VSCodeTarget（已裝過才續寫，不主動建立）" }
 if ($HasVSCode)        { Write-Ok    "VS Code Copilot   → 經 $AgentsTarget（Copilot 亦讀此路徑）" } else { Write-Warn2 'VS Code Copilot   → 未偵測到 code 指令或 ~/.copilot，仍可用 vscode 模式強制安裝' }
 
-if (-not $HasClaude -and -not $HasAntigravityV1 -and -not $HasAntigravityV2 -and -not $HasCodex -and -not $HasVSCode) {
-    Write-Err2 '沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity、Codex 或 VS Code。'
+if (-not $HasClaude -and -not $HasAntigravityV1 -and -not $HasAntigravityV2 -and -not $HasCodex -and -not $HasGeminiCli -and -not $HasVSCode) {
+    Write-Err2 '沒有偵測到任何支援的 AI 工具。請先安裝 Claude Code、Antigravity、Codex、Gemini CLI 或 VS Code。'
     exit 1
 }
 
@@ -216,8 +219,8 @@ switch ($Mode) {
         if ($HasClaude)        { Install-AllForTool -Tool 'claude'      -Target $ClaudeTarget }
         if ($HasAntigravityV2) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTargetV2 }
         if ($HasAntigravityV1) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTargetV1 }
-        # 共用路徑放 generic：~/.agents/skills 同時被 Codex、Gemini CLI、Copilot 讀取（C-79）
-        if ($HasCodex)         { Install-AllForTool -Tool 'codex'       -Target $AgentsTarget -ForceVariant 'generic' }
+        # 共用路徑放 generic：Codex、Gemini CLI、Copilot 任一存在就寫入一次（C-79）
+        if ($NeedsAgentsTarget) { Install-AllForTool -Tool 'shared'      -Target $AgentsTarget -ForceVariant 'generic' }
         if ($HasCodexLegacy)   { Install-AllForTool -Tool 'codex'       -Target $CodexTarget }
         if ($HasVSCodeLegacy)  { Install-AllForTool -Tool 'vscode'      -Target $VSCodeTarget }
     }
@@ -249,7 +252,7 @@ switch ($Mode) {
         if ($HasClaude)        { Install-AllForTool -Tool 'claude'      -Target $ClaudeTarget        -ForceVariant 'generic' }
         if ($HasAntigravityV2) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTargetV2 -ForceVariant 'generic' }
         if ($HasAntigravityV1) { Install-AllForTool -Tool 'antigravity' -Target $AntigravityTargetV1 -ForceVariant 'generic' }
-        if ($HasCodex)         { Install-AllForTool -Tool 'codex'       -Target $AgentsTarget        -ForceVariant 'generic' }
+        if ($NeedsAgentsTarget) { Install-AllForTool -Tool 'shared'      -Target $AgentsTarget        -ForceVariant 'generic' }
         if ($HasCodexLegacy)   { Install-AllForTool -Tool 'codex'       -Target $CodexTarget         -ForceVariant 'generic' }
         if ($HasVSCodeLegacy)  { Install-AllForTool -Tool 'vscode'      -Target $VSCodeTarget        -ForceVariant 'generic' }
     }

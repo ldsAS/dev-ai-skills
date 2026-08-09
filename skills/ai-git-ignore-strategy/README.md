@@ -30,7 +30,7 @@
 # Linux / macOS / WSL
 ./install.sh              # 自動偵測已安裝的 AI 工具
 ./install.sh claude       # 僅安裝 Claude 版
-./install.sh antigravity  # 僅安裝 Antigravity 版（→ ~/.gemini/config/skills/；僅遷移前安裝才 fallback 到 ~/.gemini/antigravity/skills/）
+./install.sh antigravity  # 僅安裝 Antigravity 版（→ 偵測到的 CLI 與 IDE 兩條全域路徑）
 ./install.sh codex        # 僅安裝 Codex 版
 ./install.sh vscode       # 僅安裝 VS Code Copilot 版（~/.copilot/skills/）
 ```

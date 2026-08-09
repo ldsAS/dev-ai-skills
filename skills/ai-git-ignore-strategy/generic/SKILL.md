@@ -31,11 +31,13 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 1. **讀取 .gitignore**（以及 .gitattributes，如存在），確認目前規則。
 2. **執行下列 Git 指令**取得當前狀態：
    - git status
-   - git ls-files | head -100
-   - git ls-files --others --ignored --exclude-standard | head -50    # 實體存在但被 ignore 的檔案
+   - git ls-files
+   - git ls-files --others --ignored --exclude-standard    # 實體存在但被 ignore 的檔案
    - git diff --stat                   # 內容 diff 量
    - git diff --summary                # 抓 mode-only / rename-only 變動（stat 看不到）
    - git log --oneline -10
+
+   輸出過長時，用目前 shell 的原生方式限制筆數：PowerShell 使用 `Select-Object -First 100`，POSIX shell 使用 `head -100`。
 
    > 💡 第 3 條 (`--others --ignored`) 是反向驗證的關鍵 — 看「規則實際攔下了什麼」。若看到本該追蹤的檔案被擋（例如 seed json 被 `*.json` 誤殺），就是規則太粗暴的訊號。
 3. 將未提交／已追蹤的檔案分類整理成表格，欄位包含：**檔案路徑、所在目錄、推測用途、是否已被追蹤、diff 大小**。
@@ -215,7 +217,7 @@ Git 預設會依 core.autocrlf 在 checkout/commit 時轉換行尾，造成：
 - Merge conflict 發生在純行尾差異
 - .sh 腳本在 Linux 端因為 CRLF 噴 \r: command not found
 
-**檢測**：`git diff --stat | grep ' | *0$'` 找 0 byte 修改的檔案；若多個 0 byte diff 文字檔 `git diff` 又看不到 hunk，就是行尾問題。
+**檢測**：先執行 `git diff --stat`，尋找顯示 0 byte 修改的檔案；需要過濾時，PowerShell 使用 `Select-String`，POSIX shell 使用 `grep`。若多個 0 byte diff 文字檔 `git diff` 又看不到 hunk，就是行尾問題。
 
 **解法**：在專案根目錄建立 `.gitattributes`：
 
@@ -245,7 +247,7 @@ Git 預設會依 core.autocrlf 在 checkout/commit 時轉換行尾，造成：
 
 **Renormalize 修不到的「工作樹殘留」**：`git add --renormalize .` 只修**入庫側**（index）；工作樹的實體檔案不會被動。Git 只在 checkout 的瞬間套用 eol 轉換，所以在規則導入**之前**就存在於工作樹、內容又與 index 一致的檔案，永遠不會被自動重寫 — .gitattributes 寫著 *.bat eol=crlf，硬碟上卻仍是 LF，而且 git status 完全乾淨。實際後果（真實案例）：LF 的 .bat 含中文時，cmd/CP950 會把中文尾位元組與 LF 配對吞掉，行黏合、指令腰斬（症狀如 `'pull' 不是內部或外部命令`）。
 
-```bash
+```text
 # 檢測：逐檔列出 index (i/)、工作樹 (w/)、attr 三方行尾，找 attr 與 w/ 不一致者
 git ls-files --eol
 # 例：i/lf  w/lf  attr/text eol=crlf  update-skills.bat   ← w/ 應為 crlf，中招
@@ -255,7 +257,9 @@ git diff -- update-skills.bat
 git diff --cached -- update-skills.bat
 
 # 修復：只對「內容乾淨但行尾殘留」的檔案刪除後重新 checkout，強制觸發行尾轉換（不會產生任何 diff）
-rm update-skills.bat
+# 下列刪除指令二擇一：
+rm update-skills.bat                  # POSIX shell
+Remove-Item update-skills.bat         # PowerShell
 git checkout -- update-skills.bat
 ```
 
@@ -267,9 +271,9 @@ git checkout -- update-skills.bat
 
 **檢測**：
 
-```bash
-git diff --summary | grep "mode change"   # 抓所有 mode 漂移
-git config --get core.fileMode             # 查目前設定（預設 true）
+```text
+git diff --summary                          # 尋找 mode change；需要過濾時依 shell 使用 Select-String 或 grep
+git config --get core.fileMode              # 查目前設定（預設 true）
 ```
 
 **三種解法**（由重到輕，挑一個）：
@@ -495,11 +499,11 @@ certs/
 
 ### 執行時做三方比對
 
-text
+```text
 ① git-tracking/MASTER.md  這個專案先前的決定
 ② 本技能目前的路徑事實    工具官方怎麼定位這條路徑（會隨工具改版更新）
 ③ git check-ignore        .gitignore 現在實際上擋不擋
-
+```
 
 **三者一致 → 不必報告。任兩者不一致 → 列進報告，但不要自動改。**
 
@@ -516,7 +520,7 @@ text
 
 ### 檔案格式
 
-markdown
+```markdown
 # Git 追蹤決定表 (MASTER)
 
 > **LOGIC**：本檔記錄「這個專案」對各路徑的追蹤決定，**優先於技能的預設範本**。
@@ -551,7 +555,7 @@ markdown
 | 路徑 | 卡在哪 |
 | :--- | :--- |
 | .claude/launch.json | 需先確認裡面沒有個人絕對路徑 |
-
+```
 
 **C 節是這份檔最重要的部分。** 沒有記錄的偏離，下次比對只會看到「和技能預設不一樣」，
 於是重問一次；記下來之後，它就是一個有理由的決定，不再是待辦。

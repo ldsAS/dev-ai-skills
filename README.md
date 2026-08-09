@@ -56,7 +56,7 @@ cd dev-ai-skills
 
 # 專案層：只寫 <repo>\.agents\skills\ 單一份
 .\install.ps1 project
-.\install.ps1 project C:\path	oepo
+.\install.ps1 project C:\path\to\repo
 ```
 
 ---
