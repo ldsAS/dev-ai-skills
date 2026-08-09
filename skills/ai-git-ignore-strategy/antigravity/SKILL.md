@@ -130,8 +130,13 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 
 > 🔍 **這個 skill 的誕生原因，就是它自己最好的反例。**
 > 維護者在 PM Dashboard 專案使用 `ui-ux-pro-max` 時，是**逐工具各裝一次**的
-> （`--ai claude` ＋ `--ai antigravity` ＋⋯⋯），於是同一個技能在專案裡留下三份複本，
-> 之後各自過期、彼此不一致 —— 而**沒有任何機制會為此報錯**。
+> （`--ai claude` ＋ `--ai antigravity` ＋⋯⋯），於是同一個技能在專案裡留下**六份**複本：
+> `.agent/skills/`、`.agents/skills/`、`.claude/skills/`、`.codex/skills/`、
+> `.gemini/skills/`、`.github/prompts/` 各一份。
+>
+> 2026-08-07 實查證實**已經漂移**：`.agent/` 的 `SKILL.md` 是 `bf780c30`（2026-04-26），
+> `.agents/` 的是 `07b87b89`（2026-07-07），內容不同 ——
+> 而**沒有任何機制會為此報錯**，本機執行時哪一份生效也不確定。
 > 上游其實提供 `--ai universal`，只寫一份到 `.agents/skills/`。
 >
 > 教訓是：**技能的「份數」比它裝在全域還是專案更關鍵。**
