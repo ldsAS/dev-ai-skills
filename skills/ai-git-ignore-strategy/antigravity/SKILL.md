@@ -619,6 +619,49 @@ certs/
 **C 節是這份檔最重要的部分。** 沒有記錄的偏離，下次比對只會看到「和技能預設不一樣」，
 於是重問一次；記下來之後，它就是一個有理由的決定，不再是待辦。
 
+### 用 CI 鎖住決定 —— 以及一個會讓它靜默失效的寫法
+
+決定表記錄「該怎樣」，CI 可以強制「真的就是這樣」：在 workflow 裡對關鍵路徑下斷言，
+`.gitignore` 若被改到讓決定失效，CI 直接失敗。這是很值得做的一層防護。
+
+**但斷言本身會靜默失效。** 直覺寫法是這樣：
+
+```yaml
+- shell: bash
+  run: |
+    ! git check-ignore -q .claude/launch.json     # ❌ 這行永遠不會讓 CI 失敗
+```
+
+GitHub Actions 的 `shell: bash` 等同 `bash -eo pipefail`，而 `set -e` 的例外明載
+包含「**回傳值被 `!` 反轉時不中止**」。所以這條斷言不論結果如何都不會擋下 CI ——
+決定失效了，綠燈照給。
+
+**可用的寫法**：顯式比對，並一次列出所有不符項（只報第一條會讓人修一輪跑一輪）。
+
+```yaml
+- shell: bash
+  run: |
+    fail=0
+    check() {  # $1=路徑  $2=預期（ignored / tracked）
+      if git check-ignore -q "$1"; then actual=ignored; else actual=tracked; fi
+      if [ "$actual" != "$2" ]; then
+        echo "❌ $1：預期 $2，實際 $actual"
+        fail=1
+      fi
+    }
+    check .claude/launch.json          tracked
+    check .claude/skills/thirdparty/   ignored
+    exit $fail
+```
+
+> ⚠️ 這與稍早提過的 `git check-ignore -v` 退出碼問題是**同一個坑的兩種面貌**：
+> `-v` 只要命中任何規則（**包含 `!` 開頭的放行規則**）就回傳 0；
+> `! cmd` 則是反轉後的失敗不觸發 `set -e`。
+> **判定擋或放行一律用不含 `-v` 的 `git check-ignore -q`，且不要靠 `!` 反轉。**
+
+**驗收方式**：寫完斷言後，故意把某條決定改壞（例如刪掉一條 `!` 放行規則），
+確認 CI 真的會紅。**沒被驗證過的斷言，跟沒有斷言一樣。**
+
 ### 這份檔要提交
 
 它是專案的判斷依據，不是個人設定 —— 團隊成員與未來的你都需要它。

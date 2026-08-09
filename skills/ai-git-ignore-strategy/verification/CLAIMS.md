@@ -3,16 +3,16 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-08-09（三工具交接回填完畢 —— C-85 Codex／C-86 Copilot 皆實機確認自 `~/.agents/skills/` 載入、移除舊路徑安全；C-87 Antigravity 的 `agent.json` 欄位結構經二進位 protobuf 定義佐證。C-79 的「本機實查」依據經 C-86 更正為循環證據）
+**最後更新**：2026-08-09（新增 C-88 CI 斷言寫法；三工具交接回填完畢 —— C-85 Codex／C-86 Copilot 皆實機確認自 `~/.agents/skills/` 載入、移除舊路徑安全；C-87 Antigravity 的 `agent.json` 欄位結構經二進位 protobuf 定義佐證。C-79 的「本機實查」依據經 C-86 更正為循環證據）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 61 |
+| 已驗證 | 62 |
 | 待實查 | 0 |
 | 有疑 | 0 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| **總計** | **68** |
+| **總計** | **69** |
 
 ---
 
@@ -77,11 +77,8 @@
 | C-77 | Copilot 跨工具讀取 `.claude/`、`.agents/` | 官方明載 Copilot 會讀 `.claude/skills/`、`.agents/skills/`、`~/.claude/skills/`、`~/.agents/skills/`，以及 Claude 格式的 `.claude/settings.json`、`.claude/settings.local.json`（hooks）。**`.claude/` 並非 Claude Code 專屬** —— 繼 C-60 的 `.agents/` 之後，`.claude/` 同樣是跨工具目錄。`.claude/skills/*` 的 scoped allowlist 因此同時影響 Copilot | 官方文件 agent-skills／hooks 頁 | 2026-08-03 | — | 已驗證 |
 | C-84 | Copilot「Agent Host」的使用者層讀取位置 | 官方：「When Agent Host is enabled, the agent reads user-level customizations from harness-agnostic folders like `~/.copilot` (Copilot) and `~/.claude` (Claude), rather than from your VS Code profile user data.」→ **非預設**（"when enabled"），且**全屬家目錄，無專案層路徑** → **本 skill 無需新增任何 `.gitignore` 規則**。⚠️ 但影響安裝決策：本頁**未提及 `~/.agents`**（該路徑的依據來自 agent-skills 頁，見 C-77）。2026-08-07 我方已移除 `~/.copilot/skills` 的複本 —— 即使 Agent Host 情境下 `~/.agents/skills` 未被讀取，`~/.claude/skills` 仍留有本技能（claude 變體），故移除不致使技能消失。仍待 Copilot 實機確認實際載入來源（見 2026-08-04 交接包） | 官方文件 customization overview（**由排程監控於 2026-08-06 自動偵測**） | 2026-08-07 | — | 已驗證 |
 | C-79 | 跨工具共用路徑 vs 逐工具變體 | `~/.agents/skills/` 由 Codex（C-64）、Gemini CLI（C-22）、Copilot（C-77）共同讀取；`~/.claude/skills/` 由 Claude Code **與 Copilot** 共同讀取（C-77）。本 skill 提供逐工具變體，**放進共用路徑會讓其他工具讀到不屬於自己的工具名**。Codex 官方文件明載同名技能不合併。⚠️ **2026-08-09 更正依據**：原記「實查本機：Copilot 同時看得到兩份同名技能」—— 那是**由「兩個目錄都存在」推論的，不是 catalog 觀察**，與 C-48、C-74 同型的循環證據。Copilot 實機回覆顯示：兩份同名實體複本（`~/.agents` generic ＋ `~/.claude` claude）在 active session 的 catalog 中**只出現一個項目**，來源為 `.agents`（見 C-86）。→ **結論不變，理由改為更強的版本**：同名時哪一份勝出**沒有已驗證的規則**，把工具專屬變體放進共用路徑等於擲骰子，故一律放 `generic` 變體（與上游 `uipro init --ai universal` 同解法） | 帳本交叉推導；原「本機實查」部分已由 C-86 更正 | 2026-08-09 | — | 已驗證 |
-| C-78 | `User/workspaceStorage/<workspace-id>/`、`User/globalStorage/github.copilot-chat/`（均相對於 VS Code user-data root） | VS Code Copilot Chat 的 session、transcript、debug log、editing state 與 tool-embeddings cache 寫入 **VS Code user data**，不是 repository。active session 實查確認 workspace storage 對應目前 repo、其下出現 `chatSessions/`、`chatEditingSessions/`、`GitHub.copilot-chat/transcripts/`、`GitHub.copilot-chat/debug-logs/`；同時 repo Git 狀態沒有新的 Copilot runtime 檔。**不應新增專案層 `.copilot/`、cache、log 或 session ignore 規則。** | [Windows 實機回覆](./rounds/2026-08-03-vscode-copilot.reply.md)＋已安裝 extension package | 2026-08-03 | VS Code 1.125.1／Copilot Chat 0.53.1 | 已驗證 |
-
 | C-86 | Copilot 的實際 skill catalog 來源 | **實機確認**：active agent host 注入的 skill catalog 直接列出 `C:\Users\LdsFi\.agents\skills\ai-git-ignore-strategy\SKILL.md`（generic 變體），不是來自工作區或 `.copilot/skills/`。→ 2026-08-07 移除 `~/.copilot/skills/` 後**技能未消失**，該次移除安全。⚠️ **重要且推翻我方原依據**：檔案系統有**兩份**同名實體技能（`~/.agents` generic ＋ `~/.claude` claude），但 catalog **只出現一個項目**，來源為 `.agents` —— C-79 原稱「Copilot 同時看得到兩份」是由目錄存在推論的，非 catalog 觀察，已更正。⚠️ 但**不可反向外推**：回報者明確指出「不能據此推論 Copilot 不掃 `~/.claude/skills/`，也不能推論 `.agents` 永遠優先」；官方文件列出三條 Personal 路徑（`~/.copilot`、`~/.agents`、`~/.claude`）卻**未定義同名 collision 的優先順序**，runtime log 亦無 discovery／dedup 事件。本輪未建立探針技能、未重載 VS Code 做破壞性實驗，故**同名優先權維持未驗證**。另更正一項措辭：`~/.copilot/` 父目錄仍存在（其下有 `ide/*.lock`），只有 `skills/` 子目錄被移除；`~/.copilot/skills/` 亦**非**無效或廢棄路徑，官方仍列為 Personal skill 位置 | Copilot 實機回覆（active agent host catalog）＋本機實查 | 2026-08-09 | VS Code 1.125.1／Copilot Chat 0.53.1（build 1） | 已驗證 |
-
-| C-87 | `.agents/agents/<name>/agent.json` 的欄位結構 | Antigravity 回覆**誠實聲明無實機資料**（agy 1.0.13 為 headless，該檔通常由桌面端 GUI「Create New Agent」建立或人工編寫），並提供一份社群 schema。**維護者以二進位獨立複驗，結果比回覆自身的依據更強**：`customAgentSpec`(7)、`systemPromptSections`(2)、`toolNames`(4)、`customAgent`(15) 皆存在，且是 **protobuf 訊息定義**而非零星字串 —— 例：`protobuf:"bytes,2,opt,name=custom_agent_spec,json=customAgentSpec,proto3"`。欄位集合為 `name`／`displayName`／`description`／`hidden`／`customAgentSpec{customAgent{systemPromptSections, toolNames}}`，**全屬靜態角色宣告**，無 session／時間戳／對話等執行期欄位。→ 支持「性質適合提交」。⚠️ **仍不足以啟用白名單**（見 C-54）：(1) **無人目視過實體檔案**；(2) 交接包 Q3「目錄下還有沒有其他檔案」回覆自陳「無法由系統生成結果斷定」＝**未回答**；(3) **新發現的未決點** —— Go 結構標籤是 `json:"custom_agent_spec,omitempty"`，以 `encoding/json` 封送會輸出 **snake_case**，`customAgentSpec` 只是 protobuf JSON 名。回覆給的 camelCase schema 可能取自 protobuf JSON 形式而非磁碟實際內容，**實際 key 命名未定**。另：二進位有 `creating agent directory`、`writing agent.json`、`marshaling agent.json` 與 9 處 `AgentsCreatePath`，顯示寫入機制存在，但查無對應的使用者層子命令字串 | Antigravity 回覆（社群 schema，自陳無實機）＋維護者二進位複驗（protobuf 定義） | 2026-08-09 | agy 1.0.13 | 已驗證 |
+| C-78 | `User/workspaceStorage/<workspace-id>/`、`User/globalStorage/github.copilot-chat/`（均相對於 VS Code user-data root） | VS Code Copilot Chat 的 session、transcript、debug log、editing state 與 tool-embeddings cache 寫入 **VS Code user data**，不是 repository。active session 實查確認 workspace storage 對應目前 repo、其下出現 `chatSessions/`、`chatEditingSessions/`、`GitHub.copilot-chat/transcripts/`、`GitHub.copilot-chat/debug-logs/`；同時 repo Git 狀態沒有新的 Copilot runtime 檔。**不應新增專案層 `.copilot/`、cache、log 或 session ignore 規則。** | [Windows 實機回覆](./rounds/2026-08-03-vscode-copilot.reply.md)＋已安裝 extension package | 2026-08-03 | VS Code 1.125.1／Copilot Chat 0.53.1 | 已驗證 |
 
 ## Cursor（已移出維護範圍）
 
@@ -131,6 +128,7 @@
 | C-55 | `.agents/ORIGINAL_REQUEST.md` | agent 會把使用者訊息**逐字**附加至此檔（含 UTC 時間戳），亦有 `.agents/<agent_folder>/ORIGINAL_REQUEST.md` 變體。**屬敏感內容，必須排除** | 二進位字串分析 | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-56 | `.agents/<type>_<milestone>[_<N>][_gen<N>]/` | 子代理在**專案內**建立的工作目錄命名規則（二進位字串），內含 `ORIGINAL_REQUEST.md` 等記錄。已被 `.agents/*` 完整涵蓋 | 二進位字串分析 | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-80 | Antigravity 的 worktree 處理 | 2.5.0 changelog 提到「environment selector 記住上次使用的 worktree」「側欄可依 worktree 排序」，但二進位中 worktree 相關字串全是 git 操作（`gitdir:`、`rev-parse`、`worktree list`、`repo root`），查無 `.agents/worktree*` 或 `~/.gemini/*/worktree*`。→ **Antigravity 讀取標準 git worktree，不自建工具管理的 worktree 目錄**，與 Claude Code 的 `.claude/worktrees/`（C-09）不同，**本 skill 無需為其新增規則** | 官方 changelog＋二進位字串分析 | 2026-08-04 | 2.5.0 | 已驗證 |
+| C-87 | `.agents/agents/<name>/agent.json` 的欄位結構 | Antigravity 回覆**誠實聲明無實機資料**（agy 1.0.13 為 headless，該檔通常由桌面端 GUI「Create New Agent」建立或人工編寫），並提供一份社群 schema。**維護者以二進位獨立複驗，結果比回覆自身的依據更強**：`customAgentSpec`(7)、`systemPromptSections`(2)、`toolNames`(4)、`customAgent`(15) 皆存在，且是 **protobuf 訊息定義**而非零星字串 —— 例：`protobuf:"bytes,2,opt,name=custom_agent_spec,json=customAgentSpec,proto3"`。欄位集合為 `name`／`displayName`／`description`／`hidden`／`customAgentSpec{customAgent{systemPromptSections, toolNames}}`，**全屬靜態角色宣告**，無 session／時間戳／對話等執行期欄位。→ 支持「性質適合提交」。⚠️ **仍不足以啟用白名單**（見 C-54）：(1) **無人目視過實體檔案**；(2) 交接包 Q3「目錄下還有沒有其他檔案」回覆自陳「無法由系統生成結果斷定」＝**未回答**；(3) **新發現的未決點** —— Go 結構標籤是 `json:"custom_agent_spec,omitempty"`，以 `encoding/json` 封送會輸出 **snake_case**，`customAgentSpec` 只是 protobuf JSON 名。回覆給的 camelCase schema 可能取自 protobuf JSON 形式而非磁碟實際內容，**實際 key 命名未定**。另：二進位有 `creating agent directory`、`writing agent.json`、`marshaling agent.json` 與 9 處 `AgentsCreatePath`，顯示寫入機制存在，但查無對應的使用者層子命令字串 | Antigravity 回覆（社群 schema，自陳無實機）＋維護者二進位複驗（protobuf 定義） | 2026-08-09 | agy 1.0.13 | 已驗證 |
 | C-81 | `.agent/skills/<name>/` | 舊佈局的專案技能目錄。**官方向後相容只明載 `.agent/rules`**（見 C-57），**未提及 skills**；現行 agy 1.0.13 二進位對 `.agent/` 0 命中。本條規則的真實依據是**實地觀察**：`PM-tools-Dashboard-docker` 存在 `.agent/skills/ui-ux-pro-max/`，由第三方安裝器（`uipro init --ai antigravity`）寫入，非 Antigravity 自身產生。⚠️ 依此，規則的正當性是「使用者刻意放的技能應提交」，**不是**「工具會讀這個路徑」—— 後者無依據，勿據以推論。範本已加註，無此目錄的專案可整組刪除 | 實地觀察（第三方安裝器產物）＋二進位反證 | 2026-08-04 | 1.0.13 | 已驗證 |
 | C-82 | `~/.codex/skills/.system/` | Codex **內建系統技能**的存放處（含 `.codex-system-skills.marker`，底下有 `imagegen`、`skill-creator`、`review-agent` 等）。意義：`~/.codex/skills/` 這個目錄**永遠存在**，不論使用者有沒有裝過第三方技能。⚠️ 因此安裝器判斷「舊版相容路徑要不要續寫」時，**不能用「目錄是否存在」當判準** —— 否則使用者手動刪掉的舊複本會在下次安裝時復活。判準已改為「該目錄裡是否已有本專案裝過的技能」 | 本機實查 | 2026-08-04 | 0.146.0-alpha.9.2 | 已驗證 |
 | C-57 | `.agents/rules/`、`.agent/rules/` | 工作區規則資料夾，官方：「Workspace rules live in the `.agents/rules` folder of your workspace or git root」，性質同 `.claude/rules/` → **應提交（已放行）**。官方另載「now defaults to `.agents/rules`, but still maintains backward support for `.agent/rules`」，故舊佈局一併放行 | 官方文件 `/docs/rules-workflows` | 2026-08-03 | 2.x | 已驗證 |
@@ -155,6 +153,7 @@
 | ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-60 | `.agents/` | **非 Antigravity 專屬**，是 Codex／Gemini CLI／Antigravity 共用的跨工具目錄 | 官方文件（三方交叉） | 2026-07-29 | — | 已驗證 |
+| C-88 | CI 斷言 `.gitignore` 決定的正確寫法 | **不是路徑事實，是方法上的坑，但同屬「靜默失效」而登記於此。** GitHub Actions 的 `shell: bash` 等同 `bash -eo pipefail`；`set -e` 的例外明載包含「回傳值被 `!` 反轉時不中止」，故 `! git check-ignore -q <path>` **無論結果如何都不會讓 CI 失敗**。2026-08-09 於 PM-tools-Dashboard-docker 端對端實測：移除 `!.claude/launch.json`（＝決定已失效）後，該寫法的 CI 仍回傳 exit 0。→ 改用顯式比對的 `check()` 函式並 `exit $fail`，兩種失效情境皆正確攔下。⚠️ 與 `git check-ignore -v` 的退出碼問題是**同一個坑的兩種面貌**：`-v` 命中任何規則（含 `!` 放行）皆回傳 0。**判定擋或放行一律用不含 `-v` 的 `-q`，且不靠 `!` 反轉。** 已寫入五版〈用 CI 鎖住決定〉 | bash 手冊＋端對端實測 | 2026-08-09 | — | 已驗證 |
 
 ---
 
