@@ -3,16 +3,16 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-08-09（Codex 實機回覆回填 —— 新增 C-85：`~/.agents/skills/` 為實際載入來源，移除舊路徑安全）
+**最後更新**：2026-08-09（Codex 與 Copilot 實機回覆回填 —— 新增 C-85、C-86；兩者皆確認自 `~/.agents/skills/` 載入，移除舊路徑安全。C-79 的「本機實查」依據經 C-86 更正為循環證據）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 59 |
+| 已驗證 | 60 |
 | 待實查 | 0 |
 | 有疑 | 0 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| **總計** | **66** |
+| **總計** | **67** |
 
 ---
 
@@ -76,8 +76,10 @@
 | C-76 | `.github/hooks/*.json` | Copilot 工作區 hooks，官方列為 Workspace 預設位置 → **應提交**（與 `.github/workflows` 同性質）。⚠️ 內含可執行指令，提交前應審查 | 官方文件 hooks 頁 | 2026-08-03 | — | 已驗證 |
 | C-77 | Copilot 跨工具讀取 `.claude/`、`.agents/` | 官方明載 Copilot 會讀 `.claude/skills/`、`.agents/skills/`、`~/.claude/skills/`、`~/.agents/skills/`，以及 Claude 格式的 `.claude/settings.json`、`.claude/settings.local.json`（hooks）。**`.claude/` 並非 Claude Code 專屬** —— 繼 C-60 的 `.agents/` 之後，`.claude/` 同樣是跨工具目錄。`.claude/skills/*` 的 scoped allowlist 因此同時影響 Copilot | 官方文件 agent-skills／hooks 頁 | 2026-08-03 | — | 已驗證 |
 | C-84 | Copilot「Agent Host」的使用者層讀取位置 | 官方：「When Agent Host is enabled, the agent reads user-level customizations from harness-agnostic folders like `~/.copilot` (Copilot) and `~/.claude` (Claude), rather than from your VS Code profile user data.」→ **非預設**（"when enabled"），且**全屬家目錄，無專案層路徑** → **本 skill 無需新增任何 `.gitignore` 規則**。⚠️ 但影響安裝決策：本頁**未提及 `~/.agents`**（該路徑的依據來自 agent-skills 頁，見 C-77）。2026-08-07 我方已移除 `~/.copilot/skills` 的複本 —— 即使 Agent Host 情境下 `~/.agents/skills` 未被讀取，`~/.claude/skills` 仍留有本技能（claude 變體），故移除不致使技能消失。仍待 Copilot 實機確認實際載入來源（見 2026-08-04 交接包） | 官方文件 customization overview（**由排程監控於 2026-08-06 自動偵測**） | 2026-08-07 | — | 已驗證 |
-| C-79 | 跨工具共用路徑 vs 逐工具變體 | `~/.agents/skills/` 由 Codex（C-64）、Gemini CLI（C-22）、Copilot（C-77）共同讀取；`~/.claude/skills/` 由 Claude Code **與 Copilot** 共同讀取（C-77）。本 skill 提供逐工具變體，**放進共用路徑會讓其他工具讀到不屬於自己的工具名**。實查本機：Copilot 同時看得到 `~/.copilot/skills`（vscode 變體）與 `~/.claude/skills`（claude 變體）兩份**同名**技能；Codex 官方文件明載同名技能不合併、兩者都會出現在選單。→ 共用路徑一律放 `generic` 變體（與上游 `uipro init --ai universal` 同解法） | 帳本交叉推導＋本機實查 | 2026-08-04 | — | 已驗證 |
+| C-79 | 跨工具共用路徑 vs 逐工具變體 | `~/.agents/skills/` 由 Codex（C-64）、Gemini CLI（C-22）、Copilot（C-77）共同讀取；`~/.claude/skills/` 由 Claude Code **與 Copilot** 共同讀取（C-77）。本 skill 提供逐工具變體，**放進共用路徑會讓其他工具讀到不屬於自己的工具名**。Codex 官方文件明載同名技能不合併。⚠️ **2026-08-09 更正依據**：原記「實查本機：Copilot 同時看得到兩份同名技能」—— 那是**由「兩個目錄都存在」推論的，不是 catalog 觀察**，與 C-48、C-74 同型的循環證據。Copilot 實機回覆顯示：兩份同名實體複本（`~/.agents` generic ＋ `~/.claude` claude）在 active session 的 catalog 中**只出現一個項目**，來源為 `.agents`（見 C-86）。→ **結論不變，理由改為更強的版本**：同名時哪一份勝出**沒有已驗證的規則**，把工具專屬變體放進共用路徑等於擲骰子，故一律放 `generic` 變體（與上游 `uipro init --ai universal` 同解法） | 帳本交叉推導；原「本機實查」部分已由 C-86 更正 | 2026-08-09 | — | 已驗證 |
 | C-78 | `User/workspaceStorage/<workspace-id>/`、`User/globalStorage/github.copilot-chat/`（均相對於 VS Code user-data root） | VS Code Copilot Chat 的 session、transcript、debug log、editing state 與 tool-embeddings cache 寫入 **VS Code user data**，不是 repository。active session 實查確認 workspace storage 對應目前 repo、其下出現 `chatSessions/`、`chatEditingSessions/`、`GitHub.copilot-chat/transcripts/`、`GitHub.copilot-chat/debug-logs/`；同時 repo Git 狀態沒有新的 Copilot runtime 檔。**不應新增專案層 `.copilot/`、cache、log 或 session ignore 規則。** | [Windows 實機回覆](./rounds/2026-08-03-vscode-copilot.reply.md)＋已安裝 extension package | 2026-08-03 | VS Code 1.125.1／Copilot Chat 0.53.1 | 已驗證 |
+
+| C-86 | Copilot 的實際 skill catalog 來源 | **實機確認**：active agent host 注入的 skill catalog 直接列出 `C:\Users\LdsFi\.agents\skills\ai-git-ignore-strategy\SKILL.md`（generic 變體），不是來自工作區或 `.copilot/skills/`。→ 2026-08-07 移除 `~/.copilot/skills/` 後**技能未消失**，該次移除安全。⚠️ **重要且推翻我方原依據**：檔案系統有**兩份**同名實體技能（`~/.agents` generic ＋ `~/.claude` claude），但 catalog **只出現一個項目**，來源為 `.agents` —— C-79 原稱「Copilot 同時看得到兩份」是由目錄存在推論的，非 catalog 觀察，已更正。⚠️ 但**不可反向外推**：回報者明確指出「不能據此推論 Copilot 不掃 `~/.claude/skills/`，也不能推論 `.agents` 永遠優先」；官方文件列出三條 Personal 路徑（`~/.copilot`、`~/.agents`、`~/.claude`）卻**未定義同名 collision 的優先順序**，runtime log 亦無 discovery／dedup 事件。本輪未建立探針技能、未重載 VS Code 做破壞性實驗，故**同名優先權維持未驗證**。另更正一項措辭：`~/.copilot/` 父目錄仍存在（其下有 `ide/*.lock`），只有 `skills/` 子目錄被移除；`~/.copilot/skills/` 亦**非**無效或廢棄路徑，官方仍列為 Personal skill 位置 | Copilot 實機回覆（active agent host catalog）＋本機實查 | 2026-08-09 | VS Code 1.125.1／Copilot Chat 0.53.1（build 1） | 已驗證 |
 
 ## Cursor（已移出維護範圍）
 
@@ -258,7 +260,7 @@
 | 2026-07-29 | Antigravity 1.0.13 | C-41～C-49（新增 C-51、C-52） | [交接包](./rounds/2026-07-29-antigravity.md) | [回覆](./rounds/2026-07-29-antigravity.reply.md)　已回填；其中 C-44、C-48 經維護者複驗後**未採信**回報結論 |
 | 2026-07-30 | Antigravity 1.0.13 | C-48、C-54（Q1 為實驗題） | [交接包](./rounds/2026-07-30-antigravity-round2.md) | [回覆](./rounds/2026-07-30-antigravity-round2.reply.md)　C-48 結案（實驗方法正確）；C-54 與自由敘述的 4 條路徑未採信，C-54 改由二進位對稱設計自行結案 |
 | 2026-07-30 | 官方文件研究（無需交接） | C-08、C-09、C-15～C-17、C-23、C-24、C-32、C-53 | — | 九項全部由官方文件直接定案，未動用交接輪次 |
-| 2026-08-04 | Codex、Copilot（＋Antigravity 可選） | 移除舊安裝路徑後的載入實查；C-54 實體檔案 | [交接包](./rounds/2026-08-04-load-path-check.md) | Codex [已實機回覆](./rounds/2026-08-04-codex.reply.md)（**全部採用**，新增 C-85：確認自 `~/.agents/skills/` 載入，移除舊複本後技能未消失；並抓出我方三處文件缺失，其中 `README.md` 的檢查指令含兩個 `0x07` 控制字元而**實際跑不出正確結果**）。**Copilot 與 Antigravity 仍待回覆** |
+| 2026-08-04 | Codex、Copilot（＋Antigravity 可選） | 移除舊安裝路徑後的載入實查；C-54 實體檔案 | [交接包](./rounds/2026-08-04-load-path-check.md) | Codex [已實機回覆](./rounds/2026-08-04-codex.reply.md)（**全部採用**，新增 C-85：確認自 `~/.agents/skills/` 載入，移除舊複本後技能未消失；並抓出我方三處文件缺失，其中 `README.md` 的檢查指令含兩個 `0x07` 控制字元而**實際跑不出正確結果**）。Copilot [已實機回覆](./rounds/2026-08-04-vscode-copilot.reply.md)（**全部採用**，新增 C-86：同樣確認自 `~/.agents/skills/` 載入；並**推翻我方 C-79 的一項依據** —— 兩份同名實體複本在 catalog 中只出現一個項目，原稱「同時看得到兩份」是由目錄存在推論的循環證據）。**Antigravity 仍待回覆**（C-54 實體檔案內容） |
 | 2026-08-07 | 比對 PM-tools-Dashboard-docker 實際運作 | 該專案 `.gitignore` 與現行範本的落差 | — | 發現 `.claude/launch.json` 被 `.claude/*` 靜默擋下 → 新增 **C-83**。另記該專案 `.gitignore` 自 2026-07-11 起未再更新，`.codex/`、`.gemini/` 的整包封殺已與 C-17、C-21 不符（目前該專案兩目錄為空，屬潛在而非現行誤殺） |
 | 2026-08-04 | 維護者自查（縱向稽核） | 全範本每條規則的依據強度 | [稽核紀錄](./rounds/2026-08-04-speculation-audit.md) | 三條篩出：C-54 依據**被低估**（實為明確路徑模板，非對稱推論）；`.agent/skills/` 缺主張且規則寬於官方向後相容範圍 → 新增 C-81；`!.agents/AGENTS.md`／`!.agents/settings.json` 為**不存在的檔案**留白名單 → **已自五版移除**。另記三條假陽性係帳本路徑欄索引不足所致 |
 | 2026-08-03 | **四工具交叉檢視** | 全部主線工具 | [交叉檢視文件](./rounds/2026-08-03-cross-tool-review.md) | Antigravity [已回覆](./rounds/2026-08-03-antigravity.reply.md)（6 項中 3 項複驗未採用，新增 C-59）；Claude Code [已自答](./rounds/2026-08-03-claude-code.reply.md)（新增 C-61、C-62）；Codex 與 Copilot 的文件端問題已由 [docs 查證](./rounds/2026-08-03-codex-copilot.docs.md) 定案（新增 C-75～C-77）；Copilot [已實機回覆](./rounds/2026-08-03-vscode-copilot.reply.md)（新增 C-78，無需新增 project `.gitignore` 規則）；Codex [已實機回覆](./rounds/2026-08-03-codex.reply.md)（**推翻我方 C-17 的 rollout 誤植**，新增 C-63、C-64）；四工具交叉檢視全部完成 |
