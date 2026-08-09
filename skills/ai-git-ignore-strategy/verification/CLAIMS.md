@@ -153,7 +153,7 @@
 | ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-60 | `.agents/` | **非 Antigravity 專屬**，是 Codex／Gemini CLI／Antigravity 共用的跨工具目錄 | 官方文件（三方交叉） | 2026-07-29 | — | 已驗證 |
-| C-88 | CI 斷言 `.gitignore` 決定的正確寫法 | **不是路徑事實，是方法上的坑，但同屬「靜默失效」而登記於此。** GitHub Actions 的 `shell: bash` 等同 `bash -eo pipefail`；`set -e` 的例外明載包含「回傳值被 `!` 反轉時不中止」，故 `! git check-ignore -q <path>` **無論結果如何都不會讓 CI 失敗**。2026-08-09 於 PM-tools-Dashboard-docker 端對端實測：移除 `!.claude/launch.json`（＝決定已失效）後，該寫法的 CI 仍回傳 exit 0。→ 改用顯式比對的 `check()` 函式並 `exit $fail`，兩種失效情境皆正確攔下。⚠️ 與 `git check-ignore -v` 的退出碼問題是**同一個坑的兩種面貌**：`-v` 命中任何規則（含 `!` 放行）皆回傳 0。**判定擋或放行一律用不含 `-v` 的 `-q`，且不靠 `!` 反轉。** 已寫入五版〈用 CI 鎖住決定〉 | bash 手冊＋端對端實測 | 2026-08-09 | — | 已驗證 |
+| C-88 | CI 斷言的寫法（**非路徑主張**，故不列入監控涵蓋率） | **不是路徑事實，是方法上的坑，但同屬「靜默失效」而登記於此。** GitHub Actions 的 `shell: bash` 等同 `bash -eo pipefail`；`set -e` 的例外明載包含「回傳值被 `!` 反轉時不中止」，故 `! git check-ignore -q <path>` **無論結果如何都不會讓 CI 失敗**。2026-08-09 於 PM-tools-Dashboard-docker 端對端實測：移除 `!.claude/launch.json`（＝決定已失效）後，該寫法的 CI 仍回傳 exit 0。→ 改用顯式比對的 `check()` 函式並 `exit $fail`，兩種失效情境皆正確攔下。⚠️ 與 `git check-ignore -v` 的退出碼問題是**同一個坑的兩種面貌**：`-v` 命中任何規則（含 `!` 放行）皆回傳 0。**判定擋或放行一律用不含 `-v` 的 `-q`，且不靠 `!` 反轉。** 已寫入五版〈用 CI 鎖住決定〉 | bash 手冊＋端對端實測 | 2026-08-09 | — | 已驗證 |
 
 ---
 
