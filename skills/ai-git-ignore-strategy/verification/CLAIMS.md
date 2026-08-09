@@ -3,16 +3,16 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-08-09（Codex 與 Copilot 實機回覆回填 —— 新增 C-85、C-86；兩者皆確認自 `~/.agents/skills/` 載入，移除舊路徑安全。C-79 的「本機實查」依據經 C-86 更正為循環證據）
+**最後更新**：2026-08-09（三工具交接回填完畢 —— C-85 Codex／C-86 Copilot 皆實機確認自 `~/.agents/skills/` 載入、移除舊路徑安全；C-87 Antigravity 的 `agent.json` 欄位結構經二進位 protobuf 定義佐證。C-79 的「本機實查」依據經 C-86 更正為循環證據）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 60 |
+| 已驗證 | 61 |
 | 待實查 | 0 |
 | 有疑 | 0 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| **總計** | **67** |
+| **總計** | **68** |
 
 ---
 
@@ -81,6 +81,8 @@
 
 | C-86 | Copilot 的實際 skill catalog 來源 | **實機確認**：active agent host 注入的 skill catalog 直接列出 `C:\Users\LdsFi\.agents\skills\ai-git-ignore-strategy\SKILL.md`（generic 變體），不是來自工作區或 `.copilot/skills/`。→ 2026-08-07 移除 `~/.copilot/skills/` 後**技能未消失**，該次移除安全。⚠️ **重要且推翻我方原依據**：檔案系統有**兩份**同名實體技能（`~/.agents` generic ＋ `~/.claude` claude），但 catalog **只出現一個項目**，來源為 `.agents` —— C-79 原稱「Copilot 同時看得到兩份」是由目錄存在推論的，非 catalog 觀察，已更正。⚠️ 但**不可反向外推**：回報者明確指出「不能據此推論 Copilot 不掃 `~/.claude/skills/`，也不能推論 `.agents` 永遠優先」；官方文件列出三條 Personal 路徑（`~/.copilot`、`~/.agents`、`~/.claude`）卻**未定義同名 collision 的優先順序**，runtime log 亦無 discovery／dedup 事件。本輪未建立探針技能、未重載 VS Code 做破壞性實驗，故**同名優先權維持未驗證**。另更正一項措辭：`~/.copilot/` 父目錄仍存在（其下有 `ide/*.lock`），只有 `skills/` 子目錄被移除；`~/.copilot/skills/` 亦**非**無效或廢棄路徑，官方仍列為 Personal skill 位置 | Copilot 實機回覆（active agent host catalog）＋本機實查 | 2026-08-09 | VS Code 1.125.1／Copilot Chat 0.53.1（build 1） | 已驗證 |
 
+| C-87 | `.agents/agents/<name>/agent.json` 的欄位結構 | Antigravity 回覆**誠實聲明無實機資料**（agy 1.0.13 為 headless，該檔通常由桌面端 GUI「Create New Agent」建立或人工編寫），並提供一份社群 schema。**維護者以二進位獨立複驗，結果比回覆自身的依據更強**：`customAgentSpec`(7)、`systemPromptSections`(2)、`toolNames`(4)、`customAgent`(15) 皆存在，且是 **protobuf 訊息定義**而非零星字串 —— 例：`protobuf:"bytes,2,opt,name=custom_agent_spec,json=customAgentSpec,proto3"`。欄位集合為 `name`／`displayName`／`description`／`hidden`／`customAgentSpec{customAgent{systemPromptSections, toolNames}}`，**全屬靜態角色宣告**，無 session／時間戳／對話等執行期欄位。→ 支持「性質適合提交」。⚠️ **仍不足以啟用白名單**（見 C-54）：(1) **無人目視過實體檔案**；(2) 交接包 Q3「目錄下還有沒有其他檔案」回覆自陳「無法由系統生成結果斷定」＝**未回答**；(3) **新發現的未決點** —— Go 結構標籤是 `json:"custom_agent_spec,omitempty"`，以 `encoding/json` 封送會輸出 **snake_case**，`customAgentSpec` 只是 protobuf JSON 名。回覆給的 camelCase schema 可能取自 protobuf JSON 形式而非磁碟實際內容，**實際 key 命名未定**。另：二進位有 `creating agent directory`、`writing agent.json`、`marshaling agent.json` 與 9 處 `AgentsCreatePath`，顯示寫入機制存在，但查無對應的使用者層子命令字串 | Antigravity 回覆（社群 schema，自陳無實機）＋維護者二進位複驗（protobuf 定義） | 2026-08-09 | agy 1.0.13 | 已驗證 |
+
 ## Cursor（已移出維護範圍）
 
 > 🚫 **2026-08-03 移出**：維護者未使用 Cursor，為降低維護負擔已自五版範本移除
@@ -125,7 +127,7 @@
 | C-50 | `AGENTS.md`（根目錄） | Antigravity 已支援讀取，與 `GEMINI.md` 並列 | 官方 changelog＋實機 | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-51 | 技能觸發語法 | `@skill-name` **已不適用**；技能由 Agent 依任務自動掃描載入 | 實機（回報） | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-52 | 專案目錄自動產生物 | ~~不在專案目錄產生任何 cache／log~~ → **回報有誤**：對話紀錄確實在家目錄，但 agent 會寫入 `.agents/ORIGINAL_REQUEST.md`（見 C-55） | 二進位字串分析**推翻**回報結論 | 2026-07-30 | 1.0.13 | 已驗證 |
-| C-54 | `.agents/agents/<name>/agent.json` | 工作區層級自訂子代理定義。**2026-08-07 起範本預設不放行（白名單改為註解狀態）** —— 路徑事實明確，但「該不該提交」的依據是內容推測而非官方明文，故交由開發者確認後啟用。依據為二進位中的**明確路徑模板**：`{workspace}/.agents/agents/{agent_name}/agent.json`（另有全域對應 `{appDataDir}/agents/{agent_name}/agent.json`）—— 不是類比、也不只是架構對稱。`writing agent.json`／`marshaling agent.json` 顯示為使用者發起的持久化宣告，執行期狀態另有去處（C-56 與家目錄 `brain/`）。**殘留未知**：實體檔案內容尚無人目視，且本機五個實際專案的 `.agents/` 皆未出現 `agents/`（工具支援但使用者未用過） | 二進位字串分析（明確路徑模板） | 2026-08-04 | 1.0.13 | 已驗證 |
+| C-54 | `.agents/agents/<name>/agent.json` | 工作區層級自訂子代理定義。**2026-08-07 起範本預設不放行（白名單改為註解狀態）** —— 路徑事實明確，但「該不該提交」的依據是內容推測而非官方明文，故交由開發者確認後啟用。依據為二進位中的**明確路徑模板**：`{workspace}/.agents/agents/{agent_name}/agent.json`（另有全域對應 `{appDataDir}/agents/{agent_name}/agent.json`）—— 不是類比、也不只是架構對稱。`writing agent.json`／`marshaling agent.json` 顯示為使用者發起的持久化宣告，執行期狀態另有去處（C-56 與家目錄 `brain/`）。**殘留未知**：實體檔案內容尚無人目視，且本機五個實際專案的 `.agents/` 皆未出現 `agents/`（工具支援但使用者未用過）。**2026-08-09 Antigravity 回覆後仍維持註解狀態**：欄位結構已由二進位 protobuf 定義佐證為純角色宣告（C-87），但依 2026-08-07 確立的門檻，白名單要「啟用」需**官方明文定位為團隊共用**；欄位性質證明的是內容，不是官方的分享定位，且 (a) 無人目視實體檔案、(b) 「目錄下還有沒有其他檔案」仍未回答、(c) 實際 key 命名未定。為單一條目破例會讓該門檻失效 | 二進位字串分析（明確路徑模板） | 2026-08-04 | 1.0.13 | 已驗證 |
 | C-55 | `.agents/ORIGINAL_REQUEST.md` | agent 會把使用者訊息**逐字**附加至此檔（含 UTC 時間戳），亦有 `.agents/<agent_folder>/ORIGINAL_REQUEST.md` 變體。**屬敏感內容，必須排除** | 二進位字串分析 | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-56 | `.agents/<type>_<milestone>[_<N>][_gen<N>]/` | 子代理在**專案內**建立的工作目錄命名規則（二進位字串），內含 `ORIGINAL_REQUEST.md` 等記錄。已被 `.agents/*` 完整涵蓋 | 二進位字串分析 | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-80 | Antigravity 的 worktree 處理 | 2.5.0 changelog 提到「environment selector 記住上次使用的 worktree」「側欄可依 worktree 排序」，但二進位中 worktree 相關字串全是 git 操作（`gitdir:`、`rev-parse`、`worktree list`、`repo root`），查無 `.agents/worktree*` 或 `~/.gemini/*/worktree*`。→ **Antigravity 讀取標準 git worktree，不自建工具管理的 worktree 目錄**，與 Claude Code 的 `.claude/worktrees/`（C-09）不同，**本 skill 無需為其新增規則** | 官方 changelog＋二進位字串分析 | 2026-08-04 | 2.5.0 | 已驗證 |
@@ -260,7 +262,7 @@
 | 2026-07-29 | Antigravity 1.0.13 | C-41～C-49（新增 C-51、C-52） | [交接包](./rounds/2026-07-29-antigravity.md) | [回覆](./rounds/2026-07-29-antigravity.reply.md)　已回填；其中 C-44、C-48 經維護者複驗後**未採信**回報結論 |
 | 2026-07-30 | Antigravity 1.0.13 | C-48、C-54（Q1 為實驗題） | [交接包](./rounds/2026-07-30-antigravity-round2.md) | [回覆](./rounds/2026-07-30-antigravity-round2.reply.md)　C-48 結案（實驗方法正確）；C-54 與自由敘述的 4 條路徑未採信，C-54 改由二進位對稱設計自行結案 |
 | 2026-07-30 | 官方文件研究（無需交接） | C-08、C-09、C-15～C-17、C-23、C-24、C-32、C-53 | — | 九項全部由官方文件直接定案，未動用交接輪次 |
-| 2026-08-04 | Codex、Copilot（＋Antigravity 可選） | 移除舊安裝路徑後的載入實查；C-54 實體檔案 | [交接包](./rounds/2026-08-04-load-path-check.md) | Codex [已實機回覆](./rounds/2026-08-04-codex.reply.md)（**全部採用**，新增 C-85：確認自 `~/.agents/skills/` 載入，移除舊複本後技能未消失；並抓出我方三處文件缺失，其中 `README.md` 的檢查指令含兩個 `0x07` 控制字元而**實際跑不出正確結果**）。Copilot [已實機回覆](./rounds/2026-08-04-vscode-copilot.reply.md)（**全部採用**，新增 C-86：同樣確認自 `~/.agents/skills/` 載入；並**推翻我方 C-79 的一項依據** —— 兩份同名實體複本在 catalog 中只出現一個項目，原稱「同時看得到兩份」是由目錄存在推論的循環證據）。**Antigravity 仍待回覆**（C-54 實體檔案內容） |
+| 2026-08-04 | Codex、Copilot（＋Antigravity 可選） | 移除舊安裝路徑後的載入實查；C-54 實體檔案 | [交接包](./rounds/2026-08-04-load-path-check.md) | Codex [已實機回覆](./rounds/2026-08-04-codex.reply.md)（**全部採用**，新增 C-85：確認自 `~/.agents/skills/` 載入，移除舊複本後技能未消失；並抓出我方三處文件缺失，其中 `README.md` 的檢查指令含兩個 `0x07` 控制字元而**實際跑不出正確結果**）。Copilot [已實機回覆](./rounds/2026-08-04-vscode-copilot.reply.md)（**全部採用**，新增 C-86：同樣確認自 `~/.agents/skills/` 載入；並**推翻我方 C-79 的一項依據** —— 兩份同名實體複本在 catalog 中只出現一個項目，原稱「同時看得到兩份」是由目錄存在推論的循環證據）。Antigravity [已回覆](./rounds/2026-08-04-antigravity.reply.md)（**部分採用**，新增 C-87：誠實聲明無實機資料，所提社群 schema 經維護者以二進位 protobuf 定義獨立佐證成立；但「白名單完全正確且必要」的**強度不採用** —— 仍無人目視實體檔案、Q3 自陳無法斷定、且 key 命名 snake_case／camelCase 未定，故 `!.agents/agents/` **維持註解狀態**）。**本輪三工具全部回覆完畢** |
 | 2026-08-07 | 比對 PM-tools-Dashboard-docker 實際運作 | 該專案 `.gitignore` 與現行範本的落差 | — | 發現 `.claude/launch.json` 被 `.claude/*` 靜默擋下 → 新增 **C-83**。另記該專案 `.gitignore` 自 2026-07-11 起未再更新，`.codex/`、`.gemini/` 的整包封殺已與 C-17、C-21 不符（目前該專案兩目錄為空，屬潛在而非現行誤殺） |
 | 2026-08-04 | 維護者自查（縱向稽核） | 全範本每條規則的依據強度 | [稽核紀錄](./rounds/2026-08-04-speculation-audit.md) | 三條篩出：C-54 依據**被低估**（實為明確路徑模板，非對稱推論）；`.agent/skills/` 缺主張且規則寬於官方向後相容範圍 → 新增 C-81；`!.agents/AGENTS.md`／`!.agents/settings.json` 為**不存在的檔案**留白名單 → **已自五版移除**。另記三條假陽性係帳本路徑欄索引不足所致 |
 | 2026-08-03 | **四工具交叉檢視** | 全部主線工具 | [交叉檢視文件](./rounds/2026-08-03-cross-tool-review.md) | Antigravity [已回覆](./rounds/2026-08-03-antigravity.reply.md)（6 項中 3 項複驗未採用，新增 C-59）；Claude Code [已自答](./rounds/2026-08-03-claude-code.reply.md)（新增 C-61、C-62）；Codex 與 Copilot 的文件端問題已由 [docs 查證](./rounds/2026-08-03-codex-copilot.docs.md) 定案（新增 C-75～C-77）；Copilot [已實機回覆](./rounds/2026-08-03-vscode-copilot.reply.md)（新增 C-78，無需新增 project `.gitignore` 規則）；Codex [已實機回覆](./rounds/2026-08-03-codex.reply.md)（**推翻我方 C-17 的 rollout 誤植**，新增 C-63、C-64）；四工具交叉檢視全部完成 |
