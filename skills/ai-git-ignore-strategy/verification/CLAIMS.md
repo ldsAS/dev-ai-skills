@@ -3,16 +3,16 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-08-07（新增 C-83、C-84；並確立**白名單啟用門檻** —— 依據非官方明文者一律降為註解狀態，見 C-54、C-83）
+**最後更新**：2026-08-09（Codex 實機回覆回填 —— 新增 C-85：`~/.agents/skills/` 為實際載入來源，移除舊路徑安全）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 58 |
+| 已驗證 | 59 |
 | 待實查 | 0 |
 | 有疑 | 0 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| **總計** | **65** |
+| **總計** | **66** |
 
 ---
 
@@ -48,6 +48,7 @@
 | C-17 | `.codex/hooks.json`、`.codex/hooks/`、`.codex/rules/` | **原規則誤殺三項**：三者都是官方列出的專案層設定層（未信任專案會跳過這些 layer），屬團隊共用 → **已放行**。⚠️ **2026-08-03 更正**：先前把 `.codex/rollout.jsonl` 列為專案層 session 紀錄並加了排除規則 —— **那是錯的**。該 token 取自官方 hooks 文件中傳給 hook 的**範例 payload**（`"transcript_path": "/workspace/.codex/rollout.jsonl"`），不是真實預設路徑。實際 rollout 位於 `$CODEX_HOME/sessions/YYYY/MM/DD/rollout-<ts>-<id>.jsonl`（`CODEX_HOME` 預設 `~/.codex`），本機實查一致。誤植規則已自五版移除 | 官方文件＋Codex 實機回覆＋本機實查 | 2026-08-03 | 0.146.0-alpha.9.2 | 已驗證 |
 | C-63 | Codex 官方文件站位置 | 文件已自 `developers.openai.com/codex/*` **搬遷至** `learn.chatgpt.com/docs/*`（舊網址仍 302 導向）。監控來源已改指正式網址並補上 `build-skills`、`hooks` 兩頁 | Codex 實機回覆＋重導向實測 | 2026-08-03 | — | 已驗證 |
 | C-64 | `~/.agents/skills/` | Codex 官方 USER scope 路徑；亦為 Gemini CLI 與 Copilot 的使用者層技能位置，屬**跨工具共用**。本專案安裝器原本只寫 `~/.codex/skills`（該路徑實查僅有我方寫入的內容，屬 C-48 同型的循環證據），已補上此路徑 | 官方文件 build-skills | 2026-08-03 | — | 已驗證 |
+| C-85 | Codex 的實際 skill root 清單 | **實機確認**：目前 task 登記的 root 為 `r0 = ~/.agents/skills`、`r1 = ~/.codex/skills/.system`，本技能自 `r0/ai-git-ignore-strategy/SKILL.md` 載入（實體目錄，非 symlink）。→ 2026-08-07 刪除 `~/.codex/skills/ai-git-ignore-strategy` 後**技能未消失**，該次移除安全。另確認 `.codex/skills` **父目錄未出現在 root 清單**，不應再視為現行 USER 安裝路徑（呼應 C-12；`.system/` 子目錄則確實在用，見 C-82）。⚠️ 回報者主動聲明：本輪未在 `~/.codex/skills/` 放探針技能，故**不宣稱**所有版本與啟動模式都無 legacy fallback —— 但對本次刪除的安全性，有實際載入成功可直接證明 | Codex 實機回覆＋官方 scope 表 | 2026-08-09 | Codex Desktop 26.803.5235.0／bundled runtime 0.147.0-alpha.6.5（task metadata 為 0.146.0-alpha.9.2） | 已驗證 |
 
 ## Gemini CLI
 
@@ -257,7 +258,7 @@
 | 2026-07-29 | Antigravity 1.0.13 | C-41～C-49（新增 C-51、C-52） | [交接包](./rounds/2026-07-29-antigravity.md) | [回覆](./rounds/2026-07-29-antigravity.reply.md)　已回填；其中 C-44、C-48 經維護者複驗後**未採信**回報結論 |
 | 2026-07-30 | Antigravity 1.0.13 | C-48、C-54（Q1 為實驗題） | [交接包](./rounds/2026-07-30-antigravity-round2.md) | [回覆](./rounds/2026-07-30-antigravity-round2.reply.md)　C-48 結案（實驗方法正確）；C-54 與自由敘述的 4 條路徑未採信，C-54 改由二進位對稱設計自行結案 |
 | 2026-07-30 | 官方文件研究（無需交接） | C-08、C-09、C-15～C-17、C-23、C-24、C-32、C-53 | — | 九項全部由官方文件直接定案，未動用交接輪次 |
-| 2026-08-04 | Codex、Copilot（＋Antigravity 可選） | 移除舊安裝路徑後的載入實查；C-54 實體檔案 | [交接包](./rounds/2026-08-04-load-path-check.md) | 待回覆 —— 我們依官方文件刪掉了 `~/.codex/skills`、`~/.copilot/skills` 的複本，若文件與實機不符，技能會無聲消失，需實機確認載入來源 |
+| 2026-08-04 | Codex、Copilot（＋Antigravity 可選） | 移除舊安裝路徑後的載入實查；C-54 實體檔案 | [交接包](./rounds/2026-08-04-load-path-check.md) | Codex [已實機回覆](./rounds/2026-08-04-codex.reply.md)（**全部採用**，新增 C-85：確認自 `~/.agents/skills/` 載入，移除舊複本後技能未消失；並抓出我方三處文件缺失，其中 `README.md` 的檢查指令含兩個 `0x07` 控制字元而**實際跑不出正確結果**）。**Copilot 與 Antigravity 仍待回覆** |
 | 2026-08-07 | 比對 PM-tools-Dashboard-docker 實際運作 | 該專案 `.gitignore` 與現行範本的落差 | — | 發現 `.claude/launch.json` 被 `.claude/*` 靜默擋下 → 新增 **C-83**。另記該專案 `.gitignore` 自 2026-07-11 起未再更新，`.codex/`、`.gemini/` 的整包封殺已與 C-17、C-21 不符（目前該專案兩目錄為空，屬潛在而非現行誤殺） |
 | 2026-08-04 | 維護者自查（縱向稽核） | 全範本每條規則的依據強度 | [稽核紀錄](./rounds/2026-08-04-speculation-audit.md) | 三條篩出：C-54 依據**被低估**（實為明確路徑模板，非對稱推論）；`.agent/skills/` 缺主張且規則寬於官方向後相容範圍 → 新增 C-81；`!.agents/AGENTS.md`／`!.agents/settings.json` 為**不存在的檔案**留白名單 → **已自五版移除**。另記三條假陽性係帳本路徑欄索引不足所致 |
 | 2026-08-03 | **四工具交叉檢視** | 全部主線工具 | [交叉檢視文件](./rounds/2026-08-03-cross-tool-review.md) | Antigravity [已回覆](./rounds/2026-08-03-antigravity.reply.md)（6 項中 3 項複驗未採用，新增 C-59）；Claude Code [已自答](./rounds/2026-08-03-claude-code.reply.md)（新增 C-61、C-62）；Codex 與 Copilot 的文件端問題已由 [docs 查證](./rounds/2026-08-03-codex-copilot.docs.md) 定案（新增 C-75～C-77）；Copilot [已實機回覆](./rounds/2026-08-03-vscode-copilot.reply.md)（新增 C-78，無需新增 project `.gitignore` 規則）；Codex [已實機回覆](./rounds/2026-08-03-codex.reply.md)（**推翻我方 C-17 的 rollout 誤植**，新增 C-63、C-64）；四工具交叉檢視全部完成 |

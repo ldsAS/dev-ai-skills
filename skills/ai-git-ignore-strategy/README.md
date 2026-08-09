@@ -44,9 +44,12 @@
 
 安裝完成後，於對應 AI 工具中喚起：
 
-- **Claude Code**：在對話中輸入 `/ai-git-ignore-strategy` 或自然語言觸發（「幫我審查 gitignore」）
+- **Claude Code**：在對話中輸入 `/ai-git-ignore-strategy`，或自然語言觸發（「幫我檢核 gitignore」「哪些檔案不該進 git」）
 - **Antigravity**：skill 會在 YAML 描述的觸發字出現時自動載入
-- **Codex**：放在 `~/.codex/skills/ai-git-ignore-strategy/SKILL.md` 後，由 YAML 描述中的 gitignore / repo hygiene 關鍵字自動觸發
+- **Codex**：安裝器寫入官方 USER 路徑 `~/.agents/skills/ai-git-ignore-strategy/SKILL.md`（**不是** `~/.codex/skills/`，該路徑未見於官方 skills scope 表，見 C-12），由 YAML 描述中的關鍵字自動觸發。2026-08-09 Codex 實機確認載入來源即為此路徑（C-85）
+- **GitHub Copilot (VS Code)**、**Gemini CLI**：同樣讀 `~/.agents/skills/`，共用上面那一份，不另外安裝
+
+> 📌 完整的路徑對照表（含每條路徑的帳本編號）見 repo 根目錄 `README.md` 的「安裝邏輯」一節 —— 那裡是唯一真相來源。
 
 ## 維護者備註
 

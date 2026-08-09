@@ -113,8 +113,8 @@ cd dev-ai-skills
 
 ```powershell
 "$env:USERPROFILE\.claude\skills","$env:USERPROFILE\.agents\skills","$env:USERPROFILE\.gemini\config\skills",
-"$env:USERPROFILE\.geminintigravity\skills","$env:USERPROFILE\.codex\skills","$env:USERPROFILE\.copilot\skills" |
-  ForEach-Object { if (Test-Path "$_i-git-ignore-strategy") { $_.Replace($env:USERPROFILE,'~') } }
+"$env:USERPROFILE\.gemini\antigravity\skills","$env:USERPROFILE\.codex\skills","$env:USERPROFILE\.copilot\skills" |
+  ForEach-Object { if (Test-Path "$_\ai-git-ignore-strategy") { $_.Replace($env:USERPROFILE,'~') } }
 ```
 
 ```bash

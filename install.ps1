@@ -5,12 +5,17 @@
 .DESCRIPTION
   Copies AI skills from this repo into the corresponding AI tool's skills directory.
 
-  Supported AI tools:
+  Supported AI tools (see README "安裝邏輯" for the authoritative path map):
     - Claude Code      : $env:USERPROFILE\.claude\skills\
     - Antigravity CLI  : $env:USERPROFILE\.gemini\config\skills\
     - Antigravity IDE  : $env:USERPROFILE\.gemini\antigravity\skills\
-    - Codex            : $env:USERPROFILE\.codex\skills\
-    - VS Code (GitHub Copilot) : $env:USERPROFILE\.copilot\skills\
+    - Codex            : $env:USERPROFILE\.agents\skills\   (official USER scope)
+    - Gemini CLI       : $env:USERPROFILE\.agents\skills\   (same copy, not installed separately)
+    - VS Code (Copilot): $env:USERPROFILE\.agents\skills\   (same copy, not installed separately)
+
+  Legacy-compat paths, never created — only refreshed when a copy is already there:
+    - $env:USERPROFILE\.codex\skills\      (absent from Codex's official scope table)
+    - $env:USERPROFILE\.copilot\skills\    (Copilot also reads ~\.agents\skills)
 
   Behaviour: COPY mode (not symlink). Re-run after git pull to sync updates.
 
@@ -55,10 +60,12 @@ $SkillsDir         = Join-Path $ScriptDir 'skills'
 $ClaudeTarget        = Join-Path $env:USERPROFILE '.claude\skills'
 $AntigravityTargetV2 = Join-Path $env:USERPROFILE '.gemini\config\skills'       # Antigravity CLI 全域
 $AntigravityTargetV1 = Join-Path $env:USERPROFILE '.gemini\antigravity\skills'  # Antigravity IDE 全域
-# 官方 skills scope 表（2026-08-03）列的 USER 路徑是 $HOME/.agents/skills，
-# .codex\skills 未出現於該表；保留為舊版相容，但務必同時寫入 .agents\skills
-# （同 C-48 的教訓）。該路徑亦為 Gemini CLI 與 Copilot 的使用者層技能位置。
-$CodexTarget         = Join-Path $env:USERPROFILE '.codex\skills'   # 舊版相容
+# 官方 skills scope 表（2026-08-03）列的 USER 路徑是 $HOME/.agents/skills（C-12），
+# 該路徑亦為 Gemini CLI（C-22）與 Copilot（C-77）的使用者層技能位置 —— 一份共用。
+# .codex\skills 未出現於官方表中：2026-08-04 起降為「已裝過才續寫」的相容路徑，
+# 不再主動建立（判準見下方 Test-SkillInstalledIn）。2026-08-09 由 Codex 實機確認：
+# 刪除該處複本後技能仍從 ~\.agents\skills 正常載入，未消失（C-85）。
+$CodexTarget         = Join-Path $env:USERPROFILE '.codex\skills'   # 舊版相容（不主動建立）
 $AgentsTarget        = Join-Path $env:USERPROFILE '.agents\skills'  # 官方 USER 路徑（跨工具）
 $VSCodeTarget        = Join-Path $env:USERPROFILE '.copilot\skills'
 
