@@ -142,7 +142,20 @@ function Install-SkillVariant {
     New-Item -ItemType Directory -Path $dst -Force | Out-Null
     Copy-Item -Path "$src\*" -Destination $dst -Recurse -Force
 
-    Write-Ok "  └ $skillName ($Variant) → $dst"
+    # Copy-Item 成功不代表內容一定一致；安裝完成當下立即做 byte-level 雜湊驗證。
+    # 這只能保證「此刻」同步，若之後再修改 source，仍必須重新執行安裝器。
+    $srcSkill = Join-Path $src 'SKILL.md'
+    $dstSkill = Join-Path $dst 'SKILL.md'
+    if (-not (Test-Path $dstSkill)) {
+        throw "安裝驗證失敗：找不到 $dstSkill"
+    }
+    $srcHash = (Get-FileHash -LiteralPath $srcSkill -Algorithm SHA256).Hash
+    $dstHash = (Get-FileHash -LiteralPath $dstSkill -Algorithm SHA256).Hash
+    if ($srcHash -ne $dstHash) {
+        throw "安裝驗證失敗：$srcSkill 與 $dstSkill 的 SHA256 不一致"
+    }
+
+    Write-Ok "  └ $skillName ($Variant) → $dst [SHA256 $($srcHash.Substring(0, 12))]"
     return $true
 }
 
@@ -200,7 +213,7 @@ function Install-Project {
         Write-Host "       !.agents/skills/$($_.Name)/**"
     }
     Write-Host ''
-    Write-Host '     驗證：git check-ignore -v .agents/skills/<name>/SKILL.md'
+    Write-Host '     驗證：git check-ignore --no-index -v -- .agents/skills/<name>/SKILL.md'
     Write-Host '     （輸出以 ! 開頭＝已放行；無輸出＝沒被任何規則命中，也算放行）'
     Write-Host ''
     Write-Host '  2. 在專案 AGENTS.md 寫明什麼時候要用它'

@@ -22,9 +22,15 @@
 
 五版內容結構一致（五階段流程 + 三色分類 + 標準範本 + 救援指令），並依各工具的檔案讀取、shell 執行、編輯、權限提升與安裝位置做微調。Codex 版額外納入 `apply_patch`、`multi_tool_use.parallel`、sandbox escalation 等 Codex 特有操作規則，並全程使用 PowerShell 範例（Windows + SSHFS 友善）。
 
+## 單一 MASTER.md 架構
+
+本技能的 `git-tracking/MASTER.md` 比照 [ui-ux-pro-max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) 的 `design-system/MASTER.md`，作為專案層的單一真相來源。五個工具版本只調整操作方式，不得分叉專案追蹤決策。
+
+所有工具都必須讀取同一份 `<repo>/git-tracking/MASTER.md`；需要更新且已取得修改授權時，也只能寫入該檔。不得建立 `MASTER.codex.md`、`MASTER.claude.md` 或其他工具專屬副本。這項硬規則也直接寫在每個版本的 `SKILL.md`，README 在此僅說明設計理由。
+
 ## 安裝
 
-從 repo 根目錄執行 `install.sh` 或 `install.ps1`，並傳入工具模式。此 repo 目前只有 `ai-git-ignore-strategy`，因此指定工具模式就會安裝這個 skill 的對應版本：
+從 repo 根目錄執行 `install.sh` 或 `install.ps1`，並傳入工具模式。`claude`／`antigravity`／`vscode` 會安裝各自版本；`codex` 會把 `generic/` 安裝到 Codex、Gemini CLI、Copilot 共用的 `~/.agents/skills/`，避免在同一共用路徑放入 Codex 專屬工具語法。
 
 ```bash
 # Linux / macOS / WSL
@@ -54,6 +60,8 @@
 ## 維護者備註
 
 修改此 skill 時，請同步更新工具專用版本（或至少更新 `generic/` 後再移植到各工具版本）。詳細規範見 repo 根目錄的 `CONTRIBUTING.md`。
+
+全域安裝必須是**最後一次 source 修改之後**的步驟：先完成五版與帳本修改、跑完驗證，再執行 `install.ps1` auto 模式或 `update-skills.bat`。如果安裝後又改了任何 variant，就必須重跑安裝並比對來源與全域 `SKILL.md` 的 SHA256；「曾經安裝成功」不代表目前仍同步。
 
 ### 路徑主張的依據
 

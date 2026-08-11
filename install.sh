@@ -130,6 +130,13 @@ install_skill_variant() {
   rm -rf "$dst"
   mkdir -p "$dst"
   cp -r "$src"/. "$dst"/
+
+  # 安裝完成當下驗證來源與目的 SKILL.md byte-identical。
+  # 若稍後又修改 source，仍必須重新執行安裝器。
+  if ! cmp -s "$src/SKILL.md" "$dst/SKILL.md"; then
+    err "安裝驗證失敗：$src/SKILL.md 與 $dst/SKILL.md 不一致"
+    return 1
+  fi
   ok "  └ $skill_name ($variant) → $dst"
   return 0
 }
@@ -192,7 +199,7 @@ install_project() {
     echo "       !.agents/skills/$n/**"
   done
   echo
-  echo "     ${C_INFO}驗證：git check-ignore -v .agents/skills/<name>/SKILL.md${C_RESET}"
+  echo "     ${C_INFO}驗證：git check-ignore --no-index -v -- .agents/skills/<name>/SKILL.md${C_RESET}"
   echo "     （輸出以 ! 開頭＝已放行；無輸出＝沒被任何規則命中，也算放行）"
   echo
   echo "  ${C_BOLD}2. 在專案 AGENTS.md 寫明什麼時候要用它${C_RESET}"

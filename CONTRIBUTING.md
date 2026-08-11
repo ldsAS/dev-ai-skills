@@ -55,7 +55,7 @@ description: 一段清楚說明這個 skill 的用途與觸發時機的描述。
 | :--- | :--- | :--- |
 | `antigravity/SKILL.md` | Antigravity 特有的工具名（`view_file`, `list_dir`；1.0.13 起技能自動載入，不再用 `@skill-name` 顯式觸發） | Claude 專屬工具名 |
 | `claude/SKILL.md` | Claude Code 工具名（`Read`, `Edit`, `Bash`, `Glob`, `Grep`, `Write`）、`/skill-name` slash command | Antigravity 專屬工具名 |
-| `codex/SKILL.md` | Codex 工具與規則（`functions.exec_command`, `multi_tool_use.parallel`, `apply_patch`, sandbox escalation, `~/.codex/skills/`） | Claude / Antigravity / VS Code 專屬工具名 |
+| `codex/SKILL.md` | Codex 工具與規則（`functions.exec_command`, `multi_tool_use.parallel`, `apply_patch`, sandbox escalation）；僅供 Codex 專屬／舊版相容目標，跨工具共用的 `~/.agents/skills/` 安裝 `generic/` | Claude / Antigravity / VS Code 專屬工具名 |
 | `vscode/SKILL.md` | GitHub Copilot / VS Code 工具名（`read_file`, `list_dir`, `grep_search`, `run_in_terminal`, `replace_string_in_file`） | Claude / Antigravity / Codex 專屬工具名 |
 | `generic/SKILL.md` | 工具無關的描述（「讀取檔案內容」「列出目錄」「執行 git 指令」） | ❌ 任何具體工具名 |
 
@@ -71,7 +71,7 @@ description: 一段清楚說明這個 skill 的用途與觸發時機的描述。
   - 階段標題與數量（例如五階段流程的每一節）
   - 診斷階段的「跨平台訊號 fingerprint 檢查」
   - 報告表的四個區塊（✅ / 🚫 / ⚠️ 含 fileMode 提示與 runtime 檔 A/B 方案 row / ❓）
-  - `git check-ignore` 邊界驗證步驟（含 `-v` 對 `!` 規則的判讀說明）
+  - `git check-ignore --no-index` 邊界驗證步驟（含 `-v` 對 `!` 規則的判讀說明，以及已追蹤檔案不得受 index 干擾）
   - 救援指令（含 `--ignore-unmatch`）
   - 白名單注意事項
   - 5a 的「工作樹行尾殘留」診斷與修復（`git ls-files --eol` + 強制重新 checkout）
@@ -85,7 +85,8 @@ description: 一段清楚說明這個 skill 的用途與觸發時機的描述。
 - [ ] 撰寫 `skills/<skill-name>/README.md` 說明各版本差異與使用時機
 - [ ] 在 repo 根目錄的 [`README.md`](./README.md) 「目前提供的技能」表格中新增一行
 - [ ] **改過 `.gitignore` 範本規則的話**，跑過 `python scripts/verify_gitignore_template.py`（全綠才算數）—— 行尾註解與白名單邊界都是靜默失效，肉眼審不出來；push 後 CI 也會再跑一次
-- [ ] 本機跑過 `./install.sh` 驗證安裝器能正確鋪到所有目標目錄
+- [ ] **完成最後一次 source 修改後**，本機跑過 `./install.sh` 或 Windows 的 `powershell -ExecutionPolicy Bypass -File .\install.ps1` auto 模式，驗證安裝器能正確鋪到所有目標目錄
+- [ ] 安裝後比對各來源 variant 與實際全域副本的 SHA256；若安裝後又改過任何 `SKILL.md`，必須重新安裝再比對，不能沿用先前的成功結果
 
 ---
 
