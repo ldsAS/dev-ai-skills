@@ -17,7 +17,8 @@
 做法
 ----
 把每個變體的範本抽出來，各自寫進一個**暫時 git repo** 的 `.gitignore`，
-再對下方 CASES 的每個路徑跑 `git check-ignore -q`，比對「擋／放行」是否符合預期。
+再對下方 CASES 的每個路徑跑 `git check-ignore --no-index -q --`，比對「擋／放行」是否符合預期。
+`--no-index` 讓結果只反映 ignore 規則，不會因探測檔已被 Git 追蹤而得到假放行。
 
 不碰本 repo、不連網。暫時目錄用完即刪。
 
@@ -137,8 +138,15 @@ def check_variant(variant):
 
         mismatches = []
         for path, expect_blocked in CASES:
-            result = subprocess.run(["git", "check-ignore", "-q", path], cwd=tmp)
+            result = subprocess.run(
+                ["git", "check-ignore", "--no-index", "-q", "--", path], cwd=tmp
+            )
             blocked = (result.returncode == 0)
+            if result.returncode not in (0, 1):
+                mismatches.append(
+                    f"{path}：git check-ignore 執行失敗（exit {result.returncode}）"
+                )
+                continue
             if blocked != expect_blocked:
                 want = "擋下" if expect_blocked else "放行"
                 got = "擋下" if blocked else "放行"
@@ -182,7 +190,7 @@ def main():
             print(f"✅ {variant}：{len(CASES)} 個邊界案例全部符合預期")
 
     if failed:
-        print("\n提示：`git check-ignore -v <path>` 可看命中哪一條規則；"
+        print("\n提示：`git check-ignore --no-index -v -- <path>` 可看命中哪一條規則；"
               "注意輸出以 `!` 開頭代表放行而非擋下。")
     return 1 if failed else 0
 

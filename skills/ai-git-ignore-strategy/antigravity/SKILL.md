@@ -30,6 +30,10 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 > 📒 **先看 `git-tracking/MASTER.md`**（若專案有的話）—— 那是這個專案先前的追蹤決定。
 > 本階段的目標是找出「決定、路徑事實、`.gitignore` 實際行為」三者的不一致，
 > 而不是從零重新判斷一遍。詳見下方〈專案追蹤決定表〉。
+>
+> **跨工具單一真相來源**：所有工具都必須讀取同一份 `<repo>/git-tracking/MASTER.md`；
+> 需要更新且已取得修改授權時，也只能寫入該檔。不得建立 `MASTER.codex.md`、
+> `MASTER.claude.md` 或其他工具專屬副本。
 
 1. 用 `view_file` 讀取 `.gitignore`（以及 `.gitattributes`，如存在），確認目前規則。
 2. 用 `run_command` 執行下列指令取得當前狀態：
@@ -199,11 +203,11 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
    ```
 3. **規則邊界驗證**（每改完一條規則必跑）：用 `run_command` 跑 `git check-ignore -v` 對「應該被擋」與「應該放行」的檔案各跑一次，確認 glob 邊界沒寫錯：
    ```bash
-   git check-ignore -v .env.production       # 應該被擋：輸出命中的 ignore 規則
-   git check-ignore -v .env.example          # 應該放行：輸出 `!` 開頭的白名單規則
-   git check-ignore -v secrets.json          # 應該被擋：輸出命中的 ignore 規則
+   git check-ignore --no-index -v -- .env.production       # 應該被擋：輸出命中的 ignore 規則
+   git check-ignore --no-index -v -- .env.example          # 應該放行：輸出 `!` 開頭的白名單規則
+   git check-ignore --no-index -v -- secrets.json          # 應該被擋：輸出命中的 ignore 規則
    ```
-   > ⚠️ **判讀規則**：`-v` 模式下「有輸出」**不等於**「被擋」——輸出的規則若以 `!` 開頭代表**放行**（`-v` 對負向規則也會輸出，且 exit code 同樣是 0）。要用 exit code 判斷時，改用不帶 `-v` 的 `git check-ignore -q <path>`：exit 0 = 被擋、exit 1 = 放行。
+   > ⚠️ **判讀規則**：`-v` 模式下「有輸出」**不等於**「被擋」——輸出的規則若以 `!` 開頭代表**放行**（`-v` 對負向規則也會輸出，且 exit code 同樣是 0）。判斷規則行為一律加 `--no-index`，避免已追蹤檔案被 index 隱藏；要用 exit code 判斷時，改用不帶 `-v` 的 `git check-ignore --no-index -q -- <path>`：exit 0 = 被擋、exit 1 = 放行，其他 exit code = 指令錯誤。
 
    若 `.env.example` 命中的不是 `!` 開頭的規則、或 `secrets.json` 完全沒被擋，回到步驟 1 修正規則。**驗證沒過就不要進步驟 4**。
 4. **補文件前先 grep**：若需要在文件中記錄「clone 後第一次設定步驟」（包含但不限於：技能重新安裝、靜態快照→連結、跨平台 `core.fileMode false` 設定、`chmod +x` 救援等）：
@@ -346,7 +350,7 @@ git config --get core.fileMode             # 查目前設定（預設 true）
 # 寫成  !.claude/settings.json   # 團隊共用設定
 # 會讓整條規則連同註解一起被當成檔名比對而完全失效 —
 # 白名單看起來存在，實際上一條都沒生效。註解一律獨立成行。
-# 每改完一條規則，務必用 git check-ignore 驗證邊界。
+# 每改完一條規則，務必用 git check-ignore --no-index 驗證邊界，避免已追蹤檔案被 index 隱藏。
 # =========================================
 # =========================================
 # 機密與環境
@@ -561,7 +565,7 @@ certs/
 ```text
 ① git-tracking/MASTER.md  這個專案先前的決定
 ② 本技能目前的路徑事實    工具官方怎麼定位這條路徑（會隨工具改版更新）
-③ git check-ignore        .gitignore 現在實際上擋不擋
+③ git check-ignore --no-index  .gitignore 現在實際上擋不擋（不受 index 追蹤狀態干擾）
 ```
 
 **三者一致 → 不必報告。任兩者不一致 → 列進報告，但不要自動改。**
@@ -583,7 +587,7 @@ certs/
 # Git 追蹤決定表 (MASTER)
 
 > **LOGIC**：本檔記錄「這個專案」對各路徑的追蹤決定，**優先於技能的預設範本**。
-> 技能每次執行時做三方比對（本檔 ↔ 技能的路徑事實 ↔ `git check-ignore`），
+> 技能每次執行時做三方比對（本檔 ↔ 技能的路徑事實 ↔ `git check-ignore --no-index`），
 > 只報告不一致處，不自動修改。
 
 **專案**：<專案名>
@@ -629,35 +633,48 @@ certs/
 ```yaml
 - shell: bash
   run: |
-    ! git check-ignore -q .claude/launch.json     # ❌ 這行永遠不會讓 CI 失敗
+    ! git check-ignore --no-index -q -- .claude/launch.json  # ❌ `!` 讓失敗不觸發 set -e
 ```
 
 GitHub Actions 的 `shell: bash` 等同 `bash -eo pipefail`，而 `set -e` 的例外明載
 包含「**回傳值被 `!` 反轉時不中止**」。所以這條斷言不論結果如何都不會擋下 CI ——
 決定失效了，綠燈照給。
 
-**可用的寫法**：顯式比對，並一次列出所有不符項（只報第一條會讓人修一輪跑一輪）。
+此外，`git check-ignore` 預設不回報已在 index 的檔案。CI checkout 後，「應放行」的專案檔通常已被追蹤；若不加 `--no-index`，就算白名單被刪除仍會回傳 1，造成第二種綠燈假象。`tracked` 是 index 狀態，不等於 ignore 規則的 `allowed`；需要確認已追蹤時另用 `git ls-files --error-unmatch`。
+
+**可用的寫法**：忽略 index、顯式區分 exit 0／1／其他錯誤，並一次列出所有不符項。
 
 ```yaml
 - shell: bash
   run: |
     fail=0
-    check() {  # $1=路徑  $2=預期（ignored / tracked）
-      if git check-ignore -q "$1"; then actual=ignored; else actual=tracked; fi
+    check_policy() {  # $1=路徑  $2=預期（ignored / allowed）
+      if git check-ignore --no-index -q -- "$1"; then
+        actual=ignored
+      else
+        rc=$?
+        if [ "$rc" -eq 1 ]; then
+          actual=allowed
+        else
+          echo "❌ git check-ignore 執行失敗：$1（exit $rc）"
+          fail=1
+          return
+        fi
+      fi
       if [ "$actual" != "$2" ]; then
         echo "❌ $1：預期 $2，實際 $actual"
         fail=1
       fi
     }
-    check .claude/launch.json          tracked
-    check .claude/skills/thirdparty/   ignored
+    check_policy .claude/launch.json          allowed
+    check_policy .claude/skills/thirdparty/   ignored
     exit $fail
 ```
 
-> ⚠️ 這與稍早提過的 `git check-ignore -v` 退出碼問題是**同一個坑的兩種面貌**：
+> ⚠️ 這裡有三個彼此獨立的坑：
 > `-v` 只要命中任何規則（**包含 `!` 開頭的放行規則**）就回傳 0；
-> `! cmd` 則是反轉後的失敗不觸發 `set -e`。
-> **判定擋或放行一律用不含 `-v` 的 `git check-ignore -q`，且不要靠 `!` 反轉。**
+> `! cmd` 讓反轉後的失敗不觸發 `set -e`；未加 `--no-index` 時，已追蹤檔案又會被略過。
+> **判定規則行為一律用 `git check-ignore --no-index -q -- <path>`，且不要靠 `!` 反轉。**
 
 **驗收方式**：寫完斷言後，故意把某條決定改壞（例如刪掉一條 `!` 放行規則），
 確認 CI 真的會紅。**沒被驗證過的斷言，跟沒有斷言一樣。**

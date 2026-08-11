@@ -3,7 +3,7 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-08-09（新增 C-88 CI 斷言寫法；三工具交接回填完畢 —— C-85 Codex／C-86 Copilot 皆實機確認自 `~/.agents/skills/` 載入、移除舊路徑安全；C-87 Antigravity 的 `agent.json` 欄位結構經二進位 protobuf 定義佐證。C-79 的「本機實查」依據經 C-86 更正為循環證據）
+**最後更新**：2026-08-11（C-88 的 CI 修正仍受 Git index 干擾，已由 C-89 取代；正確政策判斷必須使用 `git check-ignore --no-index -q --`，追蹤狀態另用 `git ls-files` 驗證）
 
 | 狀態 | 數量 |
 | :--- | ---: |
@@ -12,7 +12,8 @@
 | 有疑 | 0 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| **總計** | **69** |
+| 被取代 | 1 |
+| **總計** | **70** |
 
 ---
 
@@ -153,7 +154,8 @@
 | ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-60 | `.agents/` | **非 Antigravity 專屬**，是 Codex／Gemini CLI／Antigravity 共用的跨工具目錄 | 官方文件（三方交叉） | 2026-07-29 | — | 已驗證 |
-| C-88 | CI 斷言的寫法（**非路徑主張**，故不列入監控涵蓋率） | **不是路徑事實，是方法上的坑，但同屬「靜默失效」而登記於此。** GitHub Actions 的 `shell: bash` 等同 `bash -eo pipefail`；`set -e` 的例外明載包含「回傳值被 `!` 反轉時不中止」，故 `! git check-ignore -q <path>` **無論結果如何都不會讓 CI 失敗**。2026-08-09 於 PM-tools-Dashboard-docker 端對端實測：移除 `!.claude/launch.json`（＝決定已失效）後，該寫法的 CI 仍回傳 exit 0。→ 改用顯式比對的 `check()` 函式並 `exit $fail`，兩種失效情境皆正確攔下。⚠️ 與 `git check-ignore -v` 的退出碼問題是**同一個坑的兩種面貌**：`-v` 命中任何規則（含 `!` 放行）皆回傳 0。**判定擋或放行一律用不含 `-v` 的 `-q`，且不靠 `!` 反轉。** 已寫入五版〈用 CI 鎖住決定〉 | bash 手冊＋端對端實測 | 2026-08-09 | — | 已驗證 |
+| C-88 | CI 斷言的寫法（**非路徑主張**，故不列入監控涵蓋率） | **原結論只修正 `! cmd` 與 `-v`，仍漏掉 index 行為。** 顯式 `check()` 雖避免 `set -e` 靜默通過，但普通 `git check-ignore -q` 預設不回報已追蹤檔案；GitHub Actions checkout 後，應放行檔即使白名單被刪除仍可能回傳 1，被錯判為正常。 | bash 手冊＋端對端實測 | 2026-08-09 | — | 被取代→C-89 |
+| C-89 | CI ignore-policy 斷言（**非路徑主張**，故不列入監控涵蓋率） | 判定 `.gitignore` 規則行為必須使用 `git check-ignore --no-index -q -- <path>`，將 exit 0／1／其他錯誤分別處理為 ignored／allowed／command error；不得靠 `!` 反轉。`allowed` 與 `tracked` 是不同維度，如需確認納入版控，另以 `git ls-files --error-unmatch -- <path>` 斷言。2026-08-11 以 PM-tools-Dashboard-docker 四個實際已追蹤的放行檔重驗：普通模式全回傳 1，`--no-index` 才能在移除白名單時看見 ignore 規則。已同步五版與範本驗證器。 | `git check-ignore -h`（`--no-index: ignore index when checking`）＋實際 index 重驗 | 2026-08-11 | Git 2.x | 已驗證 |
 
 ---
 
