@@ -39,6 +39,14 @@ import subprocess
 import sys
 import tempfile
 
+# Windows 主控台預設是 cp950／cp1252 等 ANSI codepage，印 ✅ ❌ 會噴 UnicodeEncodeError。
+# 檢查其實已經跑完，卻在輸出那一步崩潰 —— 看起來像驗證失敗，實際上只是終端機編碼問題。
+# CONTRIBUTING 要求 contributor 本機跑這支，而 Linux CI 是 UTF-8 不受影響，
+# 所以這個坑只砸在 Windows 貢獻者身上，且永遠不會在 CI 上現形。
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL_ROOT = os.path.join(HERE, os.pardir, "skills", "ai-git-ignore-strategy")
 FENCE_RE = re.compile(r"(?ms)^```[a-zA-Z]*\n(.*?)^```$")
