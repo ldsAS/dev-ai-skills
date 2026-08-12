@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.227",
+    "claude-code": "2.1.228",
     "codex": "0.147.0",
-    "gemini-cli": "0.54.4",
-    "antigravity": "2.6.0"
+    "gemini-cli": "0.55.1",
+    "antigravity": "2.7.1"
   },
   "sources": {
     "antigravity/changelog": {
@@ -192,7 +192,8 @@
         "~/.claude/skills/codebase-visualizer/scripts/visualize.py",
         "~/.claude/skills/render-chart/",
         "~/.claude/skills/summarize-changes",
-        "~/.claude/skills/summarize-changes/SKILL.md"
+        "~/.claude/skills/summarize-changes/SKILL.md",
+        "~/.claude/skills/synced/"
       ]
     },
     "codex/changelog": {
@@ -246,6 +247,7 @@
         "AGENTS.md",
         "~/.codex/config.toml",
         "~/.codex/hooks.json",
+        "~/.codex/hooks/post_tool_use.py",
         "~/.codex/hooks/session_end.py",
         "~/.codex/hooks/session_start.py"
       ]
