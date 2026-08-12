@@ -571,11 +571,11 @@ certs/
 
 **但斷言本身會靜默失效。** 直覺寫法是這樣：
 
-yaml
+```yaml
 - shell: bash
   run: |
     ! git check-ignore --no-index -q -- .claude/launch.json  # ❌ `!` 讓失敗不觸發 set -e
-
+```
 
 GitHub Actions 的 shell: bash 等同 bash -eo pipefail，而 set -e 的例外明載
 包含「**回傳值被 ! 反轉時不中止**」。所以這條斷言不論結果如何都不會擋下 CI ——
@@ -585,7 +585,7 @@ GitHub Actions 的 shell: bash 等同 bash -eo pipefail，而 set -e 的例外�
 
 **可用的寫法**：忽略 index、顯式區分 exit 0／1／其他錯誤，並一次列出所有不符項。
 
-yaml
+```yaml
 - shell: bash
   run: |
     fail=0
@@ -610,7 +610,7 @@ yaml
     check_policy .claude/launch.json          allowed
     check_policy .claude/skills/thirdparty/   ignored
     exit $fail
-
+```
 
 > ⚠️ 這裡有三個彼此獨立的坑：
 > -v 只要命中任何規則（**包含 ! 開頭的放行規則**）就回傳 0；

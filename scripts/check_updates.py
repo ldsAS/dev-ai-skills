@@ -33,6 +33,13 @@ import urllib.error
 import urllib.request
 import zlib
 
+# Windows 主控台預設可能是 cp950／cp1252；本腳本的 Markdown 報告包含
+# ↔、⚠️、❌ 等字元。若不先固定輸出編碼，檢查邏輯即使成功也會在 print 階段崩潰，
+# 甚至連例外處理本身都可能因 ❌ 再次觸發 UnicodeEncodeError。
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 _HERE = os.path.dirname(os.path.abspath(__file__))
 BASELINE_PATH = os.path.join(_HERE, "last_checked.json")
 # 路徑主張帳本；異動時用來標出「本次觸及哪幾條已登記的主張」
