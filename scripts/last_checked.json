@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.229",
+    "claude-code": "2.1.232",
     "codex": "0.147.0",
     "gemini-cli": "0.55.1",
-    "antigravity": "2.8.0"
+    "antigravity": "2.8.1"
   },
   "sources": {
     "antigravity/changelog": {
@@ -166,7 +166,8 @@
         "~/.claude/plans",
         "~/.claude/settings.json",
         "~/.claude/skills/",
-        "~/.claude/statusline.sh"
+        "~/.claude/statusline.sh",
+        "~/.claude/subagent-statusline.sh"
       ]
     },
     "claude-code/skills": {
