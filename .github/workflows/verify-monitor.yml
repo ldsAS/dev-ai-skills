@@ -1,0 +1,41 @@
+name: Verify Update Monitor
+
+# 純離線回歸測試；不執行正式監控，不寫 Issue，也不推送 baseline。
+on:
+  push:
+    paths:
+      - 'scripts/check_updates.py'
+      - 'scripts/monitor_ci_policy.py'
+      - 'tests/**'
+      - '.github/workflows/check-updates.yml'
+      - '.github/workflows/verify-monitor.yml'
+  pull_request:
+    paths:
+      - 'scripts/check_updates.py'
+      - 'scripts/monitor_ci_policy.py'
+      - 'tests/**'
+      - '.github/workflows/check-updates.yml'
+      - '.github/workflows/verify-monitor.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Compile monitor scripts
+        run: python -m py_compile scripts/check_updates.py scripts/monitor_ci_policy.py
+
+      - name: Run monitor regression tests
+        run: python -m unittest discover -s tests -p 'test_*.py'
