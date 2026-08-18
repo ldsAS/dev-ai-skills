@@ -3,7 +3,7 @@ name: Check AI Tools Updates
 on:
   schedule:
     # UTC 01:15（約台灣時間 09:15）
-    # ⚠️ GitHub 的排程本來就不保證準點，實測常延後 30–60 分鐘，尤其是免費 runner。
+    # ⚠️ GitHub 的排程本來就不保證準點，可能延後數十分鐘至數小時，尤其是免費 runner。
     #    選非整點只能略為降低排隊機率，無法消除延遲 — 這是預期行為，不必當成故障。
     - cron: '15 1 * * *'
   workflow_dispatch: # 允許在 Actions 頁面手動觸發，適合驗證與測試
@@ -23,12 +23,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # 之後 push 衝突時要 rebase，淺 clone 會失敗
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
@@ -40,19 +40,9 @@ jobs:
           exit_code=$?
           set -e
 
-          cat report.md
-
-          updates=false
-          failure=false
-          baseline=false
-          if grep -q '\[SIGNAL: UPDATE_DETECTED\]' report.md; then updates=true; fi
-          if grep -q '\[SIGNAL: CHECK_FAILED\]' report.md; then failure=true; fi
-          if grep -q '\[SIGNAL: BASELINE_CHANGED\]' report.md; then baseline=true; fi
-
           # 腳本本身炸掉（網路全斷、語法錯誤⋯⋯）也必須告警，
           # 不能像舊版那樣靜默地報「無異動」然後亮綠燈。
           if [ "$exit_code" -ne 0 ]; then
-            failure=true
             {
               echo
               echo "## ❌ 檢查腳本以非 0 狀態結束 (exit $exit_code)"
@@ -63,25 +53,22 @@ jobs:
             } >> report.md
           fi
 
-          {
-            echo "updates=$updates"
-            echo "failure=$failure"
-            echo "baseline=$baseline"
-          } >> "$GITHUB_OUTPUT"
+          cat report.md
+          python scripts/monitor_ci_policy.py analyze \
+            --report report.md \
+            --exit-code "$exit_code" \
+            --github-output "$GITHUB_OUTPUT"
 
-      - name: Notify via GitHub Issue
-        if: steps.check.outputs.updates == 'true' || steps.check.outputs.failure == 'true'
+      - name: Notify via GitHub Issues
+        if: >-
+          always() && steps.check.outcome == 'success' &&
+          (steps.check.outputs.updates == 'true' || steps.check.outputs.failure == 'true')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OWNER: ${{ github.repository_owner }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ISSUE_KINDS: ${{ steps.check.outputs.issue_kinds }}
         run: |
-          if [ "${{ steps.check.outputs.updates }}" = "true" ]; then
-            TITLE="🚨 偵測到 AI 工具路徑與機制異動"
-          else
-            TITLE="⚠️ AI 工具異動檢查失敗"
-          fi
-
           {
             echo
             echo "---"
@@ -90,20 +77,52 @@ jobs:
             echo "CC: @$OWNER"
           } >> report.md
 
-          # 同類型的告警只維持一張 issue，後續異動改用留言追加，
-          # 避免每天開一張新的把 issue 列表淹掉。
-          EXISTING=$(TITLE="$TITLE" gh issue list --state open --limit 100 \
-            --json number,title --jq 'map(select(.title == env.TITLE)) | .[0].number // empty')
+          gh issue list --state open --limit 1000 --json number,title,state > open-issues.json
 
-          if [ -n "$EXISTING" ]; then
-            gh issue comment "$EXISTING" --body-file report.md
-            echo "已在既有 issue #$EXISTING 追加留言"
-          else
-            gh issue create --title "$TITLE" --body-file report.md --assignee "$OWNER"
-          fi
+          # updates 與 failure 是獨立狀態；同時發生時兩類 issue 都必須收到報告。
+          for kind in $ISSUE_KINDS; do
+            case "$kind" in
+              update) TITLE="🚨 偵測到 AI 工具路徑與機制異動" ;;
+              failure) TITLE="⚠️ AI 工具異動檢查失敗" ;;
+              *) echo "::error::未知的 issue 類型：$kind"; exit 1 ;;
+            esac
+
+            python scripts/monitor_ci_policy.py targets \
+              --issues open-issues.json --title "$TITLE" > matching-issues.txt
+            EXISTING=$(head -n 1 matching-issues.txt)
+
+            if [ -n "$EXISTING" ]; then
+              gh issue comment "$EXISTING" --body-file report.md
+              echo "已在既有 issue #$EXISTING 追加留言"
+            else
+              gh issue create --title "$TITLE" --body-file report.md --assignee "$OWNER"
+            fi
+          done
+
+      - name: Close recovered failure Issues
+        if: >-
+          always() && steps.check.outcome == 'success' &&
+          steps.check.outputs.failure != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          FAILURE_TITLE: "⚠️ AI 工具異動檢查失敗"
+        run: |
+          gh issue list --state open --limit 1000 --json number,title,state > open-issues.json
+          python scripts/monitor_ci_policy.py targets \
+            --issues open-issues.json --title "$FAILURE_TITLE" > recovery-targets.txt
+
+          while IFS= read -r issue; do
+            [ -n "$issue" ] || continue
+            gh issue comment "$issue" --body "✅ 自動檢查已恢復正常。恢復時間：$(date -u '+%Y-%m-%d %H:%M UTC')；本次執行：$RUN_URL"
+            gh issue close "$issue"
+            echo "已留下恢復紀錄並關閉 issue #$issue"
+          done < recovery-targets.txt
 
       - name: Commit baseline update
-        if: steps.check.outputs.baseline == 'true'
+        if: >-
+          always() && steps.check.outcome == 'success' &&
+          steps.check.outputs.baseline == 'true'
         run: |
           if git diff --quiet -- scripts/last_checked.json; then
             echo "基準線內容無實際變更，略過 commit"
@@ -126,4 +145,10 @@ jobs:
           done
 
           echo "::error::基準線連續 3 次 push 失敗"
+          exit 1
+
+      - name: Fail workflow when checks failed
+        if: always() && steps.check.outputs.should_fail == 'true'
+        run: |
+          echo "::error::一個或多個監控來源檢查失敗；通知與必要的 baseline 處理已完成。"
           exit 1
