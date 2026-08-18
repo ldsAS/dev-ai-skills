@@ -68,7 +68,8 @@
 本 skill 的規則建立在一組「哪個工具會在哪裡產生什麼檔案」的路徑事實上，這些事實會隨工具改版而變。
 
 - 每條主張的依據、取證日與狀態記錄於 [`verification/CLAIMS.md`](./verification/) — **改動任何路徑規則前請先查閱**
-- 官方文件的異動由 [`check-updates.yml`](../../.github/workflows/check-updates.yml) 每日自動偵測，有變動會開 issue
-- 無法從文件查證的項目（尤其 Antigravity 無公開文件站）走實機交接流程，見 `verification/README.md`
+- 官方文件（包含 Antigravity 文件站）的路徑 token 異動由 [`check-updates.yml`](../../.github/workflows/check-updates.yml) 每日偵測；token 只作候選訊號，需人工分類後才更新帳本或規則
+- 版本號只作低頻輔助：目前各工具皆只在 major 跨越時告警，patch／minor 不因版本本身開 issue 或寫回 baseline
+- 文件語意與實機行為的盲區走人工交接流程，見 `verification/README.md`；不把每次工具更新當成交接提醒
 
 `verification/` 不會被 `install.sh` 安裝到使用者環境（安裝器只複製 `<variant>/` 底下的內容）。

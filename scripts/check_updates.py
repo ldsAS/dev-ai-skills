@@ -108,11 +108,10 @@ RELEASE_ROW_RE = re.compile(
     r"September|October|November|December)\s+\d{1,2},\s+\d{4}"
 )
 
-# 各工具的版本告警門檻。
-# 預設 major —— 那些工具的路徑事實由官方文件監控涵蓋，版本號只是輔助訊號。
-# Antigravity 例外用 minor：它沒有公開文件站，帳本裡有數條主張是自動監控照不到的
-# 盲區（見 `--coverage`），只能靠實機交接維持新鮮度。改版就是該重跑交接的時機。
-ALERT_LEVEL = {"antigravity": "minor"}
+# 各工具偏離預設值的版本告警門檻 override。
+# 預設 major：路徑事實以官方文件監控為主，版本號只是低頻輔助訊號。
+# 目前沒有例外；不要用工具是否存在於此 map 判斷報告提示。
+ALERT_LEVEL = {}
 
 # --------------------------------------------------------------------------
 # 路徑 token 抽取
@@ -454,8 +453,8 @@ def main():
     if changes:
         lines.append("## 🚨 偵測到 AI 工具路徑異動")
         lines.append("")
-        lines.append("以下路徑與技能 `ai-git-ignore-strategy` 的 `.gitignore` 規則直接相關，"
-                     "請確認五個變體的 SKILL.md 是否需要同步更新。")
+        lines.append("偵測到官方來源中的候選路徑變動。請先判定它是正式機制、使用者自訂路徑、"
+                     "文件範例或無關字串，再決定是否更新 `verification/CLAIMS.md` 與五個變體的 SKILL.md。")
         lines.append("")
         claims = load_claims()
         affected = {}      # claim id -> (claim, [觸發說明])
@@ -502,8 +501,8 @@ def main():
         if orphan_tokens:
             lines.append("## 🆕 帳本中查無對應主張的新路徑")
             lines.append("")
-            lines.append("下列路徑不屬於任何已登記主張，可能是全新機制 —— "
-                         "確認後請在帳本新增條目。")
+            lines.append("下列路徑不屬於任何已登記主張，只是待分類的候選訊號；"
+                         "取得正式機制依據後，才決定是否新增帳本條目。")
             lines.append("")
             for item in orphan_tokens:
                 lines.append(f"- {item}")
@@ -516,13 +515,14 @@ def main():
             scope = "主版號" if level == "major" else "次版號"
             lines.append(f"- **{tool}**：`{old}` → `{new}`（{scope}變動；來源 {label}）")
         lines.append("")
-        if any(tool in ALERT_LEVEL for tool, *_ in version_alerts):
-            lines.append("> ⚠️ **這是該重跑實機交接的訊號。** Antigravity 沒有公開文件站，"
-                         "帳本中有數條主張是自動監控照不到的盲區 —— 那些路徑真的改了也不會有告警。")
+        if any(level == "major" for _tool, _label, _old, _new, level in version_alerts):
+            lines.append("> ⚠️ **主版號跨越是低頻人工複驗訊號，不代表機制一定變更。** "
+                         "請針對受影響工具重新確認官方文件與現行實機行為。")
             lines.append(">")
-            lines.append("> 1. `python scripts/check_updates.py --coverage` 看目前哪幾條是盲區")
-            lines.append("> 2. 依 `verification/rounds/TEMPLATE.md` 產生交接包，貼給該工具")
-            lines.append("> 3. 回覆務必獨立複驗後才回填帳本")
+            lines.append("> 1. 比對受影響工具的既有主張與目前官方文件")
+            lines.append("> 2. 執行 `python scripts/check_updates.py --coverage` 確認自動監控範圍與盲區")
+            lines.append("> 3. 必要時依 `verification/rounds/TEMPLATE.md` 產生交接包並做實機複驗")
+            lines.append("> 4. 獨立複驗完成後，才更新帳本或 skill 規則")
             lines.append("")
 
     if failures:
@@ -544,6 +544,8 @@ def main():
     if version_notes:
         lines.append("<details><summary>版本參考（非告警項）</summary>")
         lines.append("")
+        lines.append("以下差異是相對上次有意義 baseline 的累積值；不會因這些版本變化單獨寫回基準線。")
+        lines.append("")
         for tool, old, new in version_notes:
             lines.append(f"- {tool}: `{old}` → `{new}`")
         lines.append("")
@@ -555,8 +557,12 @@ def main():
     # ---- 寫回基準線 ----
     payload = {"schema": SCHEMA_VERSION, "versions": new_versions,
                "sources": dict(sorted(new_sources.items()))}
-    changed_on_disk = payload != raw_baseline
-    if changed_on_disk and not args.dry_run:
+    source_set_changed = set(new_sources) != set(baseline_sources)
+    meaningful_baseline_change = (
+        is_bootstrap or source_set_changed or bool(changes) or bool(version_alerts)
+    )
+    baseline_changed = meaningful_baseline_change and payload != raw_baseline
+    if baseline_changed and not args.dry_run:
         # 明確指定 newline="\n"：本檔在 Windows 本機與 Linux runner 都會被寫入，
         # 不鎖死行尾的話 Windows 端會寫出 CRLF，與 .gitattributes 的 eol=lf 打架。
         with open(BASELINE_PATH, "w", encoding="utf-8", newline="\n") as handle:
@@ -565,7 +571,7 @@ def main():
 
     # ---- 給 CI grep 的訊號 ----
     print()
-    if changed_on_disk:
+    if baseline_changed:
         print("[SIGNAL: BASELINE_CHANGED]")
     if has_update:
         print("[SIGNAL: UPDATE_DETECTED]")
