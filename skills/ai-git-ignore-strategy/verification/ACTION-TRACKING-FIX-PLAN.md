@@ -390,7 +390,7 @@ reference；不要把 skill 拆分與 CI 修正混成同一輪。
 | 預設 major 的 0.x minor | Codex `0.146 → 0.147` | 可列參考；無 `UPDATE_DETECTED`、無 `BASELINE_CHANGED` |
 | 0.x 跨 1.0 | `0.99 → 1.0` | `UPDATE_DETECTED`＋`BASELINE_CHANGED` |
 | Antigravity minor | `2.8 → 2.9` | 可列參考；無 `UPDATE_DETECTED`、無 `BASELINE_CHANGED` |
-| Antigravity major | `2.x → 3.x` | `UPDATE_DETECTED`＋`BASELINE_CHANGED`＋重跑實機交接提示 |
+| Antigravity major | `2.x → 3.x` | `UPDATE_DETECTED`＋`BASELINE_CHANGED`＋通用人工複驗提示 |
 | token 新增 | 官方來源多一個 token | 候選變動＋`UPDATE_DETECTED`＋`BASELINE_CHANGED` |
 | token 消失 | 已知 token 消失 | 受影響 CLAIM＋`UPDATE_DETECTED`＋`BASELINE_CHANGED` |
 | 新來源 bootstrap | baseline 無該來源 | 建立來源 baseline，不把首次內容誤報為異動 |
