@@ -1,14 +1,15 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.234",
-    "codex": "0.147.0",
-    "gemini-cli": "0.55.1",
-    "antigravity": "2.8.1"
+    "claude-code": "2.1.239",
+    "codex": "0.149.0",
+    "gemini-cli": "0.56.0",
+    "antigravity": "2.9.1"
   },
   "sources": {
     "antigravity/changelog": {
       "tokens": [
+        ".antigravity",
         ".antigravitycli",
         ".antigravitycli/",
         "/.agents/hooks.json",
@@ -95,6 +96,7 @@
         ".claude/commands/",
         ".claude/commands/frontend/component.md",
         ".claude/hooks",
+        ".claude/rules",
         ".claude/rules/",
         ".claude/settings.json",
         ".claude/settings.local.json",
@@ -144,30 +146,17 @@
     },
     "claude-code/settings": {
       "tokens": [
-        ".claude-plugin/marketplace.json",
-        ".claude/",
-        ".claude/CLAUDE.md",
-        ".claude/agents/",
-        ".claude/commands/",
+        ".claude",
         ".claude/settings.json",
         ".claude/settings.local.json",
-        ".claude/skills/",
-        ".mcp.json",
         "/.claude/settings.local.json",
-        "CLAUDE.local.md",
         "CLAUDE.md",
         "\\.claude",
+        "settings.local.json",
         "~/.claude",
-        "~/.claude/",
-        "~/.claude/.credentials.json",
-        "~/.claude/CLAUDE.md",
-        "~/.claude/agents/",
-        "~/.claude/file-suggestion.sh",
-        "~/.claude/plans",
-        "~/.claude/settings.json",
-        "~/.claude/skills/",
-        "~/.claude/statusline.sh",
-        "~/.claude/subagent-statusline.sh"
+        "~/.claude/backups/",
+        "~/.claude/backups/.claude.json.corrupted",
+        "~/.claude/settings.json"
       ]
     },
     "claude-code/skills": {
