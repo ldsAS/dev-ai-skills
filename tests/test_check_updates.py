@@ -191,7 +191,31 @@ class TokenExtractionTests(unittest.TestCase):
             "the .codexignore file": ".codexignore",
         }
         for text, expected in cases.items():
-            self.assertIn(expected, MONITOR.extract_tokens(text), msg=text)
+            self.assertEqual({expected}, MONITOR.extract_tokens(text), msg=text)
+
+    def test_dot_names_require_a_right_boundary(self):
+        """未知長名不可被靜默截成已知 dot-name token。"""
+        cases = (
+            ".antigravityignored",
+            ".antigravity-new-file",
+            ".antigravityignore.bak",
+            ".agentsfoo",
+            ".geminiwhatever",
+            ".codexignore.bak",
+        )
+        for text in cases:
+            self.assertEqual(set(), MONITOR.extract_tokens(text), msg=text)
+
+    def test_dot_name_paths_still_extract_with_the_boundary(self):
+        """右側邊界不可擋住合法的相對、家目錄與嵌套路徑。"""
+        cases = (
+            "~/.claude/projects/demo.json",
+            ".agents/skills/example/SKILL.md",
+            ".codex/hooks.json",
+            "../.gemini/settings.json",
+        )
+        for text in cases:
+            self.assertEqual({text}, MONITOR.extract_tokens(text), msg=text)
 
 
 if __name__ == "__main__":

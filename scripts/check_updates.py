@@ -116,11 +116,11 @@ ALERT_LEVEL = {}
 # --------------------------------------------------------------------------
 # 路徑 token 抽取
 # --------------------------------------------------------------------------
-# 長名必須排在短名前面：alternation 取最先命中者，
-# 否則 `.agents` 會先被 `.agent` 吃掉、`.codexignore` 會被 `.codex` 吃掉。
-# ⚠️ 漏列一個長名的後果是**靜默截短**，不是漏抓：2026-08-22 起 `.antigravityignore`
-#    被存成 `.antigravity`，baseline 保存的不是官方原文的檔名（2026-08-26 補上）。
-#    tests/test_check_updates.py 有不變式測試守住這條規則，新增名稱時不必人工檢查順序。
+# 長名仍排在短名前面，讓 alternation 優先命中最具體的已知名稱。
+# 另在 dot-name 分支尾端加右邊界：即使未來出現尚未列入清單的更長名稱，
+# 也不能靜默截成已知前綴。2026-08-22 起 `.antigravityignore` 曾因此被存成
+# `.antigravity`，baseline 保存的不是官方原文的檔名（2026-08-26 補強）。
+# tests/test_check_updates.py 同時守住已知長名順序與未知長名的右邊界。
 DOT_NAMES = "|".join([
     "claude-plugin", "claude",
     "codex-plugin", "codexignore", "codex",
@@ -142,6 +142,10 @@ TOKEN_RE = re.compile(
     r"|(?:(?:~|\$HOME|\.{1,2})?[/\\])?"
     rf"\.(?:{DOT_NAMES})"
     r"(?:[/\\][\w.\-]+)*[/\\]?"
+    # 右側不可緊接檔名字元：否則 `.agentsfoo` 會被誤抓成 `.agents`，
+    # `.antigravityignore.bak` 也會被誤當成 `.antigravityignore`。
+    # 單獨的句尾 `.` 可接在 token 後；但 `.` 後若還有檔名字元（如 `.bak`）則阻擋。
+    r"(?![\w\-]|\.[\w\-])"
     # Copilot 的專案層自訂目錄全在 .github/ 底下（官方 monorepo 範例：
     # .github/{copilot-instructions.md, instructions/, prompts/, agents/}，另有 skills/ 與 hooks/）
     r"|\.github[/\\](?:prompts|skills|hooks|instructions|agents)(?:[/\\][\w.\-]+)*[/\\]?"

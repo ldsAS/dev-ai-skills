@@ -205,7 +205,6 @@
     },
     "codex/config-basic": {
       "tokens": [
-        "./.codex",
         ".codex",
         ".codex/",
         ".codex/config.toml",
@@ -257,7 +256,6 @@
       "tokens": [
         ".agents/skills/",
         ".claude/skills/",
-        ".copilot",
         ".github/skills/",
         "~/.agents/skills/",
         "~/.claude/skills/",
@@ -267,7 +265,6 @@
     "copilot/customization": {
       "tokens": [
         ".agent.md",
-        ".copilot",
         ".instructions.md",
         ".prompt.md",
         "AGENTS.md",
@@ -285,7 +282,6 @@
         ".agent.md",
         ".claude/settings.json",
         ".claude/settings.local.json",
-        ".copilot",
         ".github/hooks",
         ".github/hooks/",
         ".github/hooks/approval.json",
@@ -301,7 +297,6 @@
     },
     "copilot/prompt-files": {
       "tokens": [
-        ".copilot",
         ".github/prompts",
         ".prompt.md"
       ]
