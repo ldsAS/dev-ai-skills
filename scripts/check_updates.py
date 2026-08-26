@@ -118,11 +118,14 @@ ALERT_LEVEL = {}
 # --------------------------------------------------------------------------
 # 長名必須排在短名前面：alternation 取最先命中者，
 # 否則 `.agents` 會先被 `.agent` 吃掉、`.codexignore` 會被 `.codex` 吃掉。
+# ⚠️ 漏列一個長名的後果是**靜默截短**，不是漏抓：2026-08-22 起 `.antigravityignore`
+#    被存成 `.antigravity`，baseline 保存的不是官方原文的檔名（2026-08-26 補上）。
+#    tests/test_check_updates.py 有不變式測試守住這條規則，新增名稱時不必人工檢查順序。
 DOT_NAMES = "|".join([
     "claude-plugin", "claude",
     "codex-plugin", "codexignore", "codex",
     "geminiignore", "gemini",
-    "antigravity-cli", "antigravitycli", "antigravity",
+    "antigravity-cli", "antigravitycli", "antigravityignore", "antigravity",
     "agents", "agent",
     "aiexclude", "aiignore",
     "copilot",

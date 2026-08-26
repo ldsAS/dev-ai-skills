@@ -3,15 +3,15 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-08-26（Issue #7 候選 token 全數歸檔 —— C-90～C-93，皆無需異動五版範本；`synced` 為保留名稱見 C-92）
+**最後更新**：2026-08-26（Codex 複驗指出 `.antigravityignore` 曾被抽取器靜默截短 —— 新增 C-94、C-95，並更正 C-90 的措辭）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 66 |
+| 已驗證 | 68 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
 | 被取代 | 1 |
-| **總計** | **74** |
+| **總計** | **76** |
 
 ---
 
@@ -21,7 +21,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-01 | `.claude/*` | 擋直接子項，讓下方白名單得以生效 | 結構性 | — | — | 結構性 |
 | C-02 | `.claude/settings.json` | 團隊共用設定（權限、hooks），應提交 | 官方文件 | 2026-07-29 | — | 已驗證 |
-| C-03 | `.claude/settings.local.json` | 個人本機設定，應排除 | 官方文件 | 2026-07-29 | — | 已驗證 |
+| C-03 | `.claude/settings.local.json` | 個人本機設定，應排除。📌 官方 settings 頁改版後會抽出**裸 token** `settings.local.json`（無目錄前綴），那是本條的**語彙別名**，不是新路徑，**不需新增規則或主張** | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-04 | `.claude/commands/`、`.claude/agents/` | 團隊共用，應提交 | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-05 | `.claude/rules/` | 團隊共用分檔規則，應提交 | 官方文件 | 2026-07-29 | — | 已驗證 |
 | C-06 | `.claude/skills/` | 需逐案確認（CLI 安裝 vs 自撰） | 官方文件 | 2026-07-29 | — | 已驗證 |
@@ -29,7 +29,7 @@
 | C-08 | `.claude-plugin/plugin.json`、`.claude-plugin/marketplace.json` | 外掛／市集清單檔，官方定位為「Sharing with teammates, distributing to community」。**若本 repo 本身就是 plugin 或 marketplace，必須提交**。現行規則不擋（正確），已補進 🟢 清單 | 官方文件 | 2026-07-30 | — | 已驗證 |
 | C-09 | `.claude/workflows/`、`.claude/worktrees/` | **兩者相反**。`workflows/` 有 user-scope（`~/.claude/workflows/`）與 project-scope 兩層，屬團隊共用 → **已放行**。`worktrees/` 是 git worktree 實體工作目錄，且官方修過「repository-committed symlink at `.claude/worktrees` 可在 repo 外建檔」的逃逸問題 → **已 explicit 排除** | 官方 CHANGELOG | 2026-07-30 | — | 已驗證 |
 | C-83 | `.claude/launch.json` | Claude Code 的**開發伺服器啟動設定**：以具名 configuration 記錄啟動指令（`runtimeExecutable`／`runtimeArgs`／`port`），供工具直接跑起專案。**範本預設不放行（白名單為註解狀態）** —— 可能寫入個人絕對路徑，且「要不要公開建置方式」屬專案決定。地位等同 `.vscode/launch.json`，而本 skill 早已將後者列為團隊共用可保留 —— 先前**漏了 Claude Code 的對應檔**，被 `.claude/*` 靜默擋下。Claude Code 的個人層檔案一律走 `.local.json` 後綴（見 C-03），此檔無該後綴。⚠️ 殘留風險：launch.json 可能寫入個人絕對路徑，提交前應確認為相對路徑。**發現經過**：比對 PM-tools-Dashboard-docker 的實際運作情況時，在該專案發現此檔存在、內容為三組專案級啟動設定（Docker Compose／Flask／Gunicorn），但被 `.claude/*` 擋下且未追蹤 | 工具文件（launch 設定格式）＋實地觀察 | 2026-08-07 | — | 已驗證 |
-| C-90 | `~/.claude/sessions/`、`~/.claude/backups/` | **家目錄的執行期狀態與設定備份，不寫入專案** → 五版範本**無需新增任何規則**。官方 CHANGELOG：「Fixed headless sessions not cleaning up stale entries in `~/.claude/sessions` left by sessions that exited uncleanly」；官方 settings 頁：「`~/.claude.json` can't be parsed. Claude Code copies the broken file to `~/.claude/backups/.claude.json.corrupted.<timestamp>`」。⚠️ **實查比文件更廣**：本機 `~/.claude/backups/` 實際存放的是 `.claude.json.backup.<epoch_ms>`（5 個，例行備份），而非文件只提到的 `.claude.json.corrupted.<timestamp>` —— **只憑 token 登記會把用途寫窄**。`~/.claude/sessions/` 為 per-process 狀態檔（`<pid>.json`、`<pid>.<hash>.key`），**與 C-07 的 `~/.claude/projects/`（對話紀錄與 memory）不是同一回事**，勿互相套用 | 官方 CHANGELOG＋官方 settings 頁＋本機實查 | 2026-08-26 | 2.1.246 | 已驗證 |
+| C-90 | `~/.claude/sessions/`、`~/.claude/backups/` | **家目錄的執行期狀態與設定備份，不寫入專案** → 五版範本**無需新增任何規則**。官方 CHANGELOG：「Fixed headless sessions not cleaning up stale entries in `~/.claude/sessions` left by sessions that exited uncleanly」；官方 settings 頁：「`~/.claude.json` can't be parsed. Claude Code copies the broken file to `~/.claude/backups/.claude.json.corrupted.<timestamp>`」。⚠️ **2026-08-26 更正措辭**：初版寫「實查比文件更廣」，**那是錯的** —— 完整描述其實存在，只是在**當時未納入監控**的官方 `.claude` 目錄頁：「`backups/` — Earlier versions of `~/.claude.json`, copied when Claude Code rewrites the file. **Claude Code keeps the five newest**, plus a copy of any version it couldn't parse」，與本機實查的 5 個 `.claude.json.backup.<epoch_ms>` 完全吻合。受監控的 settings 頁只描述損毀複本那一種情境。**正確的教訓不是「官方文件不完整」，而是「我們的監控來源不完整」** —— 見文末〈監控來源缺口〉。`~/.claude/sessions/` 為 per-process 狀態檔（`<pid>.json`、`<pid>.<hash>.key`），**與 C-07 的 `~/.claude/projects/`（對話紀錄與 memory）不是同一回事**，勿互相套用 | 官方 CHANGELOG＋官方 settings 頁＋本機實查 | 2026-08-26 | 2.1.246 | 已驗證 |
 | C-91 | `~/.claude/plugins/known_marketplaces.json` | 家目錄的**已知外掛市集註冊表**，供 `claude plugin install <name>` 解析市集名稱；位於家目錄 → **無需專案規則**。官方 CHANGELOG：「Fixed `claude plugin install <name>` exiting silently (or hanging in a terminal) instead of reporting an error when `~/.claude/plugins/known_marketplaces.json` is empty or corrupted」。⚠️ **本條最大的誤讀風險是與另兩條混淆，三者位置與用途皆不同**：① 本條＝**使用者層**註冊表；② `.claude-plugin/marketplace.json`（C-08）＝**專案層**，當本 repo 自己就是 marketplace 時必須提交；③ `.agents/plugins/marketplace.json`（C-14）＝**Codex 專案層**團隊共用市集。本機 `~/.claude/plugins/` 尚未建立（未安裝任何外掛） | 官方 CHANGELOG（修復說明中的附帶提及，非路徑規格）＋本機實查 | 2026-08-26 | 2.1.246 | 已驗證 |
 | C-92 | `~/.claude/skills/synced/`、`.claude/skills/synced/` | **`synced` 是保留名稱，不只是家目錄路徑。** 官方 skills 頁：「The folder name `synced` is **reserved in the enterprise, personal, and project skills locations**, in any capitalization. Claude Code downloads the skills you enable on claude.ai into `~/.claude/skills/synced/` when `CLAUDE_CODE_SYNC_SKILLS` is set in non-interactive mode, and **skips a skill you author at that name**」。→ 兩層意義：① 下載內容落在**家目錄**，不進專案，**無需新增規則**；② **專案層 `.claude/skills/synced/` 也是保留名**，自撰技能取此名會被工具**靜默略過** —— 本 skill 建議 scoped allowlist 時（`!.claude/skills/<project-skill>/`），`synced` 是**不可用的名稱**。現行範本以 `.claude/skills/*` 擋下，行為已正確（專案層不該出現此目錄），故**範本無需異動** | 官方文件 skills 頁 | 2026-08-26 | 2.1.246 | 已驗證 |
 | C-53 | `.claude/skills/verify/SKILL.md` | `/verify` 把可用的建置指令自動寫入 repo root（monorepo 則寫入被動到的套件目錄），官方定位「so later runs and **other agents** follow the same steps」＝設計上要共享 → **已放行**。屬「自動產生但意圖共享」的第三類，補足了原本 CLI 安裝／自撰的二分法 | 官方文件（**由排程監控於 2026-07-30 自動偵測**） | 2026-07-30 | — | 已驗證 |
@@ -49,6 +49,7 @@
 | C-16 | `.codex-plugin/plugin.json` | 外掛必備清單檔（`Every plugin is a folder with a required .codex-plugin/plugin.json manifest`）。與 C-08 同性質，若本 repo 是外掛則必須提交。現行規則不擋（正確），已補進 🟢 清單 | 官方 changelog | 2026-07-30 | — | 已驗證 |
 | C-17 | `.codex/hooks.json`、`.codex/hooks/`、`.codex/rules/` | **原規則誤殺三項**：三者都是官方列出的專案層設定層（未信任專案會跳過這些 layer），屬團隊共用 → **已放行**。⚠️ **2026-08-03 更正**：先前把 `.codex/rollout.jsonl` 列為專案層 session 紀錄並加了排除規則 —— **那是錯的**。該 token 取自官方 hooks 文件中傳給 hook 的**範例 payload**（`"transcript_path": "/workspace/.codex/rollout.jsonl"`），不是真實預設路徑。實際 rollout 位於 `$CODEX_HOME/sessions/YYYY/MM/DD/rollout-<ts>-<id>.jsonl`（`CODEX_HOME` 預設 `~/.codex`），本機實查一致。誤植規則已自五版移除 | 官方文件＋Codex 實機回覆＋本機實查 | 2026-08-03 | 0.146.0-alpha.9.2 | 已驗證 |
 | C-93 | `~/.codex/hooks/post_tool_use.py` | **文件範例中的使用者自撰腳本路徑，不是工具產物。** 原文出自官方 hooks 頁的 `hooks.json` 範例：`{"type":"command","command":"python3 ~/.codex/hooks/post_tool_use.py","async":true,...}`。→ 它示範的是「使用者把自己寫的 hook 腳本放在家目錄」，Codex **不會自動建立此檔**；位於家目錄且非自動產物，**無需任何專案規則**。⚠️ 與 C-17 的 `.codex/rollout.jsonl` 屬**同一類陷阱**（自文件範例抽出的 token），差別在那次的 `/workspace/` 是虛構前綴而被誤判為真實路徑，本次已先讀上下文再分類 —— **token 是線索，不是結論** | 官方文件 hooks 頁（範例 payload，非路徑規格） | 2026-08-26 | — | 已驗證 |
+| C-94 | `.antigravityignore` | Antigravity 讀取的忽略規則檔 —— 官方 changelog：「Fixed `@` file path completion showing files that were in your `.antigravityignore`」，證實工具會依此檔排除 `@` 檔案路徑補全的候選。**現行範本不擋（正確）**，處置與 `.geminiignore`、`.aiexclude`（C-23）一致，故**五版無需異動**。⚠️ **殘留未知，勿以類比補齊**：8 個 Antigravity 官方文件來源中**僅 changelog 一處提及**，該行是修復說明而非規格；**檔案位置（專案根目錄／家目錄）、是否團隊共用、與 `.geminiignore` 的關係皆未載明**，`/docs/cli/gcli-migration` 頁全文 0 次提及 ignore。本機亦尚未出現此檔。**發現經過**：2026-08-22 偵測到的 token 因抽取器漏列長名而被截短成 `.antigravity`（見 C-95），2026-08-26 修正後才還原成正確檔名並完成分類 | 官方 changelog（修復說明中的附帶提及，非路徑規格）＋8 來源全文檢索 | 2026-08-26 | 2.10.0 | 已驗證 |
 | C-63 | Codex 官方文件站位置 | 文件已自 `developers.openai.com/codex/*` **搬遷至** `learn.chatgpt.com/docs/*`（舊網址仍 302 導向）。監控來源已改指正式網址並補上 `build-skills`、`hooks` 兩頁 | Codex 實機回覆＋重導向實測 | 2026-08-03 | — | 已驗證 |
 | C-64 | `~/.agents/skills/` | Codex 官方 USER scope 路徑；亦為 Gemini CLI 與 Copilot 的使用者層技能位置，屬**跨工具共用**。本專案安裝器原本只寫 `~/.codex/skills`（該路徑實查僅有我方寫入的內容，屬 C-48 同型的循環證據），已補上此路徑 | 官方文件 build-skills | 2026-08-03 | — | 已驗證 |
 | C-85 | Codex 的實際 skill root 清單 | **實機確認**：目前 task 登記的 root 為 `r0 = ~/.agents/skills`、`r1 = ~/.codex/skills/.system`，本技能自 `r0/ai-git-ignore-strategy/SKILL.md` 載入（實體目錄，非 symlink）。→ 2026-08-07 刪除 `~/.codex/skills/ai-git-ignore-strategy` 後**技能未消失**，該次移除安全。另確認 `.codex/skills` **父目錄未出現在 root 清單**，不應再視為現行 USER 安裝路徑（呼應 C-12；`.system/` 子目錄則確實在用，見 C-82）。⚠️ 回報者主動聲明：本輪未在 `~/.codex/skills/` 放探針技能，故**不宣稱**所有版本與啟動模式都無 legacy fallback —— 但對本次刪除的安全性，有實際載入成功可直接證明 | Codex 實機回覆＋官方 scope 表 | 2026-08-09 | Codex Desktop 26.803.5235.0／bundled runtime 0.147.0-alpha.6.5（task metadata 為 0.146.0-alpha.9.2） | 已驗證 |
@@ -156,6 +157,7 @@
 | ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-60 | `.agents/` | **非 Antigravity 專屬**，是 Codex／Gemini CLI／Antigravity 共用的跨工具目錄 | 官方文件（三方交叉） | 2026-07-29 | — | 已驗證 |
+| C-95 | 抽取器的長名排序規則（**非路徑主張**，故不列入監控涵蓋率） | `TOKEN_RE` 的 alternation 取**最先命中者**，因此若長名未排在其前綴之前，會造成**靜默截短**而非漏抓。2026-08-22～08-26 期間 `.antigravityignore` 被存成 `.antigravity`，baseline 保存的不是官方原文的檔名。程式碼原本就註明了這條規則（`.agents` 會被 `.agent` 吃掉、`.codexignore` 會被 `.codex` 吃掉），**但 `antigravityignore` 漏列**。→ 已補入清單，並在 `tests/test_check_updates.py` 加**不變式測試**：對清單中任兩個名稱，若 A 是 B 的前綴則 B 必須排在 A 之前 —— 新增名稱時不必人工檢查順序。故意把順序改錯可重現失敗（兩個測試皆紅），確認斷言有效 | 程式碼實測＋回歸測試 | 2026-08-26 | — | 已驗證 |
 | C-88 | CI 斷言的寫法（**非路徑主張**，故不列入監控涵蓋率） | **原結論只修正 `! cmd` 與 `-v`，仍漏掉 index 行為。** 顯式 `check()` 雖避免 `set -e` 靜默通過，但普通 `git check-ignore -q` 預設不回報已追蹤檔案；GitHub Actions checkout 後，應放行檔即使白名單被刪除仍可能回傳 1，被錯判為正常。 | bash 手冊＋端對端實測 | 2026-08-09 | — | 被取代→C-89 |
 | C-89 | CI ignore-policy 斷言（**非路徑主張**，故不列入監控涵蓋率） | 判定 `.gitignore` 規則行為必須使用 `git check-ignore --no-index -q -- <path>`，將 exit 0／1／其他錯誤分別處理為 ignored／allowed／command error；不得靠 `!` 反轉。`allowed` 與 `tracked` 是不同維度，如需確認納入版控，另以 `git ls-files --error-unmatch -- <path>` 斷言。2026-08-11 以 PM-tools-Dashboard-docker 四個實際已追蹤的放行檔重驗：普通模式全回傳 1，`--no-index` 才能在移除白名單時看見 ignore 規則。已同步五版與範本驗證器。 | `git check-ignore -h`（`--no-index: ignore index when checking`）＋實際 index 重驗 | 2026-08-11 | Git 2.x | 已驗證 |
 
@@ -271,3 +273,44 @@
 | 2026-08-07 | 比對 PM-tools-Dashboard-docker 實際運作 | 該專案 `.gitignore` 與現行範本的落差 | — | 發現 `.claude/launch.json` 被 `.claude/*` 靜默擋下 → 新增 **C-83**。另記該專案 `.gitignore` 自 2026-07-11 起未再更新，`.codex/`、`.gemini/` 的整包封殺已與 C-17、C-21 不符（目前該專案兩目錄為空，屬潛在而非現行誤殺） |
 | 2026-08-04 | 維護者自查（縱向稽核） | 全範本每條規則的依據強度 | [稽核紀錄](./rounds/2026-08-04-speculation-audit.md) | 三條篩出：C-54 依據**被低估**（實為明確路徑模板，非對稱推論）；`.agent/skills/` 缺主張且規則寬於官方向後相容範圍 → 新增 C-81；`!.agents/AGENTS.md`／`!.agents/settings.json` 為**不存在的檔案**留白名單 → **已自五版移除**。另記三條假陽性係帳本路徑欄索引不足所致 |
 | 2026-08-03 | **四工具交叉檢視** | 全部主線工具 | [交叉檢視文件](./rounds/2026-08-03-cross-tool-review.md) | Antigravity [已回覆](./rounds/2026-08-03-antigravity.reply.md)（6 項中 3 項複驗未採用，新增 C-59）；Claude Code [已自答](./rounds/2026-08-03-claude-code.reply.md)（新增 C-61、C-62）；Codex 與 Copilot 的文件端問題已由 [docs 查證](./rounds/2026-08-03-codex-copilot.docs.md) 定案（新增 C-75～C-77）；Copilot [已實機回覆](./rounds/2026-08-03-vscode-copilot.reply.md)（新增 C-78，無需新增 project `.gitignore` 規則）；Codex [已實機回覆](./rounds/2026-08-03-codex.reply.md)（**推翻我方 C-17 的 rollout 誤植**，新增 C-63、C-64）；四工具交叉檢視全部完成 |
+
+---
+
+## 監控來源缺口
+
+**2026-08-26 發現。** `SOURCES` 目前納入 4 個 claude-code 來源（`settings`、`memory`、
+`skills`、`changelog`），但官方另有一份**未納入監控**的 `.claude` 目錄參考頁：
+
+```
+https://docs.claude.com/en/docs/claude-code/claude-directory.md
+```
+
+該頁是 `~/.claude/` 的完整佈局說明。實測抽出的 token 中，**有 24 個是目前 baseline 沒有的**：
+
+```
+~/.claude/agent-memory/     ~/.claude/cache/changelog.md   ~/.claude/debug/
+~/.claude/feedback-bundles/ ~/.claude/file-history/        ~/.claude/image-cache/
+~/.claude/logs/             ~/.claude/output-styles/       ~/.claude/paste-cache/
+~/.claude/plans/            ~/.claude/plugins/             ~/.claude/policy-limits.json
+~/.claude/remote-settings.json  ~/.claude/session-env/     ~/.claude/stats-cache.json
+~/.claude/statsig/          ~/.claude/todos/               ~/.claude/uploads/
+~/.claude/usage-data/       （另有 4 條為文件中的相對路徑範例）
+```
+
+### 為什麼值得記
+
+C-90 初版把「settings 頁只描述損毀複本」誤寫成「官方文件不完整」。實際上該頁
+**完整描述了例行備份**（「keeps the five newest」），與本機實查的 5 個檔完全吻合 ——
+**問題不在官方文件，在我們選的來源。**
+
+24 條全屬家目錄，**不影響任何專案層 `.gitignore` 規則**，因此這不是誤殺風險；
+但它意味著「盲區」的實際範圍比 `--coverage` 報的更大 ——
+coverage 只能回答「已登記的主張有沒有來源涵蓋」，**回答不了「有沒有該登記卻沒登記的路徑」**。
+
+### 尚未處理
+
+是否把該頁納入 `SOURCES` 屬**監控機制的調整**，與本輪的候選分類是不同性質的決定，
+依 D9 的拆分原則**不在本輪一併處理**。納入時需注意：
+
+- 新來源會走 bootstrap 路徑（測試矩陣已涵蓋：建立來源 baseline、不誤報為異動）
+- 24 條新 token 需逐一分類，工作量與本輪相當

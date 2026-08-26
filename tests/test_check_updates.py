@@ -169,5 +169,30 @@ class CheckUpdatesTests(unittest.TestCase):
         self.assertNotEqual(before, after)
 
 
+class TokenExtractionTests(unittest.TestCase):
+    """token 抽取的排序不變式 —— 漏列長名會造成靜默截短，不會報錯。"""
+
+    def test_longer_dot_names_precede_their_prefixes(self):
+        """若 A 是 B 的前綴，B 必須排在 A 之前，否則 alternation 會先命中 A。"""
+        names = MONITOR.DOT_NAMES.split("|")
+        for i, short in enumerate(names):
+            for j, long_ in enumerate(names):
+                if long_ != short and long_.startswith(short):
+                    self.assertLess(
+                        j, i,
+                        f"{long_!r} 必須排在 {short!r} 之前，否則 .{long_} 會被截成 .{short}",
+                    )
+
+    def test_ignore_file_names_are_not_truncated(self):
+        """各工具的 *ignore 檔名必須完整抽出，不可被較短的工具名吃掉。"""
+        cases = {
+            "files that were in your .antigravityignore.": ".antigravityignore",
+            "see .geminiignore for details": ".geminiignore",
+            "the .codexignore file": ".codexignore",
+        }
+        for text, expected in cases.items():
+            self.assertIn(expected, MONITOR.extract_tokens(text), msg=text)
+
+
 if __name__ == "__main__":
     unittest.main()

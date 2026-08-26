@@ -9,9 +9,9 @@
   "sources": {
     "antigravity/changelog": {
       "tokens": [
-        ".antigravity",
         ".antigravitycli",
         ".antigravitycli/",
+        ".antigravityignore",
         "/.agents/hooks.json",
         "AGENTS.md",
         "GEMINI.md",
