@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.246",
-    "codex": "0.149.1",
+    "claude-code": "2.1.250",
+    "codex": "0.150.1",
     "gemini-cli": "0.57.0",
-    "antigravity": "2.10.0"
+    "antigravity": "2.11.0"
   },
   "sources": {
     "antigravity/changelog": {
@@ -170,6 +170,7 @@
         ".claude/commands/deploy.md",
         ".claude/settings.json",
         ".claude/settings.local.json",
+        ".claude/skills",
         ".claude/skills/",
         ".claude/skills/deploy-staging/SKILL.md",
         ".claude/skills/deploy/SKILL.md",
@@ -178,6 +179,7 @@
         ".mcp.json",
         "/.claude/hooks/helper.sh",
         "CLAUDE.md",
+        "~/.claude/skills",
         "~/.claude/skills/",
         "~/.claude/skills/codebase-visualizer/SKILL.md",
         "~/.claude/skills/codebase-visualizer/scripts",
