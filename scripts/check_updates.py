@@ -198,25 +198,52 @@ def normalize(body):
     return body
 
 
-def extract_tokens(text):
-    """從正規化後的文字抽出路徑 token 集合。"""
-    tokens = set()
+def iter_token_matches(text):
+    """逐一回傳清理後的 token 與原文 match span。"""
     for match in TOKEN_RE.finditer(text):
         token = match.group(0).strip().rstrip("`\"'.,;:!?)]}")
         if len(token) <= 2 or "://" in token:
             continue
-        tokens.add(token)
-    return tokens
+        yield token, match.start(), match.end()
+
+
+def extract_tokens(text):
+    """從正規化後的文字抽出路徑 token 集合。"""
+    return {token for token, _start, _end in iter_token_matches(text)}
+
+
+def token_comparison_key(token):
+    """比較用語彙鍵：目錄尾斜線有無不構成路徑機制異動。"""
+    return token.rstrip("/\\")
+
+
+def token_changes(current, previous):
+    """回傳具語意的新增／消失 token，忽略純尾斜線表示差異。"""
+    current_by_key = {}
+    previous_by_key = {}
+    for token in sorted(current, key=lambda value: (len(value), value)):
+        current_by_key.setdefault(token_comparison_key(token), token)
+    for token in sorted(previous, key=lambda value: (len(value), value)):
+        previous_by_key.setdefault(token_comparison_key(token), token)
+
+    added = sorted(
+        current_by_key[key] for key in current_by_key.keys() - previous_by_key.keys()
+    )
+    removed = sorted(
+        previous_by_key[key] for key in previous_by_key.keys() - current_by_key.keys()
+    )
+    return added, removed
 
 
 def context_for(text, token, window=120):
     """取 token 在原文中的一段前後文，讓 issue 能說明「改了什麼」。"""
-    index = text.find(token)
-    if index < 0:
-        return ""
-    start = max(0, index - window)
-    end = min(len(text), index + len(token) + window)
-    return re.sub(r"\s+", " ", text[start:end]).strip()
+    for matched, match_start, match_end in iter_token_matches(text):
+        if matched != token:
+            continue
+        start = max(0, match_start - window)
+        end = min(len(text), match_end + window)
+        return re.sub(r"\s+", " ", text[start:end]).strip()
+    return ""
 
 
 CLAIM_ROW_RE = re.compile(
@@ -414,8 +441,7 @@ def main():
             bootstrapped.append((key, len(tokens)))
             continue
 
-        added = sorted(tokens - previous)
-        removed = sorted(previous - tokens)
+        added, removed = token_changes(tokens, previous)
         if added or removed:
             changes.append((tool, source, added, removed, text))
 

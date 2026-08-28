@@ -144,6 +144,35 @@ class CheckUpdatesTests(unittest.TestCase):
         self.assertIn("[SIGNAL: BASELINE_CHANGED]", report)
         self.assertNotEqual(before, after)
 
+    def test_trailing_slash_alias_does_not_alert_or_write_baseline(self):
+        baseline = self._baseline()
+        baseline["sources"][self.source_key]["tokens"].append(".claude/skills/")
+
+        report, before, after = self._run(
+            baseline=baseline,
+            source_text=".claude/settings.json .claude/skills",
+        )
+
+        self.assertIn("無異動", report)
+        self.assertNoUpdateSignals(report)
+        self.assertEqual(before, after)
+
+    def test_trailing_slash_alias_does_not_hide_real_child_change(self):
+        baseline = self._baseline()
+        baseline["sources"][self.source_key]["tokens"].append(".claude/skills/")
+
+        report, _, _ = self._run(
+            baseline=baseline,
+            source_text=(
+                ".claude/settings.json .claude/skills "
+                ".claude/skills/new/SKILL.md"
+            ),
+        )
+
+        self.assertIn("`.claude/skills/new/SKILL.md`", report)
+        self.assertIn("[SIGNAL: UPDATE_DETECTED]", report)
+        self.assertNotIn("**新增**：`.claude/skills`", report)
+
     def test_failed_source_keeps_baseline_and_signals_failure(self):
         report, before, after = self._run(source_error="network unavailable")
 
@@ -171,6 +200,14 @@ class CheckUpdatesTests(unittest.TestCase):
 
 class TokenExtractionTests(unittest.TestCase):
     """token 抽取的排序不變式 —— 漏列長名會造成靜默截短，不會報錯。"""
+
+    def test_trailing_slash_aliases_compare_equal_in_both_directions(self):
+        cases = (
+            ({".claude/skills"}, {".claude/skills/"}),
+            ({"~/.claude/skills/"}, {"~/.claude/skills"}),
+        )
+        for current, previous in cases:
+            self.assertEqual(([], []), MONITOR.token_changes(current, previous))
 
     def test_longer_dot_names_precede_their_prefixes(self):
         """若 A 是 B 的前綴，B 必須排在 A 之前，否則 alternation 會先命中 A。"""
@@ -216,6 +253,19 @@ class TokenExtractionTests(unittest.TestCase):
         )
         for text in cases:
             self.assertEqual({text}, MONITOR.extract_tokens(text), msg=text)
+
+    def test_context_uses_the_exact_token_match(self):
+        """短 token 的上下文不可誤指向較早出現的長路徑。"""
+        text = (
+            ".claude/skills/deploy/SKILL.md "
+            + ("x" * 300)
+            + " run claude plugin validate .claude/skills for project skills"
+        )
+
+        context = MONITOR.context_for(text, ".claude/skills", window=45)
+
+        self.assertIn("plugin validate .claude/skills", context)
+        self.assertNotIn("deploy/SKILL.md", context)
 
 
 if __name__ == "__main__":
