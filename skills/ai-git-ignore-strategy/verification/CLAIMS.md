@@ -3,15 +3,15 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-08-26（右側邊界補上後複驗：更正分類紀錄 8-5 的假 token 來源敘述，並在〈監控來源缺口〉補記 `~/.claude.json` 類檔名的表示盲點）
+**最後更新**：2026-08-28（Issue #10 判定為尾斜線語彙假陽性 —— 新增 C-96：目錄尾斜線等價與上下文取用改採實際 match span）
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 68 |
+| 已驗證 | 69 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
 | 被取代 | 1 |
-| **總計** | **76** |
+| **總計** | **77** |
 
 ---
 
@@ -158,6 +158,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-60 | `.agents/` | **非 Antigravity 專屬**，是 Codex／Gemini CLI／Antigravity 共用的跨工具目錄 | 官方文件（三方交叉） | 2026-07-29 | — | 已驗證 |
 | C-95 | 抽取器的長名與右側邊界（**非路徑主張**，故不列入監控涵蓋率） | `TOKEN_RE` 的 alternation 取**最先命中者**。2026-08-22～08-26 期間 `.antigravityignore` 因長名漏列而被存成 `.antigravity`，baseline 保存的不是官方原文檔名。第一輪已補入長名與**排序不變式**，但那只能保護清單內已知名稱；Codex 第二次複驗仍可重現 `.agentsfoo` → `.agents`、`.antigravityignore.bak` → `.antigravityignore` 等錯誤。→ dot-name 分支已補**右側邊界**：直接連接字元、連字號，或 `.` 後再接檔名字元時不得命中；單獨句尾 `.` 仍可由後處理清除。此邊界也揭露 baseline 中 5 個既有假 token：`./.codex` 來自 `./.codex-log`，4 個 `.copilot` 為完整家目錄路徑或 HTML class 的前綴殘留；已取原文上下文確認後精準移除。回歸測試同時覆蓋正向完整檔名、合法嵌套路徑、已知長名順序與 6 個未知長名負向案例 | 程式碼實測＋官方來源上下文＋回歸測試 | 2026-08-26 | — | 已驗證 |
+| C-96 | 比較語彙與上下文取用（**非路徑主張**，故不列入監控涵蓋率） | **① 目錄尾斜線不構成路徑機制異動。** 2026-08-28 Issue #10 把 `.claude/skills`、`~/.claude/skills` 報成新增，實查官方 skills 頁後確認兩者各只有**一處**命中，都出自新增的指令範例「`claude plugin validate .claude/skills` for project skills or `claude plugin validate ~/.claude/skills` for personal skills」，是既有 `.claude/skills/`、`~/.claude/skills/` 的**尾斜線別名**，不是新儲存位置 → 告警比較改以 `token.rstrip("/\\")` 為鍵，**baseline 仍保存原文拼法**。C-06／C-53／C-62／C-92 均未被推翻，五版 SKILL.md 零異動。⚠️ **刻意接受的靈敏度損失（比照 D5 的取捨聲明）**：等價之後，**文件把某路徑從檔案改寫成目錄（或反之）將永遠不會告警** —— 實測 `.codexignore` → `.codexignore/` 完全無聲。判斷依據是散文中的斜線本來就不是可靠證據，且該情境機率極低；但這是**損失，不是沒有損失**。反斜線與正斜線**不**等價（`~\.claude\` vs `~/.claude/` 仍告警），目前無來源使用 Windows 表示法。另注意上游同頁常同時使用兩種拼法（全帳本 11 個 key 有雙拼法，皆為文件用語習慣），故上游日後若只留一種拼法，舊拼法會**永久留在 baseline** —— 不誤報，屬可接受殘留。**② 上下文必須取自實際 match span。** 原 `context_for()` 用 `text.find(token)`，短 token 會先命中較長路徑的子字串：Issue #10 為 `.claude/skills` 附上的竟是 `.claude/skills/deploy/SKILL.md` 那段「Custom commands have been merged into skills」，**錯的上下文會直接導向錯的分類決定**（D6 的第一步就出錯）。→ 改為走 `iter_token_matches()` 比對完整 token 後取 match span。依 C-89 驗證斷言有效：停用尾斜線等價 → 3 個測試轉紅且精確重現 Issue #10 假警報原文；還原 `find()` 實作 → 上下文測試轉紅 | 官方 skills 頁實查＋回歸測試（26 項）＋遠端 E2E run | 2026-08-28 | claude-code 2.1.250 | 已驗證 |
 | C-88 | CI 斷言的寫法（**非路徑主張**，故不列入監控涵蓋率） | **原結論只修正 `! cmd` 與 `-v`，仍漏掉 index 行為。** 顯式 `check()` 雖避免 `set -e` 靜默通過，但普通 `git check-ignore -q` 預設不回報已追蹤檔案；GitHub Actions checkout 後，應放行檔即使白名單被刪除仍可能回傳 1，被錯判為正常。 | bash 手冊＋端對端實測 | 2026-08-09 | — | 被取代→C-89 |
 | C-89 | CI ignore-policy 斷言（**非路徑主張**，故不列入監控涵蓋率） | 判定 `.gitignore` 規則行為必須使用 `git check-ignore --no-index -q -- <path>`，將 exit 0／1／其他錯誤分別處理為 ignored／allowed／command error；不得靠 `!` 反轉。`allowed` 與 `tracked` 是不同維度，如需確認納入版控，另以 `git ls-files --error-unmatch -- <path>` 斷言。2026-08-11 以 PM-tools-Dashboard-docker 四個實際已追蹤的放行檔重驗：普通模式全回傳 1，`--no-index` 才能在移除白名單時看見 ignore 規則。已同步五版與範本驗證器。 | `git check-ignore -h`（`--no-index: ignore index when checking`）＋實際 index 重驗 | 2026-08-11 | Git 2.x | 已驗證 |
 
@@ -269,6 +270,7 @@
 | 2026-07-30 | 官方文件研究（無需交接） | C-08、C-09、C-15～C-17、C-23、C-24、C-32、C-53 | — | 九項全部由官方文件直接定案，未動用交接輪次 |
 | 2026-08-04 | Codex、Copilot（＋Antigravity 可選） | 移除舊安裝路徑後的載入實查；C-54 實體檔案 | [交接包](./rounds/2026-08-04-load-path-check.md) | Codex [已實機回覆](./rounds/2026-08-04-codex.reply.md)（**全部採用**，新增 C-85：確認自 `~/.agents/skills/` 載入，移除舊複本後技能未消失；並抓出我方三處文件缺失，其中 `README.md` 的檢查指令含兩個 `0x07` 控制字元而**實際跑不出正確結果**）。Copilot [已實機回覆](./rounds/2026-08-04-vscode-copilot.reply.md)（**全部採用**，新增 C-86：同樣確認自 `~/.agents/skills/` 載入；並**推翻我方 C-79 的一項依據** —— 兩份同名實體複本在 catalog 中只出現一個項目，原稱「同時看得到兩份」是由目錄存在推論的循環證據）。Antigravity [已回覆](./rounds/2026-08-04-antigravity.reply.md)（**部分採用**，新增 C-87：誠實聲明無實機資料，所提社群 schema 經維護者以二進位 protobuf 定義獨立佐證成立；但「白名單完全正確且必要」的**強度不採用** —— 仍無人目視實體檔案、Q3 自陳無法斷定、且 key 命名 snake_case／camelCase 未定，故 `!.agents/agents/` **維持註解狀態**）。**本輪三工具全部回覆完畢** |
 | 2026-08-26 | 排程偵測 → 維護者分類（無需交接） | Issue #7 累積的四批候選 token | [分類紀錄](./rounds/2026-08-26-claude.candidate-triage.md) | **全數歸檔為 C-90～C-93，五版 SKILL.md 零異動**（皆為家目錄路徑或文件範例）。三個發現：`synced` 是**專案層也適用的保留名稱**（C-92）；官方文件只描述 `backups/` 的損毀複本用途，實查發現實際是例行備份 —— **只憑 token 登記會把用途寫窄**（C-90）；`post_tool_use.py` 與 C-17 同屬「自文件範例抽出 token」的陷阱（C-93）。另核對 08-22 的 17 條「消失」為官方頁面改版，涵蓋率未降、無主張失去監控。Issue #7 曾據此結案 —— **但 Codex 複驗發現漏一項**：`.antigravityignore` 被抽取器**靜默截短**成 `.antigravity`（C-95），該候選從未以正確檔名出現在報告中。已補修已知長名不變式與未知長名右側邊界、補登 C-94／C-95、更正 C-90 措辭、同輪寫回 baseline，Issue #7 再次結案。詳見分類紀錄第八節 |
+| 2026-08-28 | 排程偵測 → Codex 修正 → Claude 複驗 | Issue #10 的兩個候選 token | [複驗紀錄](./rounds/2026-08-28-claude.slash-alias-review.md) | **判定為假陽性，機制修正而非帳本修正 —— 五版 SKILL.md 與既有主張零異動。**兩個「新增」token 是既有目錄的尾斜線別名，實查官方頁確認各只有一處命中、都出自新增的 `claude plugin validate` 指令範例。Codex 一併抓到 `context_for()` 用 `text.find()` 會讓短 token 的上下文**指向較長路徑**（Issue #10 正是受害者）→ 新增 **C-96**。複驗獨立確認：兩 token 的精確命中位置、`.claude/commands/` 五版皆有白名單（C-04）故「commands 已併入 skills」不推翻任何主張、26 項測試、遠端 run 各步驟正確跳過、涵蓋率維持 50／2。**本輪是自動追蹤機制第一次走完「偵測 → 分類 → 修機制 → E2E 驗證 → 結案」的完整循環** |
 | 2026-08-12 | Codex（實作修正）→ Claude 複驗 | Windows CP950 輸出、generic YAML fence | [Codex 交接](./rounds/2026-08-12-codex.reply.md) | [Claude 複驗](./rounds/2026-08-12-claude.review.md)　**兩項皆通過**。CP950 以「修正前必須崩潰」的雙向測試證實重現環境有效（`↔` U+2194 → `❌` U+274C 二次崩潰，與回報一致）；generic 兩段 YAML 與其餘四版逐字一致，C-89 的 `--no-index` 判定未被更動。**不需異動本帳本** —— 兩項均為實作與 Markdown 結構修正，未新增或推翻外部工具路徑事實 |
 | 2026-08-07 | 比對 PM-tools-Dashboard-docker 實際運作 | 該專案 `.gitignore` 與現行範本的落差 | — | 發現 `.claude/launch.json` 被 `.claude/*` 靜默擋下 → 新增 **C-83**。另記該專案 `.gitignore` 自 2026-07-11 起未再更新，`.codex/`、`.gemini/` 的整包封殺已與 C-17、C-21 不符（目前該專案兩目錄為空，屬潛在而非現行誤殺） |
 | 2026-08-04 | 維護者自查（縱向稽核） | 全範本每條規則的依據強度 | [稽核紀錄](./rounds/2026-08-04-speculation-audit.md) | 三條篩出：C-54 依據**被低估**（實為明確路徑模板，非對稱推論）；`.agent/skills/` 缺主張且規則寬於官方向後相容範圍 → 新增 C-81；`!.agents/AGENTS.md`／`!.agents/settings.json` 為**不存在的檔案**留白名單 → **已自五版移除**。另記三條假陽性係帳本路徑欄索引不足所致 |
