@@ -11,6 +11,7 @@ on:
 permissions:
   contents: write
   issues: write
+  copilot-requests: write # Copilot CLI 用內建 github.token 認證，不需要 PAT
 
 # 避免手動觸發與排程同時執行時，兩邊都要 push 基準線而打架
 concurrency:
@@ -58,6 +59,78 @@ jobs:
             --report report.md \
             --exit-code "$exit_code" \
             --github-output "$GITHUB_OUTPUT"
+
+      # AI 只負責「摘要」，不參與偵測。偵測結論一律由上一步的規則式比對決定，
+      # 這樣「今天為什麼沒告警」永遠可以靠 tests/ 重現。本步驟壞掉不影響告警。
+      - name: Summarize report with Copilot
+        id: summarize
+        if: >-
+          always() && steps.check.outcome == 'success' &&
+          (steps.check.outputs.updates == 'true' || steps.check.outputs.failure == 'true')
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PRIMARY_MODEL: gpt-5.6-terra
+        run: |
+          npm install -g @github/copilot
+
+          # 報告裡已含 claims_for_token() 比對出的主張，模型不必再翻 57KB 的
+          # CLAIMS.md，因此不開放任何檔案工具 — 輸入面確定，成本可預期。
+          {
+            echo "以下是一份自動化監控報告。請用 3 至 5 句繁體中文說明：本次偵測到哪些變動、"
+            echo "可能影響哪幾條已登記的主張、建議優先確認什麼。"
+            echo "只根據報告內容陳述，不要臆測報告未提及的事，也不要建議修改程式碼。"
+            echo
+            echo "--- 報告開始 ---"
+            head -c 20000 report.md
+          } > prompt.txt
+
+          # 依序嘗試：指定模型 → Auto → CLI 預設。
+          # 單一模型下架是最可能的失效原因，退回 Auto 可免去每次模型汰換都要改這個檔案；
+          # 最後不帶 --model 再試一次，是為了扛住旗標名稱本身變動的情況。
+          summarize_with() {
+            if [ -n "$1" ]; then
+              timeout 300 copilot --yolo --model "$1" -p "$(cat prompt.txt)"
+            else
+              timeout 300 copilot --yolo -p "$(cat prompt.txt)"
+            fi
+          }
+
+          for model in "$PRIMARY_MODEL" "Auto" ""; do
+            label="${model:-CLI 預設}"
+            if summarize_with "$model" > ai-summary.txt 2> ai-error.txt && [ -s ai-summary.txt ]; then
+              echo "摘要由 $label 產生"
+              exit 0
+            fi
+            echo "::warning::模型 $label 未能產生摘要"
+            tail -c 500 ai-error.txt || true
+            rm -f ai-summary.txt
+          done
+
+          exit 1
+
+      - name: Prepend summary to report
+        if: >-
+          always() && steps.check.outcome == 'success' &&
+          (steps.check.outputs.updates == 'true' || steps.check.outputs.failure == 'true')
+        continue-on-error: true
+        run: |
+          {
+            if [ -s ai-summary.txt ]; then
+              echo "> 🤖 以下摘要由 AI 生成，僅供快速理解。"
+              echo "> 判斷依據以下方規則式比對結果為準。"
+              echo ">"
+              sed 's/^/> /' ai-summary.txt
+            else
+              # 靜默降級正是這個 repo 要避免的失效模式（見 check_updates.py 開頭註解）。
+              # 摘要壞掉必須出現在必然會被讀到的 Issue 裡，而不是只躺在 Actions log。
+              echo "> ⚠️ 本次 AI 摘要產生失敗（指定模型可能已下架，或額度不足）。"
+              echo "> 以下僅為規則式報告；偵測本身不受影響。"
+            fi
+            echo
+            cat report.md
+          } > report-with-summary.md
+          mv report-with-summary.md report.md
 
       - name: Notify via GitHub Issues
         if: >-
