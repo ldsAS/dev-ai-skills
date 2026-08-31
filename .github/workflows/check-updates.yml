@@ -64,9 +64,7 @@ jobs:
       # 這樣「今天為什麼沒告警」永遠可以靠 tests/ 重現。本步驟壞掉不影響告警。
       - name: Summarize report with Copilot
         id: summarize
-        if: >-
-          always() && steps.check.outcome == 'success' &&
-          (steps.check.outputs.updates == 'true' || steps.check.outputs.failure == 'true')
+        if: always() && steps.check.outcome == 'success' # PROBE: 暫時放寬，驗證後還原
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -110,9 +108,7 @@ jobs:
           exit 1
 
       - name: Prepend summary to report
-        if: >-
-          always() && steps.check.outcome == 'success' &&
-          (steps.check.outputs.updates == 'true' || steps.check.outputs.failure == 'true')
+        if: always() && steps.check.outcome == 'success' # PROBE: 暫時放寬，驗證後還原
         continue-on-error: true
         run: |
           {
@@ -131,6 +127,13 @@ jobs:
             cat report.md
           } > report-with-summary.md
           mv report-with-summary.md report.md
+
+      # PROBE: 暫時步驟，驗證後刪除
+      - name: PROBE show merged report
+        if: always()
+        run: |
+          echo "----- report.md 前 60 行 -----"
+          head -n 60 report.md
 
       - name: Notify via GitHub Issues
         if: >-
@@ -193,9 +196,7 @@ jobs:
           done < recovery-targets.txt
 
       - name: Commit baseline update
-        if: >-
-          always() && steps.check.outcome == 'success' &&
-          steps.check.outputs.baseline == 'true'
+        if: false # PROBE: 暫時停用，避免探測跑把基準線 commit 推到分支
         run: |
           if git diff --quiet -- scripts/last_checked.json; then
             echo "基準線內容無實際變更，略過 commit"
