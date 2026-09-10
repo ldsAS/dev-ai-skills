@@ -94,6 +94,13 @@ CASES = [
     (".claude/workflows/deploy.md", False),              # C-09 專案層 workflow
     (".claude/worktrees/feat-x/main.py", True),          # C-09 git worktree，且有逃逸風險
     (".claude-plugin/plugin.json", False),               # C-08
+    # --- monorepo 子目錄的 .claude/（C-97）---
+    # 含中段 / 的規則錨定在 .gitignore 所在層級，因此根目錄那組規則碰不到子目錄。
+    # 個人本機檔必須靠 **/ 前綴補上；其餘 nested 內容屬團隊共享，維持放行。
+    ("apps/web/.claude/settings.local.json", True),      # C-97 個人本機設定，nested 也要擋
+    ("apps/web/.claude/settings.json", False),           # C-97 團隊共用設定
+    ("apps/web/.claude/skills/deploy/SKILL.md", False),  # C-97 nested 專案技能（官方 Nested 位置）
+    ("apps/web/.claude/commands/deploy.md", False),      # C-97 nested 團隊共用指令
     (".claude-plugin/marketplace.json", False),          # C-08
     (".mcp.json", False),                                # C-61 專案層 MCP 設定
     # --- Gemini CLI（C-21～C-23）---

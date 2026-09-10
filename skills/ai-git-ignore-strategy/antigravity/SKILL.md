@@ -481,7 +481,11 @@ Thumbs.db
 # 專案層 workflow；對應 user-scope 的 ~/.claude/workflows/，屬團隊共用（C-09）
 !.claude/workflows/
 # 個人本機設定：即使有上方白名單也 explicit 擋一次
-.claude/settings.local.json
+# 用 **/ 前綴而非 .claude/settings.local.json：含中段 / 的規則會錨定在 .gitignore
+# 所在層級，monorepo 子目錄的 apps/web/.claude/settings.local.json 就擋不到。
+# 官方自己寫進 global git excludes 的也是 **/.claude/settings.local.json，
+# 且明示「手動建立的那一份要自行加進 .gitignore」（C-97）
+**/.claude/settings.local.json
 # git worktree 的實體工作目錄，執行期產物。官方修過兩條相關的 symlink 逃逸：
 #   1. .claude/worktrees 的 committed symlink 可在 repo 外建檔（C-09）
 #   2. .claude 這個路徑本身若是 symlink，workflow 儲存與排程任務的寫入
@@ -668,6 +672,8 @@ GitHub Actions 的 `shell: bash` 等同 `bash -eo pipefail`，而 `set -e` 的�
     }
     check_policy .claude/launch.json          allowed
     check_policy .claude/skills/thirdparty/   ignored
+    # monorepo 子目錄：根目錄那組規則錨定在 .gitignore 所在層級，碰不到這裡（C-97）
+    check_policy apps/web/.claude/settings.local.json  ignored
     exit $fail
 ```
 
