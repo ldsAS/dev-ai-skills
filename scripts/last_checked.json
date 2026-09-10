@@ -1,8 +1,8 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.266",
-    "codex": "0.153.4",
+    "claude-code": "2.1.267",
+    "codex": "0.154.0",
     "gemini-cli": "0.59.0",
     "antigravity": "2.12.2"
   },
@@ -149,6 +149,7 @@
     "claude-code/settings": {
       "tokens": [
         ".claude",
+        ".claude/",
         ".claude/settings.json",
         ".claude/settings.local.json",
         "/.claude/settings.local.json",
@@ -217,6 +218,7 @@
     },
     "codex/config-reference": {
       "tokens": [
+        ".agents/plugins/marketplace.json",
         ".codex/",
         ".codex/config.toml",
         "AGENTS.md",
