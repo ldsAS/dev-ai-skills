@@ -344,7 +344,12 @@ def claims_for_token(token, claims):
             if value == path:
                 hits.append(claim)
                 break
-            if "/" not in value:
+            # 前綴比對要求**雙方都是多段路徑**。單段的一方不帶指向性：
+            #   * token 單段（C-99）：`.claude/` 不代表其下每條主張都失效
+            #   * 主張路徑單段（C-100）：`.claude/skills/` 的變動不構成「`.claude`
+            #     這個路徑本身可否為 symlink」(C-62) 的證據。實測 baseline 156 個
+            #     token 中有 26 個命中 C-62，其中 24 個純屬這種往上擴散的噪音
+            if "/" not in value or "/" not in path:
                 continue
             if value.startswith(path + "/") or path.startswith(value + "/"):
                 hits.append(claim)
@@ -393,14 +398,19 @@ def report_coverage():
         for token in entry.get("tokens", []):
             tokens.setdefault(_norm_path(token), set()).add(key)
 
+    # 比對規則必須與告警時的歸屬完全一致（C-102）。本函式原本自己內嵌了一份
+    # 寬鬆的雙向前綴比對，於是「有涵蓋」其實包含了**不可能見證該路徑變動**的來源：
+    # 例如 `.agents/ORIGINAL_REQUEST.md`(C-55) 只因為某來源有一個裸 `.agents/` token
+    # 就被算成有涵蓋 —— 但上游改掉那個檔名時，裸 `.agents/` 不會變，監控不會響。
+    # 改為直接呼叫 claims_for_token()，兩邊永遠同一套規則。
+    by_claim = {}
+    for value, srcs in tokens.items():
+        for claim in claims_for_token(value, claims):
+            by_claim.setdefault(claim["id"], set()).update(srcs)
+
     covered, blind = [], []
     for claim in claims:
-        hits = set()
-        for value, srcs in tokens.items():
-            for path in claim["paths"]:
-                if value == path or value.startswith(path + "/") or path.startswith(value + "/"):
-                    hits |= srcs
-                    break
+        hits = by_claim.get(claim["id"], set())
         (covered if hits else blind).append((claim, sorted(hits)))
 
     print("# 帳本 ↔ 監控涵蓋率\n")
@@ -524,18 +534,44 @@ def main():
             hits = claims_for_token(token, claims)
             return "".join(f" `{c['id']}`" for c in hits), hits
 
+        def _other_sources(token, table, exclude_key):
+            """這個路徑還出現在哪些**別的**來源裡（C-101）。
+
+            比對是**逐來源**進行的，所以官方把同一段說明從 A 頁搬到 B 頁、
+            或複製到 B 頁，會在 B 頁報成「新增」、在 A 頁報成「消失」——
+            兩者都不是機制變動。Issue #12 的 `.claude/` 與 2026-09-11 的
+            `.claude/commands/frontend/component.md` 都是這一類。
+            """
+            key = _norm_path(token)
+            found = []
+            for src_key, payload in table.items():
+                if src_key == exclude_key:
+                    continue
+                if any(_norm_path(other) == key for other in payload.get("tokens", ())):
+                    found.append(src_key)
+            return sorted(found)
+
         # 單段 token 只做等值比對（C-99）。它多半是行文用語的變化，
         # 而非儲存位置搬移，報告必須把這個限制講明，否則讀者會把「沒標到主張」
         # 誤讀成「這個目錄底下的主張都沒事」或「依據全沒了」。
         segment_note = ("  > ℹ️ 單段目錄語彙訊號：僅比對同名主張，"
                         "**不代表其下各主張失效**；請確認其他來源是否仍涵蓋該目錄（C-99）")
 
+        def _srcs(keys):
+            return "、".join(f"`{k}`" for k in keys)
+
         for tool, source, added, removed, text in changes:
+            key = f"{tool}/{source}"
             lines.append(f"### `{tool}` — {source}")
             lines.append("")
             for token in removed:
                 tag, hits = _tag(token)
                 lines.append(f"- ❌ **消失**：`{token}`" + (f" →{tag}" if tag else ""))
+                elsewhere = _other_sources(token, new_sources, key)
+                if elsewhere:
+                    lines.append(f"  > ℹ️ **此路徑目前仍出現在** {_srcs(elsewhere)}："
+                                 "它離開的是本頁，不是官方文件整體 —— "
+                                 "原依據未必失效，請先比對該來源（C-101）")
                 if is_single_segment(token):
                     lines.append(segment_note)
                 for c in hits:
@@ -546,6 +582,11 @@ def main():
                 lines.append(f"- ✅ **新增**：`{token}`" + (f" →{tag}" if tag else ""))
                 if context:
                     lines.append(f"  > {context}")
+                elsewhere = _other_sources(token, baseline_sources, key)
+                if elsewhere:
+                    lines.append(f"  > ℹ️ **此路徑在本次之前已存在於** {_srcs(elsewhere)}："
+                                 "不是全新候選，較可能是官方把同一段說明複製或搬到本頁；"
+                                 "該來源的既有分類結論通常可直接沿用（C-101）")
                 if is_single_segment(token):
                     lines.append(segment_note)
                 for c in hits:

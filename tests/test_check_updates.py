@@ -44,6 +44,7 @@ class MonitorRunMixin:
         dry_run=False,
         baseline=None,
         claims_text=None,
+        extra_sources=None,
     ):
         temp_dir = tempfile.TemporaryDirectory()
         self.addCleanup(temp_dir.cleanup)
@@ -64,21 +65,28 @@ class MonitorRunMixin:
         else:
             claims_path.write_text(claims_text, encoding="utf-8", newline="\n")
 
-        def fake_fetch(_url):
+        # 預設只掛一個來源；extra_sources 為 {"tool/source": 該頁文字}，
+        # 用來測「同一段說明在來源之間搬家」這類跨來源行為（C-101）。
+        sources = [("claude-code", "settings", "https://example.invalid/settings")]
+        texts = {"https://example.invalid/settings":
+                 self.source_text if source_text is None else source_text}
+        for key, body in (extra_sources or {}).items():
+            tool, name = key.split("/", 1)
+            url = f"https://example.invalid/{tool}-{name}"
+            sources.append((tool, name, url))
+            texts[url] = body
+
+        def fake_fetch(url):
             if source_error:
                 raise RuntimeError(source_error)
-            return self.source_text if source_text is None else source_text
+            return texts[url]
 
         argv = ["check_updates.py"] + (["--dry-run"] if dry_run else [])
         output = StringIO()
         with (
             mock.patch.object(MONITOR, "BASELINE_PATH", str(baseline_path)),
             mock.patch.object(MONITOR, "CLAIMS_PATH", str(claims_path)),
-            mock.patch.object(
-                MONITOR,
-                "SOURCES",
-                [("claude-code", "settings", "https://example.invalid/settings")],
-            ),
+            mock.patch.object(MONITOR, "SOURCES", sources),
             mock.patch.object(MONITOR, "NPM_PACKAGES", {"claude-code": "example"}),
             mock.patch.object(MONITOR, "ALERT_LEVEL", {}),
             mock.patch.object(MONITOR, "fetch", side_effect=fake_fetch),
@@ -291,8 +299,8 @@ CLAIMS_FIXTURE = """
 """
 
 
-class ClaimMatchingTests(unittest.TestCase):
-    """token ↔ 帳本比對的語彙規則（Issue #12 → C-98 前導斜線、C-99 單段扇出）。"""
+class ClaimFixtureMixin:
+    """載入上面的帳本 fixture（不是 TestCase，避免被重複蒐集）。"""
 
     def setUp(self):
         temp_dir = tempfile.TemporaryDirectory()
@@ -306,6 +314,10 @@ class ClaimMatchingTests(unittest.TestCase):
 
     def _ids(self, token):
         return [c["id"] for c in MONITOR.claims_for_token(token, self.claims)]
+
+
+class ClaimMatchingTests(ClaimFixtureMixin, unittest.TestCase):
+    """token ↔ 帳本比對的語彙規則（Issue #12 → C-98 前導斜線、C-99 單段扇出）。"""
 
     def test_leading_slash_token_matches_the_same_claims_as_the_bare_form(self):
         """C-98：佔位符前綴切掉後留下的 `/` 不可讓 token 對不到主張。
@@ -384,6 +396,149 @@ class Issue12ReplayTests(MonitorRunMixin, unittest.TestCase):
         c06 = report.split("- **C-06**", 1)[1].split("- **C-", 1)[0]
         self.assertIn("`/.claude/skills/` 新增", c06)
         self.assertNotIn("`.claude/` 消失", c06)
+
+
+class ClaimPathDirectionTests(ClaimFixtureMixin, unittest.TestCase):
+    """C-100：單段**主張路徑**不可被更深的 token 往上命中。"""
+
+    def test_deep_token_does_not_match_a_single_segment_claim_path(self):
+        """`.claude/skills/` 的變動不構成「`.claude` 本身可否為 symlink」的證據。
+
+        移除 `claims_for_token()` 中 `"/" not in path` 這半邊守衛，本測試轉紅。
+        """
+        self.assertNotIn("C-62", self._ids(".claude/skills/"))
+        self.assertNotIn("C-62", self._ids(".claude/settings.json"))
+        self.assertNotIn("C-62", self._ids(".claude/commands/frontend/component.md"))
+
+    def test_single_segment_claim_path_still_matches_its_own_token(self):
+        """收斂後 C-62 仍須被 `.claude` 本身命中，否則它就失去監控涵蓋。"""
+        self.assertEqual(["C-62"], self._ids(".claude"))
+        self.assertEqual(["C-62"], self._ids(".claude/"))
+
+    def test_single_segment_file_claims_are_unaffected(self):
+        """單段**檔名**主張本來就沒有「更深的 token」，不可受影響。"""
+        self.assertEqual(["C-23"], self._ids(".geminiignore"))
+
+
+class CrossSourceNoteTests(MonitorRunMixin, unittest.TestCase):
+    """C-101：逐來源比對會把「同一段說明換頁」讀成新增／消失。"""
+
+    other_key = "claude-code/changelog"
+
+    def _baseline_with_other_source(self, tokens, other_tokens):
+        baseline = self._baseline()
+        baseline["sources"][self.source_key]["tokens"] = tokens
+        baseline["sources"][self.other_key] = {"tokens": other_tokens}
+        return baseline
+
+    def test_added_token_already_known_elsewhere_is_annotated(self):
+        """2026-09-11 的實例：該 token 早已在 changelog 的 baseline 裡。"""
+        baseline = self._baseline_with_other_source(
+            [".claude/settings.json"],
+            [".claude/commands/frontend/component.md"],
+        )
+
+        report, _, _ = self._run(
+            baseline=baseline,
+            claims_text=CLAIMS_FIXTURE,
+            source_text=".claude/settings.json .claude/commands/frontend/component.md",
+            extra_sources={self.other_key: ".claude/commands/frontend/component.md"},
+        )
+
+        self.assertIn("**新增**：`.claude/commands/frontend/component.md`", report)
+        self.assertIn("此路徑在本次之前已存在於", report)
+        self.assertIn("`claude-code/changelog`", report)
+
+    def test_removed_token_still_present_elsewhere_is_annotated(self):
+        """Issue #12 的實例：`.claude/` 離開 skills 頁，但仍在其他來源。"""
+        baseline = self._baseline_with_other_source(
+            [".claude/", ".claude/settings.json"],
+            [".claude/"],
+        )
+
+        report, _, _ = self._run(
+            baseline=baseline,
+            claims_text=CLAIMS_FIXTURE,
+            source_text=".claude/settings.json",
+            extra_sources={self.other_key: ".claude/"},
+        )
+
+        self.assertIn("**消失**：`.claude/`", report)
+        self.assertIn("此路徑目前仍出現在", report)
+        self.assertIn("`claude-code/changelog`", report)
+
+    def test_a_genuinely_new_token_gets_no_cross_source_note(self):
+        """註記不可見人就加 —— 真正只出現在一個來源的 token 不該被淡化。"""
+        baseline = self._baseline_with_other_source(
+            [".claude/settings.json"],
+            [".claude/settings.json"],
+        )
+
+        report, _, _ = self._run(
+            baseline=baseline,
+            claims_text=CLAIMS_FIXTURE,
+            source_text=".claude/settings.json .claude/brand-new.json",
+            extra_sources={self.other_key: ".claude/settings.json"},
+        )
+
+        self.assertIn("**新增**：`.claude/brand-new.json`", report)
+        self.assertNotIn("此路徑在本次之前已存在於", report)
+
+
+class CoverageConsistencyTests(unittest.TestCase):
+    """C-102：涵蓋率報表與告警歸屬必須走同一套比對規則。"""
+
+    COVERAGE_CLAIMS = """
+| ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| C-41 | `.agents/AGENTS.md` | 實查確認不存在 | 實機 | 2026-08-04 | — | 已驗證 |
+| C-13 | `.agents/skills/` | 逐層往上掃 | 官方文件 | 2026-07-29 | — | 已驗證 |
+"""
+
+    def _coverage(self):
+        temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(temp_dir.cleanup)
+        claims_path = Path(temp_dir.name) / "CLAIMS.md"
+        claims_path.write_text(self.COVERAGE_CLAIMS, encoding="utf-8", newline="\n")
+        baseline_path = Path(temp_dir.name) / "last_checked.json"
+        baseline_path.write_text(
+            json.dumps({
+                "schema": MONITOR.SCHEMA_VERSION,
+                "versions": {},
+                # 只有一個**裸目錄** token：它見證不了底下任何檔名的變動
+                "sources": {"antigravity/hooks": {"tokens": [".agents/", ".agents/skills/"]}},
+            }, ensure_ascii=False),
+            encoding="utf-8",
+            newline="\n",
+        )
+        output = StringIO()
+        with (
+            mock.patch.object(MONITOR, "CLAIMS_PATH", str(claims_path)),
+            mock.patch.object(MONITOR, "BASELINE_PATH", str(baseline_path)),
+            redirect_stdout(output),
+        ):
+            MONITOR.report_coverage()
+        return output.getvalue()
+
+    def test_a_bare_directory_token_does_not_count_as_covering_a_file_claim(self):
+        """裸 `.agents/` 不該讓 `.agents/AGENTS.md` 被算成「有涵蓋」。
+
+        還原 report_coverage() 內嵌的寬鬆比對，本測試轉紅。
+        """
+        report = self._coverage()
+
+        self.assertIn("盲區 1 條", report)
+        blind = report.split("監控盲區", 1)[1].split("## ", 1)[0]
+        self.assertIn("C-41", blind)
+        self.assertNotIn("C-13", blind)
+
+    def test_an_exactly_named_path_is_still_covered(self):
+        """收斂不可把真正有 token 見證的主張也打成盲區。"""
+        report = self._coverage()
+
+        covered = report.split("有監控涵蓋", 1)[1]
+        self.assertIn("**C-13**", covered)
+        self.assertIn("antigravity/hooks", covered)
 
 
 if __name__ == "__main__":
