@@ -1,7 +1,7 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.267",
+    "claude-code": "2.1.268",
     "codex": "0.154.0",
     "gemini-cli": "0.59.0",
     "antigravity": "2.12.2"
@@ -168,6 +168,7 @@
         ".claude/agents/",
         ".claude/commands/",
         ".claude/commands/deploy.md",
+        ".claude/commands/frontend/component.md",
         ".claude/settings.json",
         ".claude/settings.local.json",
         ".claude/skills",
