@@ -16,7 +16,9 @@ MONITOR = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MONITOR)
 
 
-class CheckUpdatesTests(unittest.TestCase):
+class MonitorRunMixin:
+    """離線跑完 main() 的共用骨架（不是 TestCase，避免被重複蒐集）。"""
+
     source_key = "claude-code/settings"
     source_text = ".claude/settings.json"
 
@@ -41,6 +43,7 @@ class CheckUpdatesTests(unittest.TestCase):
         source_error=None,
         dry_run=False,
         baseline=None,
+        claims_text=None,
     ):
         temp_dir = tempfile.TemporaryDirectory()
         self.addCleanup(temp_dir.cleanup)
@@ -53,6 +56,14 @@ class CheckUpdatesTests(unittest.TestCase):
         )
         before = baseline_path.read_bytes()
 
+        # 預設指向不存在的帳本（多數測試不關心主張比對）；
+        # 給了 claims_text 就寫成真檔，讓報告走完整的 claims_for_token() 流程。
+        claims_path = Path(temp_dir.name) / "CLAIMS.md"
+        if claims_text is None:
+            claims_path = Path(temp_dir.name) / "missing.md"
+        else:
+            claims_path.write_text(claims_text, encoding="utf-8", newline="\n")
+
         def fake_fetch(_url):
             if source_error:
                 raise RuntimeError(source_error)
@@ -62,7 +73,7 @@ class CheckUpdatesTests(unittest.TestCase):
         output = StringIO()
         with (
             mock.patch.object(MONITOR, "BASELINE_PATH", str(baseline_path)),
-            mock.patch.object(MONITOR, "CLAIMS_PATH", str(Path(temp_dir.name) / "missing.md")),
+            mock.patch.object(MONITOR, "CLAIMS_PATH", str(claims_path)),
             mock.patch.object(
                 MONITOR,
                 "SOURCES",
@@ -84,6 +95,8 @@ class CheckUpdatesTests(unittest.TestCase):
         self.assertNotIn("[SIGNAL: UPDATE_DETECTED]", report)
         self.assertNotIn("[SIGNAL: BASELINE_CHANGED]", report)
 
+
+class CheckUpdatesTests(MonitorRunMixin, unittest.TestCase):
     def test_patch_only_is_reference_without_baseline_write(self):
         report, before, after = self._run(claude_version="2.1.233")
 
@@ -266,6 +279,111 @@ class TokenExtractionTests(unittest.TestCase):
 
         self.assertIn("plugin validate .claude/skills", context)
         self.assertNotIn("deploy/SKILL.md", context)
+
+
+CLAIMS_FIXTURE = """
+| ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| C-02 | `.claude/settings.json` | 團隊共用設定 | 官方文件 | 2026-07-29 | — | 已驗證 |
+| C-06 | `.claude/skills/` | 需逐案確認 | 官方文件 | 2026-07-29 | — | 已驗證 |
+| C-62 | `.claude`（路徑本身作為 symlink） | 不要提交 symlink | 官方 CHANGELOG | 2026-08-03 | — | 已驗證 |
+| C-23 | `.geminiignore` | 與 .gitignore 同性質 | 官方文件 | 2026-07-30 | — | 已驗證 |
+"""
+
+
+class ClaimMatchingTests(unittest.TestCase):
+    """token ↔ 帳本比對的語彙規則（Issue #12 → C-98 前導斜線、C-99 單段扇出）。"""
+
+    def setUp(self):
+        temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(temp_dir.cleanup)
+        path = Path(temp_dir.name) / "CLAIMS.md"
+        path.write_text(CLAIMS_FIXTURE, encoding="utf-8", newline="\n")
+        patcher = mock.patch.object(MONITOR, "CLAIMS_PATH", str(path))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.claims = MONITOR.load_claims()
+
+    def _ids(self, token):
+        return [c["id"] for c in MONITOR.claims_for_token(token, self.claims)]
+
+    def test_leading_slash_token_matches_the_same_claims_as_the_bare_form(self):
+        """C-98：佔位符前綴切掉後留下的 `/` 不可讓 token 對不到主張。
+
+        把 `_norm_path()` 的 `strip("/")` 還原成 `rstrip("/")`，本測試轉紅。
+        """
+        self.assertEqual(self._ids(".claude/skills/"), self._ids("/.claude/skills/"))
+        self.assertIn("C-06", self._ids("/.claude/skills/"))
+
+    def test_single_segment_token_does_not_fan_out_to_child_claims(self):
+        """C-99：`.claude/` 不可把它底下每一條主張都標成受影響。
+
+        這正是 Issue #12 的假陽性 —— 官方 skills 頁只是改寫行文、不再出現裸
+        `.claude/`，10 條主張卻同時被報成「原依據可能已不成立」。
+        移除 `claims_for_token()` 的單段守衛，本測試轉紅。
+        """
+        self.assertNotIn("C-02", self._ids(".claude/"))
+        self.assertNotIn("C-06", self._ids(".claude/"))
+
+    def test_single_segment_token_still_matches_a_claim_on_that_path_itself(self):
+        """扇出收斂後仍須命中以該單段路徑本身為主張者，否則是矯枉過正。"""
+        self.assertEqual(["C-62"], self._ids(".claude/"))
+        self.assertEqual(["C-62"], self._ids(".claude"))
+        self.assertEqual(["C-23"], self._ids(".geminiignore"))
+
+    def test_multi_segment_tokens_keep_bidirectional_prefix_matching(self):
+        """收斂只針對單段 token；多段 token 的雙向前綴比對必須原樣保留。"""
+        self.assertIn("C-06", self._ids(".claude/skills/verify/SKILL.md"))
+        self.assertIn("C-02", self._ids(".claude/settings.json"))
+
+
+class Issue12ReplayTests(MonitorRunMixin, unittest.TestCase):
+    """把 Issue #12 的兩個訊號放回完整報告流程，確認措辭不再誤導。"""
+
+    def _replay(self):
+        baseline = self._baseline()
+        baseline["sources"][self.source_key]["tokens"] = [
+            ".claude/",
+            ".claude/settings.json",
+            ".claude/skills/",
+        ]
+        return self._run(
+            baseline=baseline,
+            claims_text=CLAIMS_FIXTURE,
+            source_text=(
+                ".claude/settings.json .claude/skills/ "
+                "| Nested | `<subdir>/.claude/skills/<skill-name>/SKILL.md` |"
+            ),
+        )
+
+    def test_both_issue_12_tokens_are_still_detected(self):
+        """兩項修正都只改「怎麼歸屬」，不可讓異動本身變得偵測不到。"""
+        report, _, _ = self._replay()
+
+        self.assertIn("**消失**：`.claude/`", report)
+        self.assertIn("**新增**：`/.claude/skills/`", report)
+        self.assertIn("[SIGNAL: UPDATE_DETECTED]", report)
+
+    def test_leading_slash_token_is_not_filed_as_an_unknown_path(self):
+        """C-98：`/.claude/skills/` 應歸到 C-06，不該再落進「查無對應主張」區。"""
+        report, _, _ = self._replay()
+
+        self.assertIn("**新增**：`/.claude/skills/` → `C-06`", report)
+        self.assertNotIn("帳本中查無對應主張的新路徑", report)
+
+    def test_bare_directory_removal_does_not_flag_child_claims(self):
+        """C-99：`.claude/` 消失只該牽動 C-62，不該連 C-02、C-06 一起標記。"""
+        report, _, _ = self._replay()
+
+        self.assertIn("單段目錄語彙訊號", report)
+        # 整條 C-02 不該出現 —— 它只因為住在 `.claude/` 底下而被連坐
+        self.assertNotIn("**C-02**", report)
+        # C-06 仍會出現，但觸發原因必須是 `/.claude/skills/` 新增（C-98），
+        # 不是 `.claude/` 消失；後者才是 Issue #12 誤導人的地方
+        self.assertIn("- **C-06**", report)
+        c06 = report.split("- **C-06**", 1)[1].split("- **C-", 1)[0]
+        self.assertIn("`/.claude/skills/` 新增", c06)
+        self.assertNotIn("`.claude/` 消失", c06)
 
 
 if __name__ == "__main__":

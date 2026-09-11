@@ -253,7 +253,15 @@ CLAIM_ROW_RE = re.compile(
 
 
 def _norm_path(value):
-    return value.strip().strip("`").rstrip("/")
+    """比對用正規化：去掉引號與**前後**的斜線。
+
+    前導斜線必須一起去掉（C-98）。官方文件常以佔位符前綴書寫路徑
+    （`<subdir>/.claude/skills/<skill-name>/SKILL.md`、`$CODEX_HOME/.codex/hooks.json`），
+    佔位符被 `TOKEN_RE` 切掉後只剩分隔用的 `/`，抽出的 token 就變成 `/.claude/skills/`。
+    這種 token 與 `.claude/skills/` 指的是同一個機制，只是書寫脈絡不同 ——
+    不做正規化的話它永遠對不到任何主張，異動時會被誤丟進「帳本查無對應主張」區。
+    """
+    return value.strip().strip("`").strip("/")
 
 
 def _claim_paths(cell):
@@ -313,13 +321,32 @@ def load_claims():
     return claims
 
 
+def is_single_segment(token):
+    """token 正規化後是否只剩單一路徑段（如 `.claude/`、`.codex`）。"""
+    return "/" not in _norm_path(token)
+
+
 def claims_for_token(token, claims):
-    """找出哪些主張涵蓋這個 token（雙向前綴比對）。"""
+    """找出哪些主張涵蓋這個 token（雙向前綴比對）。
+
+    **單段 token 只做等值比對**（C-99）。`_claim_paths()` 早就把單段目錄逐出帳本側的
+    比對範圍，理由是「比對範圍過寬會把整個工具目錄底下的異動全部算成同一條主張，
+    失去指向性」—— 但 token 側原本沒有對稱規則：Issue #12 中官方 skills 頁只是改寫
+    行文、不再出現裸 `.claude/`，就讓 10 條主張同時被標成「原依據可能已不成立」。
+
+    等值比對仍會命中**以該單段路徑本身為主張**者（`.claude` 作為 symlink 的 C-62、
+    `.geminiignore` 這類單段檔名），失去的只有「往下擴散到子路徑主張」這一段。
+    """
     value = _norm_path(token)
     hits = []
     for claim in claims:
         for path in claim["paths"]:
-            if value == path or value.startswith(path + "/") or path.startswith(value + "/"):
+            if value == path:
+                hits.append(claim)
+                break
+            if "/" not in value:
+                continue
+            if value.startswith(path + "/") or path.startswith(value + "/"):
                 hits.append(claim)
                 break
     return hits
@@ -497,12 +524,20 @@ def main():
             hits = claims_for_token(token, claims)
             return "".join(f" `{c['id']}`" for c in hits), hits
 
+        # 單段 token 只做等值比對（C-99）。它多半是行文用語的變化，
+        # 而非儲存位置搬移，報告必須把這個限制講明，否則讀者會把「沒標到主張」
+        # 誤讀成「這個目錄底下的主張都沒事」或「依據全沒了」。
+        segment_note = ("  > ℹ️ 單段目錄語彙訊號：僅比對同名主張，"
+                        "**不代表其下各主張失效**；請確認其他來源是否仍涵蓋該目錄（C-99）")
+
         for tool, source, added, removed, text in changes:
             lines.append(f"### `{tool}` — {source}")
             lines.append("")
             for token in removed:
                 tag, hits = _tag(token)
                 lines.append(f"- ❌ **消失**：`{token}`" + (f" →{tag}" if tag else ""))
+                if is_single_segment(token):
+                    lines.append(segment_note)
                 for c in hits:
                     affected.setdefault(c["id"], (c, []))[1].append(f"`{token}` 消失")
             for token in added:
@@ -511,6 +546,8 @@ def main():
                 lines.append(f"- ✅ **新增**：`{token}`" + (f" →{tag}" if tag else ""))
                 if context:
                     lines.append(f"  > {context}")
+                if is_single_segment(token):
+                    lines.append(segment_note)
                 for c in hits:
                     affected.setdefault(c["id"], (c, []))[1].append(f"`{token}` 新增")
                 if claims and not hits:
