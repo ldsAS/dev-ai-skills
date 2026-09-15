@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.268",
+    "claude-code": "2.1.272",
     "codex": "0.154.0",
     "gemini-cli": "0.59.0",
-    "antigravity": "2.12.2"
+    "antigravity": "2.13.0"
   },
   "sources": {
     "antigravity/changelog": {
@@ -107,6 +107,7 @@
         ".claude/worktrees/",
         ".mcp.json",
         "CLAUDE.md",
+        "settings.local.json",
         "~/.claude",
         "~/.claude/",
         "~/.claude/.credentials.json",
