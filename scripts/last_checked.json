@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.272",
+    "claude-code": "2.1.273",
     "codex": "0.154.0",
-    "gemini-cli": "0.59.0",
-    "antigravity": "2.13.0"
+    "gemini-cli": "0.60.0",
+    "antigravity": "2.14.0"
   },
   "sources": {
     "antigravity/changelog": {
@@ -98,6 +98,7 @@
         ".claude/hooks",
         ".claude/rules",
         ".claude/rules/",
+        ".claude/scheduled_tasks.json",
         ".claude/settings.json",
         ".claude/settings.local.json",
         ".claude/skills",
