@@ -1,7 +1,7 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.273",
+    "claude-code": "2.1.274",
     "codex": "0.154.0",
     "gemini-cli": "0.60.0",
     "antigravity": "2.14.0"
@@ -185,6 +185,7 @@
         "CLAUDE.md",
         "~/.claude/skills",
         "~/.claude/skills/",
+        "~/.claude/skills/.trash/",
         "~/.claude/skills/codebase-visualizer/SKILL.md",
         "~/.claude/skills/codebase-visualizer/scripts",
         "~/.claude/skills/codebase-visualizer/scripts/visualize.py",
