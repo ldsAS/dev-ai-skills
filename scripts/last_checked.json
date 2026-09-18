@@ -1,8 +1,8 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.274",
-    "codex": "0.154.0",
+    "claude-code": "2.1.275",
+    "codex": "0.155.0",
     "gemini-cli": "0.60.0",
     "antigravity": "2.14.0"
   },
@@ -41,12 +41,14 @@
     },
     "antigravity/hooks": {
       "tokens": [
-        ".agents/",
+        ".agents/hooks.json",
         "~/.gemini/antigravity",
         "~/.gemini/antigravity-cli",
+        "~/.gemini/antigravity-cli/settings.json",
+        "~/.gemini/antigravity-ide",
         "~/.gemini/antigravity/brain/ec33ebf9-0cba-4100-8142-c61503f6c587",
         "~/.gemini/antigravity/brain/ec33ebf9-0cba-4100-8142-c61503f6c587/.system_generated/logs/transcript.jsonl",
-        "~/.gemini/config/"
+        "~/.gemini/config/hooks.json"
       ]
     },
     "antigravity/ide-skills": {
@@ -62,6 +64,7 @@
     "antigravity/plugins": {
       "tokens": [
         ".agents/plugins/",
+        "~/.gemini/antigravity-cli/plugins/",
         "~/.gemini/config/plugins/"
       ]
     },
@@ -69,16 +72,21 @@
       "tokens": [
         ".agent/rules",
         ".agents/rules",
-        "~/.gemini/GEMINI.md"
+        ".agents/rules/",
+        ".agents/rules/testing-style.md",
+        "~/.gemini/GEMINI.md",
+        "~/.gemini/antigravity-cli/plugins/",
+        "~/.gemini/antigravity-cli/rules/"
       ]
     },
     "antigravity/skills": {
       "tokens": [
         ".agent/skills",
         ".agents/skills",
-        ".agents/skills/",
-        ".agents/skills/my-skill/",
         "/.agents/skills/",
+        "~/.gemini/antigravity-cli/plugins/",
+        "~/.gemini/antigravity-cli/skills/",
+        "~/.gemini/antigravity/skills/",
         "~/.gemini/config/skills/"
       ]
     },
@@ -306,7 +314,8 @@
     "copilot/prompt-files": {
       "tokens": [
         ".github/prompts",
-        ".prompt.md"
+        ".prompt.md",
+        "coding.instructions.md"
       ]
     },
     "copilot/repo-instructions": {
