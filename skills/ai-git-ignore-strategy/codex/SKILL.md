@@ -99,6 +99,8 @@ git -c core.fileMode=false diff --summary
 
 #### 🟢 應該提交 (Keep And Commit)
 
+- **Claude Code 專案指令**：`.claude/CLAUDE.md` 與 `.claude/AGENTS.md` 同屬團隊指令，範本精準放行（C-103、C-109）。後者從 2.1.277 起、且功能可用時才支援；預設在目前目錄與上層沒有 `CLAUDE.md`、`.claude/CLAUDE.md` 或 `CLAUDE.local.md` 時載入，可用 Project instructions 改變選擇，不能假設所有 session 都會讀。
+- **Claude Code 團隊 hook 與記憶**：`.claude/hooks/` 放置團隊設定引用的腳本；`.claude/agent-memory/` 是 `memory: project` 的共享記憶。範本預設放行，提交前仍須逐檔審查可執行內容及敏感資訊。私人 hook 應另列精準排除；不共享的記憶使用 `memory: local`，寫入 `.claude/agent-memory-local/`（C-104、C-105）。
 - 專案原始碼：`.py`, `.html`, `.css`, `.js`, `.ts`, `.sh`, `.bat`, `.ps1`。
 - 文件與維運資料：`README.md`, `DEPLOY.md`, `docs/`, `CHANGELOG.md`。
 - 跨平台 repo policy：`.gitattributes`, `.editorconfig`, `.nvmrc`。
@@ -123,6 +125,7 @@ git -c core.fileMode=false diff --summary
 
 #### 🔴 應該排除或取消追蹤 (Ignore Or Untrack)
 
+- **Claude Code 個人指令與本機狀態**：`CLAUDE.local.md` 與 `.claude/agent-memory-local/` 應排除，子目錄中的同名檔／目錄也受保護；`.claude/scheduled_tasks.json` 與 session 綁定，根目錄的既有 `.claude/*` 已排除它（C-105～C-107）。
 - 本機 AI 工作區與 cache：`.agent/`（Antigravity 1.x）、`.antigravitycli/`（Antigravity CLI 舊版的工作區對應檔；新版已改集中到 `~/.gemini/antigravity-cli/cache/projects.json` 並淘汰此目錄，舊專案仍會殘留） 的工作區暫存、`.codex/`、`.gemini/` 的快取，但 confirmed project skills 例外。
   - ⚠️ 注意（最容易誤殺）：專案內 `.claude/`（`settings.json`, `commands/`, `skills/`）、`.github/prompts/*.prompt.md` 多半是刻意共享的設定與規則，屬於 🟢 或 ⚠️ 類；專案內 `.agents/` 的 `skills/`、`rules/` 也是刻意共享的設定，不要整包封殺（`.agents/AGENTS.md`、`.agents/settings.json` 曾列於此，2026-08-04 查證為**不存在的檔案**，規則與敘述均已移除；Antigravity 只讀**根目錄**的 `AGENTS.md`）；多數工具的對話紀錄存在使用者家目錄（如 `~/.claude/projects/`），不在專案內。 另外，`.agents/` 並非 Antigravity 專屬，而是**跨工具共用目錄** — Codex 會從當前工作目錄逐層往上掃 `.agents/skills`、Gemini CLI 以 `.agents/skills/` 作為 `.gemini/skills/` 的高優先別名、Antigravity 讀 `.agents/hooks.json`；只裝 Codex 的專案一樣會出現 `.agents/`，不要當成 Antigravity 殘留。　Antigravity 實查（1.0.13，2026-07-30）：對話紀錄位於 `~/.gemini/antigravity/conversations/` 等家目錄，**但專案內並非乾淨** — agent 會把使用者訊息**逐字**附加到 `.agents/ORIGINAL_REQUEST.md`（含 UTC 時間戳），屬本 skill 開頭所述的 Security Risks，必須排除。
 - Runtime logs：`*.log`，通常會自動輪替或持續增長，沒有版本控制價值。
@@ -450,6 +453,16 @@ Thumbs.db
 !.claude/skills/verify/
 # 專案層 workflow；對應 user-scope 的 ~/.claude/workflows/，屬團隊共用（C-09）
 !.claude/workflows/
+# 團隊專案指令；AGENTS.md 的 Claude 載入條件見 C-109（C-103、C-109）
+!.claude/CLAUDE.md
+!.claude/AGENTS.md
+# 團隊 hook 腳本；提交前審查內容，私人腳本需另列精準排除（C-104）
+!.claude/hooks/
+# project 記憶可共享；local 記憶在任何層級都排除（C-105）
+!.claude/agent-memory/
+**/.claude/agent-memory-local/
+# 個人指令不加斜線，涵蓋根目錄與子目錄（C-106）
+CLAUDE.local.md
 # 個人本機設定：即使有上方白名單也 explicit 擋一次
 # 用 **/ 前綴而非 .claude/settings.local.json：含中段 / 的規則會錨定在 .gitignore
 # 所在層級，monorepo 子目錄的 apps/web/.claude/settings.local.json 就擋不到。
@@ -516,8 +529,7 @@ Thumbs.db
 .agents/**/ORIGINAL_REQUEST.md
 # .agents/settings.local.json 已移除：實查確認 Antigravity 無此概念，
 # 原規則是誤類比 Claude Code 而來（C-43）。該路徑仍被上方 .agents/* 涵蓋。
-# 工作區層級 hooks：Antigravity 回報屬專案共用（與家目錄 hooks 合併、專案優先），
-# 但實查環境中該檔不存在，此說法尚未直接驗證。內含可執行指令，確認後再放行（C-44）
+# 工作區 hooks 位置已有官方文件佐證；內含可執行指令，依專案決定是否放行（C-44）
 # !.agents/hooks.json
 # Antigravity CLI 舊版工作區對應檔（新版已淘汰，舊專案仍可能殘留）
 .antigravitycli/

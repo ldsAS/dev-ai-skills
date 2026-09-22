@@ -3,15 +3,18 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-09-10（Issue #12 的兩個訊號判定為語彙假陽性、同日追加的第三個訊號判定為佐證 —— 新增 C-97：monorepo 子目錄的 `.claude/settings.local.json` 未被範本涵蓋；C-98：前導斜線正規化；C-99：單段 token 不再向下扇出；C-14／C-15 補 Codex 市集佐證）
+**最後更新**：2026-09-22（複驗 Claude review：C-105 補未監控盲區與假涵蓋註記；C-109 記錄維護者選擇維持 `AGENTS.local.md` 現況。09-21 的 C-103～C-111、五版修正與歷史取代關係保留；監控方式仍僅有 [待確認計畫](./rounds/2026-09-21-codex.monitor-plan.md)。）
+
+**編號保留**：C-100～C-102 屬未合併的 [PR #14](https://github.com/ldsAS/dev-ai-skills/pull/14)，本輪不重用、不視為已上線。
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 72 |
+| 已驗證 | 78 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| 被取代 | 1 |
-| **總計** | **80** |
+| 被取代 | 3 |
+| 有疑 | 1 |
+| **總計** | **89** |
 
 ---
 
@@ -36,6 +39,13 @@
 | C-61 | `.mcp.json` | Claude Code 的**專案層 MCP server 設定**，官方層級表列於 Project 欄（User 為 `~/.claude.json`）＝團隊共用 → **應提交**。位於 repo 根目錄而非 `.claude/` 底下，現行規則不擋（正確），已補進 🟢 清單。⚠️ 與 Antigravity 的 `.agents/mcp_config.json`（C-58）**檔名與位置皆不同**，不可互相類比 | 官方文件 `settings.md` 層級表 | 2026-08-03 | — | 已驗證 |
 | C-62 | `.claude`（路徑本身作為 symlink） | 官方修復紀錄：「Fixed workflow saves and scheduled-task writes following a symlink at `.claude`, which could redirect writes outside the project」。**比 C-09 的 `.claude/worktrees` 範圍更廣** —— 是 `.claude` 這個路徑本身。已修復但舊版仍受影響：**不要提交 `.claude` 或 `.claude/worktrees` 的 symlink** | 官方 CHANGELOG | 2026-08-03 | — | 已驗證 |
 | C-97 | `.claude/settings.local.json`（monorepo 子目錄位置）、`.claude/skills/`（官方 Nested 位置） | **monorepo 子目錄的 `.claude/` 完全不在根目錄那組規則的射程內。** gitignore 語意：含中段 `/` 的 pattern 錨定在 `.gitignore` 所在層級，因此 `.claude/settings.local.json` 碰不到 `apps/web/.claude/settings.local.json` —— 實測（git 2.55.0.windows.3）該路徑**放行**，五版皆然。→ 範本改用不錨定的 `**/.claude/settings.local.json`，並在 `verify_gitignore_template.py` 補 4 個 nested 案例（移除修正後 5 版皆轉紅）。官方寫進 global git excludes 的正是同一個 pattern：「it adds `**/.claude/settings.local.json` to your global git excludes file」，且明示「If you created the file by hand and Claude Code hasn't written to it yet, add it to `.gitignore` yourself」。⚠️ **刻意不誇大暴露面**：Claude Code **自己不會**在子目錄建這個檔 —— 同頁明載「If you start Claude Code in a subdirectory of a git repository, it reads and writes that file at the repository root」，風險僅限**手動建立**的情境（而官方在該情境正是要求自行加 `.gitignore`）。📌 **本輪刻意不處理的殘留**：nested `.claude/skills/`（官方 Nested 位置，CHANGELOG 2.1.178 起）在範本中**完全放行**，與根目錄「`.claude/skills/*` 擋下、需 scoped allowlist」不對稱。維持現狀的理由是 nested 專案技能依官方定位就是**團隊共享**（monorepo 子專案自帶技能），且尚無證據顯示任何 CLI 會把第三方技能裝進子目錄；比照 C-94 的處置 —— 位置與分享定位未定者，本輪只登記、不改規則。**發現經過**：Issue #12 分類 `/.claude/skills/` 候選 token 時，順著官方 Nested 列查到子目錄情境，才發現範本的錨定盲區 | 官方 skills 頁＋settings 頁＋官方 CHANGELOG 2.1.178／2.1.211／2.1.260＋`git check-ignore --no-index` 實測 | 2026-09-10 | claude-code 2.1.266 | 已驗證 |
+| C-103 | `.claude/CLAUDE.md` | 與根目錄 `CLAUDE.md` 同為團隊專案指令。舊範本被 `.claude/*` 擋下；五版加入精準例外，仍排除 `.claude/CLAUDE.md.bak` 等其他檔名 | 官方 memory 文件＋五版 Git 邊界實測；摘錄見下 | 2026-09-21 | 文件快照；Git 實測 | 已驗證 |
+| C-104 | `.claude/hooks/` | 官方範例將專案 hook 腳本放於此處，由團隊 `.claude/settings.json` 引用。範本預設放行，避免共享設定缺少腳本；**放行是本 skill 的追蹤政策，不是官方保證每個腳本都應公開**。提交前逐檔審查；只供私人設定引用的腳本另列精準排除。既有 `.env`、`*.log` 規則仍生效 | 官方 hooks 文件＋五版 Git 邊界實測 | 2026-09-21 | 文件快照；Git 實測 | 已驗證 |
+| C-105 | `.claude/agent-memory/`、`.claude/agent-memory-local/` | **監控盲區（2026-09-22）**：本條取證的 claude-directory 頁尚未納入 SOURCES；baseline 無下列兩個記憶目錄的精準或子路徑 token。PR #14 合併前的 `--coverage` 會因 `.claude/` 父目錄誤報有涵蓋；修正報表不等於接入來源，見監控 plan M0／M1。前者是 project-scope subagent 記憶，官方定位為團隊共享，範本放行但仍審查內容。`memory: local` 使用後者，範本以 `**/.claude/agent-memory-local/` 排除根目錄與子目錄中的同名目錄；子目錄案例驗證規則邊界，不宣稱工具必然自動在子目錄產生它。主 session 的家目錄 auto memory 是另一機制 | 官方 claude-directory 文件＋五版 Git 邊界實測 | 2026-09-21 | 文件快照；未執行 Claude runtime | 已驗證 |
+| C-106 | `CLAUDE.local.md` | 官方定位為個人專案指令並要求加入 gitignore，子目錄同名檔也可能被按需載入。範本使用不含斜線的 `CLAUDE.local.md`，保護根目錄與任意子目錄；不排除 `CLAUDE.local.md.example` 或共享 `CLAUDE.md` | 官方 memory 文件＋五版 Git 邊界實測 | 2026-09-21 | 文件快照；Git 實測 | 已驗證 |
+| C-107 | `.claude/scheduled_tasks.json` | 官方 2.1.273 修復複製此檔至其他資料夾／worktree 後於錯誤 session 執行任務的問題，證明它承載與執行情境相關的排程狀態。本 skill 將其列為本機狀態；根目錄既有 `.claude/*` 已擋下，本輪只補帳本與回歸案例，不新增同義規則 | 官方 CHANGELOG 2.1.273＋五版 Git 邊界實測 | 2026-09-21 | claude-code 2.1.273 修復紀錄 | 已驗證 |
+| C-108 | `~/.claude/skills/.trash/` | 停止同步後，已同步技能會移到此處且不再載入；可在 retention sweep 清除前復原。家目錄機制，不新增專案 gitignore 規則 | 官方 skills 文件；摘錄見下 | 2026-09-21 | 文件快照 | 已驗證 |
+| C-109 | `AGENTS.md`、`.claude/AGENTS.md` | Claude Code 2.1.277 起且功能可用時支援。預設目前目錄及上層沒有 `CLAUDE.md`、`.claude/CLAUDE.md` 或 `CLAUDE.local.md` 才讀 AGENTS 指令；Project instructions 可改為兩者都讀。功能受 feature flags、provider、首次升級 session、hook／內建 plugin 設定等限制，**不宣稱所有 session 都可用**。官方此節明示不讀 `AGENTS.local.md`、`AGENTS.override.md` 或 `.agents/` 下的指令檔；這不改變其他工具的行為。根目錄 `AGENTS.md` 原已放行，本輪補 `.claude/AGENTS.md` 精準例外。C-50 是 Antigravity 主張，未被本次新增支援推翻 **2026-09-22 維護者政策決定（F2）**：維持 `AGENTS.local.md` 現行未排除狀態，需依實際內容、工具用途及專案追蹤決定處理；未被 ignore 不代表建議提交。不得僅由 `.local.md` 命名推定一律排除。`AGENTS.override.md`、`GEMINI.local.md` 亦未在本輪新增排除，官方不讀取的事實與維護者追蹤政策分開記錄。 | 官方 memory 文件與 CHANGELOG 2.1.277＋五版 Git 邊界實測 | 2026-09-21 | 功能起點 2.1.277；未執行 Claude runtime | 已驗證 |
 
 ## Codex
 
@@ -120,11 +130,11 @@
 | C-41 | `.agents/AGENTS.md` | ~~專案級設定，應提交~~ → **不存在**；Antigravity 只讀根目錄的 `AGENTS.md`。**2026-08-04 白名單規則已自五版移除**：agy 1.0.13 二進位中 `{workspace}/.agents/` 的路徑模板完整清單只有 `skills`、`agents`、`ORIGINAL_REQUEST.md` 三條，本條不在內；本機五個實際專案的 `.agents/` 亦 0 次出現。原先保留為「防禦性白名單」，但為不存在的路徑留規則會讓讀者誤以為該路徑有效 —— 同 `.codex/rollout.jsonl` 的處置 | 實機＋維護者複驗 | 2026-08-04 | 1.0.13 | 已驗證 |
 | C-42 | `.agents/settings.json` | ~~專案級設定，應提交~~ → **不存在**；專案設定實存於 `~/.gemini/config/projects/<uuid>.json`。**2026-08-04 白名單規則已自五版移除**：agy 1.0.13 二進位中 `{workspace}/.agents/` 的路徑模板完整清單只有 `skills`、`agents`、`ORIGINAL_REQUEST.md` 三條，本條不在內；本機五個實際專案的 `.agents/` 亦 0 次出現。原先保留為「防禦性白名單」，但為不存在的路徑留規則會讓讀者誤以為該路徑有效 —— 同 `.codex/rollout.jsonl` 的處置 | 實機＋官方 changelog（雙重佐證） | 2026-08-04 | 1.0.13 | 已驗證 |
 | C-43 | `.agents/settings.local.json` | ~~個人本機設定~~ → **不存在**，係誤類比 Claude Code；規則已移除 | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
-| C-44 | `.agents/hooks.json` | 工作區層級 hooks；**會合併多個 hooks.json 檔**（二進位字串 `loaded %d named hooks from %d hooks.json file(s)` 為複數）。信任狀態以工作區絕對路徑為 key 存於家目錄 `~/.gemini/trusted_hooks.json` —— 此設計意味 hooks 定義可來自他人 commit 的 repo，故**屬可共享檔**；是否提交屬專案決策，非待驗事實 | 二進位字串分析＋`trusted_hooks.json` 結構 | 2026-07-30 | 1.0.13 | 已驗證 |
+| C-44 | `.agents/hooks.json` | 工作區層級 hooks；**會合併多個 hooks.json 檔**（二進位字串 `loaded %d named hooks from %d hooks.json file(s)` 為複數）。信任狀態以工作區絕對路徑為 key 存於家目錄 `~/.gemini/trusted_hooks.json` —— 此設計意味 hooks 定義可來自他人 commit 的 repo，故**屬可共享檔**；是否提交屬專案決策，非待驗事實 | 二進位字串分析＋`trusted_hooks.json` 結構 ；2026-09-21 補官方 hooks.md 的工作區位置佐證（見下方摘錄，不追加 precedence 推論） | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-45 | `.antigravitycli/` | 舊版工作區對應檔，現行版本不再產生；規則保留供舊專案 | 官方 changelog＋實機 | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-46 | `.agent/` | 舊版佈局的專案工作區暫存，現行版本不再產生；規則保留供舊專案 | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
-| C-47 | `~/.gemini/config/skills/` | **Antigravity CLI** 的全域 skills 路徑（官方 `/docs/skills`）；實查含工具自身的 `.datacloud_skills_manifest` 與 22 個內建技能。與 C-48 的 IDE 路徑並存 | 官方文件＋實機 | 2026-08-03 | 2.x | 已驗證 |
-| C-48 | `~/.gemini/antigravity/skills/` | ~~死路徑，已不掃描~~ → **是 Antigravity IDE 的全域 skills 路徑，仍然有效**。官方 `/docs/ide/skills` 與 `/docs/skills` 兩頁文字幾乎相同，只差一行：IDE 用 `~/.gemini/antigravity/skills/`、CLI 用 `~/.gemini/config/skills/`，**兩者並存而非新舊關係**。2026-07-30 的探針實驗是在子代理（CLI 情境）跑的，只證明「CLI 不讀這條」，卻被推論成「沒人讀」—— **實驗範圍比結論窄**。安裝器已還原雙路徑寫入 | 官方文件 `/docs/ide/skills` | 2026-08-03 | 2.x | 已驗證 |
+| C-47 | `~/.gemini/config/skills/` | **Antigravity CLI** 的全域 skills 路徑（官方 `/docs/skills`）；實查含工具自身的 `.datacloud_skills_manifest` 與 22 個內建技能。與 C-48 的 IDE 路徑並存  **2026-09-21 被取代→C-110；原文保留供追溯。** | 官方文件＋實機 | 2026-08-03 | 2.x | 被取代→C-110 |
+| C-48 | `~/.gemini/antigravity/skills/` | ~~死路徑，已不掃描~~ → **是 Antigravity IDE 的全域 skills 路徑，仍然有效**。官方 `/docs/ide/skills` 與 `/docs/skills` 兩頁文字幾乎相同，只差一行：IDE 用 `~/.gemini/antigravity/skills/`、CLI 用 `~/.gemini/config/skills/`，**兩者並存而非新舊關係**。2026-07-30 的探針實驗是在子代理（CLI 情境）跑的，只證明「CLI 不讀這條」，卻被推論成「沒人讀」—— **實驗範圍比結論窄**。安裝器已還原雙路徑寫入  **2026-09-21 被取代→C-111；原文保留供追溯。** | 官方文件 `/docs/ide/skills` | 2026-08-03 | 2.x | 被取代→C-111 |
 | C-49 | Antigravity 對話紀錄位置 | 在家目錄 `~/.gemini/antigravity/conversations/`（實查 21 項）與 `~/.gemini/antigravity-cli/conversations/`（1 項），**不寫入專案** | 實機＋維護者複驗 | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-50 | `AGENTS.md`（根目錄） | Antigravity 已支援讀取，與 `GEMINI.md` 並列 | 官方 changelog＋實機 | 2026-07-29 | 1.0.13 | 已驗證 |
 | C-51 | 技能觸發語法 | `@skill-name` **已不適用**；技能由 Agent 依任務自動掃描載入 | 實機（回報） | 2026-07-29 | 1.0.13 | 已驗證 |
@@ -139,6 +149,8 @@
 | C-57 | `.agents/rules/`、`.agent/rules/` | 工作區規則資料夾，官方：「Workspace rules live in the `.agents/rules` folder of your workspace or git root」，性質同 `.claude/rules/` → **應提交（已放行）**。官方另載「now defaults to `.agents/rules`, but still maintains backward support for `.agent/rules`」，故舊佈局一併放行 | 官方文件 `/docs/rules-workflows` | 2026-08-03 | 2.x | 已驗證 |
 | C-58 | `.agents/mcp_config.json` | 工作區層級 MCP server 定義，官方：「Workspace servers: `.agents/mcp_config.json`」（全域版為 `~/.gemini/config/mcp_config.json`）→ **應提交（已放行）**。原被 `.agents/*` 誤殺 | 官方文件 `/docs/cli/gcli-migration` | 2026-08-03 | 2.x | 已驗證 |
 | C-59 | `~/.gemini/config/sidecars/`、`~/.gemini/config/plugins/<name>/sidecars/` | Sidecar 設定檔為 **`sidecar.json`（單數）**，官方明載只有這兩個位置、**都在家目錄**；專案層無此概念 → 本 skill **無需新增規則**。2026-08-03 回報曾稱專案 `.agents/` 下可能有 `sidecars.json`，經查二進位與官方文件皆無，不予採納 | 官方文件 `/docs/sidecars` | 2026-08-03 | 2.x | 已驗證 |
+| C-110 | `~/.gemini/config/skills/`、`~/.gemini/antigravity-cli/skills/` | 取代 C-47 的無條件 CLI 路徑結論。現行 skills 文件將 CLI 全域技能寫成 `antigravity-cli/skills/`；歷史 CLI changelog 卻曾將全域 agents／plugins 的位置修正至 `config/`。這些是相關子系統的證據，**不是對現行 skills discovery 的直接驗證**。新 changelog 已到 1.2.7，仍不足以證實哪個 skills 路徑會載入；狀態有疑，需記錄版本與 active catalog 的雙位置探針。安裝器先不改 | 官方 skills 文件＋CLI CHANGELOG 1.1.0、1.0.2；見下方摘錄與計畫 | 2026-09-21 | 文件／changelog 至 CLI 1.2.7；無新版 runtime 證據 | 有疑 |
+| C-111 | `~/.gemini/config/skills/`、`~/.gemini/antigravity/skills/` | 取代 C-48 對 IDE 路徑的現行描述：官方整合後的 IDE 分頁以 `config/skills/` 為全域位置，並明示舊 `antigravity/skills/` 仍支援。此列只確認官方文件的現行說法；未驗證兩位置同名時的 precedence，不以目錄存在推論載入。舊 `/docs/ide/skills` 已是 meta-refresh 頁，來源遷移另列 plan | 官方 skills.md 的 Antigravity IDE skill locations | 2026-09-21 | 文件快照；未執行 IDE runtime | 已驗證 |
 
 > 📌 **版本編號說明**（2026-08-03 更正）：Antigravity 有**兩套版本號** ——
 > 產品版本走 2.x（changelog 的發行表：`2.4.3 July 28, 2026`、`2.3.1`、`2.3.0`⋯，最新 2.4.3），
@@ -264,10 +276,22 @@
 
 ---
 
+### 2026-09-21 補充取證
+
+- **C-103／C-106／C-109** — [Claude memory](https://code.claude.com/docs/en/memory.md)：專案定位原文 “Team-shared instructions for the project”；個人指令要求 “add to `.gitignore`”。AGENTS.md 一節列出 `.claude/AGENTS.md`、預設 fallback 與功能不可用條件，不能只讀 changelog 第一行。
+- **C-104** — [Claude hooks](https://code.claude.com/docs/en/hooks.md)：專案範例使用 `${CLAUDE_PROJECT_DIR}/.claude/hooks/block-rm.sh`，另有 PowerShell 範例；scope 表將 `.claude/settings.json` 列為可提交的設定。據此修正範本，私人腳本仍需個別排除。
+- **C-105** — [Claude directory](https://code.claude.com/docs/en/claude-directory.md)：project 記憶原文 “meant to be shared with your team”；同段將 `memory: local` 對應到 `.claude/agent-memory-local/`。
+- **C-107** — [Claude CHANGELOG](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md)：2.1.273 的 `.claude/scheduled_tasks.json` 修復記錄涉及複製資料夾後 “running in the wrong session”。本機狀態分類是依此上下文作出的追蹤判斷。
+- **C-108** — [Claude skills](https://code.claude.com/docs/en/skills.md)：停止同步後移至 `~/.claude/skills/.trash/`，原文 “no longer loads them”；另一段說明 retention sweep 前可復原。
+- **C-44 補充** — [Antigravity hooks](https://antigravity.google/docs/hooks.md) 三個 surface 均列 `.agents/hooks.json`，原文 “Workspace level”。這直接佐證位置，不拿它補證尚未檢查的合併優先順序；範本仍按專案決策維持註解白名單。
+- **C-110／C-111** — [Antigravity skills](https://antigravity.google/docs/skills.md)：CLI 列 `~/.gemini/antigravity-cli/skills/`；IDE 列 `~/.gemini/config/skills/` 並註 “legacy `~/.gemini/antigravity/skills/` is also supported”。[CLI CHANGELOG](https://github.com/google-antigravity/antigravity-cli/blob/main/CHANGELOG.md) 1.1.0 的 agents 修復與 1.0.2 的 plugin 修復則指向 `~/.gemini/config/`；保留子系統、版本與文件三者的差異，不定論為文件寫錯。
+
 ## 交接輪次紀錄
 
 | 日期 | 工具 | 涵蓋項目 | 交接包 | 回覆 |
 | :--- | :--- | :--- | :--- | :--- |
+| 2026-09-22 | Codex 複驗 Claude review | F1～F3 與 plan 順序 | [Claude 2026-09-22 review](./rounds/2026-09-22-claude.review-of-codex.md)（原件保留） | [回覆與修訂紀錄](./rounds/2026-09-22-codex.review-response.md)；F1／F3 以目前資料獨立重現，F2 依維護者決定維持現況；只補文件與 plan，未修改監控程式 |
+| 2026-09-21 | Codex 獨立複驗與本機修正 | C-103～C-111；Issue #15／#16 | [Claude 2026-09-18 交接](./rounds/2026-09-18-claude.to-codex.md)＋GitHub 最新留言 | [修正紀錄](./rounds/2026-09-21-codex.issue-fixes.md)；五版範本與案例已修改，監控機制另列 [待確認計畫](./rounds/2026-09-21-codex.monitor-plan.md)，未部署或關閉遠端 issue |
 | 2026-07-29 | Antigravity 1.0.13 | C-41～C-49（新增 C-51、C-52） | [交接包](./rounds/2026-07-29-antigravity.md) | [回覆](./rounds/2026-07-29-antigravity.reply.md)　已回填；其中 C-44、C-48 經維護者複驗後**未採信**回報結論 |
 | 2026-07-30 | Antigravity 1.0.13 | C-48、C-54（Q1 為實驗題） | [交接包](./rounds/2026-07-30-antigravity-round2.md) | [回覆](./rounds/2026-07-30-antigravity-round2.reply.md)　C-48 結案（實驗方法正確）；C-54 與自由敘述的 4 條路徑未採信，C-54 改由二進位對稱設計自行結案 |
 | 2026-07-30 | 官方文件研究（無需交接） | C-08、C-09、C-15～C-17、C-23、C-24、C-32、C-53 | — | 九項全部由官方文件直接定案，未動用交接輪次 |
