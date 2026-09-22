@@ -56,9 +56,12 @@ RETRIES = 3
 # --------------------------------------------------------------------------
 SOURCES = [
     # Claude Code — 官方文件的 .md 端點回傳原始 markdown，最穩定
-    ("claude-code", "settings", "https://docs.claude.com/en/docs/claude-code/settings.md"),
-    ("claude-code", "memory", "https://docs.claude.com/en/docs/claude-code/memory.md"),
-    ("claude-code", "skills", "https://docs.claude.com/en/docs/claude-code/skills.md"),
+    ("claude-code", "settings", "https://code.claude.com/docs/en/settings.md"),
+    ("claude-code", "memory", "https://code.claude.com/docs/en/memory.md"),
+    ("claude-code", "skills", "https://code.claude.com/docs/en/skills.md"),
+    ("claude-code", "hooks", "https://code.claude.com/docs/en/hooks.md"),
+    ("claude-code", "desktop", "https://code.claude.com/docs/en/desktop.md"),
+    ("claude-code", "claude-directory", "https://code.claude.com/docs/en/claude-directory.md"),
     ("claude-code", "changelog", "https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md"),
     # Codex — repo 內的 docs/*.md 多已改為導向連結；官方文件已自
     # developers.openai.com 搬遷至 learn.chatgpt.com（舊網址仍 302 導向，
@@ -75,15 +78,15 @@ SOURCES = [
     ("gemini-cli", "ignore", "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/gemini-ignore.md"),
     # Antigravity — 官方文件站在 /docs/<section> 之下（索引頁 /docs 只是 stub，
     # 2026-07-30 曾因此誤判為「沒有公開文件站」）。
-    # /docs/* 與 /docs/ide/* 兩套並存：前者是 CLI、後者是 IDE，全域路徑不同（見 C-47／C-48）。
+    # skills.md 包含 2.0、CLI、IDE 三個 surface（C-110／C-111）。
+    # 舊 ide/skills 已成 meta-refresh 空殼；changelog 無 .md 端點，保留 HTML。
     ("antigravity", "changelog", "https://antigravity.google/changelog"),
-    ("antigravity", "skills", "https://antigravity.google/docs/skills"),
-    ("antigravity", "ide-skills", "https://antigravity.google/docs/ide/skills"),
-    ("antigravity", "subagents", "https://antigravity.google/docs/subagents"),
-    ("antigravity", "hooks", "https://antigravity.google/docs/hooks"),
-    ("antigravity", "rules-workflows", "https://antigravity.google/docs/rules-workflows"),
-    ("antigravity", "plugins", "https://antigravity.google/docs/plugins"),
-    ("antigravity", "gcli-migration", "https://antigravity.google/docs/cli/gcli-migration"),
+    ("antigravity", "skills", "https://antigravity.google/docs/skills.md"),
+    ("antigravity", "subagents", "https://antigravity.google/docs/subagents.md"),
+    ("antigravity", "hooks", "https://antigravity.google/docs/hooks.md"),
+    ("antigravity", "rules-workflows", "https://antigravity.google/docs/rules-workflows.md"),
+    ("antigravity", "plugins", "https://antigravity.google/docs/plugins.md"),
+    ("antigravity", "gcli-migration", "https://antigravity.google/docs/cli/gcli-migration.md"),
     # VS Code / GitHub Copilot
     ("copilot", "customization", "https://code.visualstudio.com/docs/copilot/customization/overview"),
     ("copilot", "prompt-files", "https://code.visualstudio.com/docs/copilot/customization/prompt-files"),

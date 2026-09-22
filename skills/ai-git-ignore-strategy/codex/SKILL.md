@@ -477,12 +477,12 @@ CLAUDE.local.md
 .claude/worktrees/
 # Cursor 已於 2026-08-03 移出本 skill 的維護範圍（維護者未使用該工具）。
 # 若你的專案有用 Cursor，需自行補上 .cursor/* 與 !.cursor/rules/ 規則。
-# Antigravity 1.x 專案工作區暫存（現行 agy 1.0.13 二進位已 0 命中，保留供舊專案）
+# Antigravity 舊工作區目錄；agy 1.0.13 的二進位觀察僅為歷史證據（C-81／C-114）
 .agent/*
 # 僅打開 skills 父目錄；實際 project skill 需用下方 scoped allowlist
-# 官方僅明載 `.agent/rules` 向後相容，**未提及 skills**；現行 agy 1.0.13 二進位對
-# `.agent/` 亦 0 命中。本組依據是實地觀察：舊專案存在第三方安裝器寫入的
-# `.agent/skills/<name>/`（C-81）。專案若無此目錄，本組可整組刪除
+# 官方 skills 文件現已明載 `.agent/skills` 向後相容（C-114）；
+# C-81 保留舊版實查歷史，不代表現行各 surface 的載入優先序。
+# 此處保留既有逐案放行規則；專案若無此目錄，本組可整組刪除
 !.agent/skills/
 .agent/skills/*
 # !.agent/skills/<project-skill>/

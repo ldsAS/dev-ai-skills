@@ -3,18 +3,18 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-09-22（複驗 Claude review：C-105 補未監控盲區與假涵蓋註記；C-109 記錄維護者選擇維持 `AGENTS.local.md` 現況。09-21 的 C-103～C-111、五版修正與歷史取代關係保留；監控方式仍僅有 [待確認計畫](./rounds/2026-09-21-codex.monitor-plan.md)。）
+**最後更新**：2026-09-22（M1 本機實作：接入 C-105 雙路徑與 C-83 的正式來源；新來源人工分類新增 C-112／C-113；官方現已明載舊 skills 相容性，C-114 取代 C-81。尚未推送或部署，詳見 [M1 取證與驗收](./rounds/2026-09-22-codex.m1.md)。C-109 的 `AGENTS.local.md` 維護者政策不變。）
 
 **編號保留**：C-100～C-102 屬未合併的 [PR #14](https://github.com/ldsAS/dev-ai-skills/pull/14)，本輪不重用、不視為已上線。
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 78 |
+| 已驗證 | 80 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
-| 被取代 | 3 |
+| 被取代 | 4 |
 | 有疑 | 1 |
-| **總計** | **89** |
+| **總計** | **92** |
 
 ---
 
@@ -41,11 +41,14 @@
 | C-97 | `.claude/settings.local.json`（monorepo 子目錄位置）、`.claude/skills/`（官方 Nested 位置） | **monorepo 子目錄的 `.claude/` 完全不在根目錄那組規則的射程內。** gitignore 語意：含中段 `/` 的 pattern 錨定在 `.gitignore` 所在層級，因此 `.claude/settings.local.json` 碰不到 `apps/web/.claude/settings.local.json` —— 實測（git 2.55.0.windows.3）該路徑**放行**，五版皆然。→ 範本改用不錨定的 `**/.claude/settings.local.json`，並在 `verify_gitignore_template.py` 補 4 個 nested 案例（移除修正後 5 版皆轉紅）。官方寫進 global git excludes 的正是同一個 pattern：「it adds `**/.claude/settings.local.json` to your global git excludes file」，且明示「If you created the file by hand and Claude Code hasn't written to it yet, add it to `.gitignore` yourself」。⚠️ **刻意不誇大暴露面**：Claude Code **自己不會**在子目錄建這個檔 —— 同頁明載「If you start Claude Code in a subdirectory of a git repository, it reads and writes that file at the repository root」，風險僅限**手動建立**的情境（而官方在該情境正是要求自行加 `.gitignore`）。📌 **本輪刻意不處理的殘留**：nested `.claude/skills/`（官方 Nested 位置，CHANGELOG 2.1.178 起）在範本中**完全放行**，與根目錄「`.claude/skills/*` 擋下、需 scoped allowlist」不對稱。維持現狀的理由是 nested 專案技能依官方定位就是**團隊共享**（monorepo 子專案自帶技能），且尚無證據顯示任何 CLI 會把第三方技能裝進子目錄；比照 C-94 的處置 —— 位置與分享定位未定者，本輪只登記、不改規則。**發現經過**：Issue #12 分類 `/.claude/skills/` 候選 token 時，順著官方 Nested 列查到子目錄情境，才發現範本的錨定盲區 | 官方 skills 頁＋settings 頁＋官方 CHANGELOG 2.1.178／2.1.211／2.1.260＋`git check-ignore --no-index` 實測 | 2026-09-10 | claude-code 2.1.266 | 已驗證 |
 | C-103 | `.claude/CLAUDE.md` | 與根目錄 `CLAUDE.md` 同為團隊專案指令。舊範本被 `.claude/*` 擋下；五版加入精準例外，仍排除 `.claude/CLAUDE.md.bak` 等其他檔名 | 官方 memory 文件＋五版 Git 邊界實測；摘錄見下 | 2026-09-21 | 文件快照；Git 實測 | 已驗證 |
 | C-104 | `.claude/hooks/` | 官方範例將專案 hook 腳本放於此處，由團隊 `.claude/settings.json` 引用。範本預設放行，避免共享設定缺少腳本；**放行是本 skill 的追蹤政策，不是官方保證每個腳本都應公開**。提交前逐檔審查；只供私人設定引用的腳本另列精準排除。既有 `.env`、`*.log` 規則仍生效 | 官方 hooks 文件＋五版 Git 邊界實測 | 2026-09-21 | 文件快照；Git 實測 | 已驗證 |
-| C-105 | `.claude/agent-memory/`、`.claude/agent-memory-local/` | **監控盲區（2026-09-22）**：本條取證的 claude-directory 頁尚未納入 SOURCES；baseline 無下列兩個記憶目錄的精準或子路徑 token。PR #14 合併前的 `--coverage` 會因 `.claude/` 父目錄誤報有涵蓋；修正報表不等於接入來源，見監控 plan M0／M1。前者是 project-scope subagent 記憶，官方定位為團隊共享，範本放行但仍審查內容。`memory: local` 使用後者，範本以 `**/.claude/agent-memory-local/` 排除根目錄與子目錄中的同名目錄；子目錄案例驗證規則邊界，不宣稱工具必然自動在子目錄產生它。主 session 的家目錄 auto memory 是另一機制 | 官方 claude-directory 文件＋五版 Git 邊界實測 | 2026-09-21 | 文件快照；未執行 Claude runtime | 已驗證 |
+| C-105 | `.claude/agent-memory/`、`.claude/agent-memory-local/` | **M1 本機已補來源（2026-09-22，遠端尚未部署）**：`claude-code/claude-directory` 各自含兩個目錄的精準 token，已以 PR #14 的收斂比對獨立驗證。此前兩者均是盲區，舊 `--coverage` 只因 `.claude/` 父目錄誤報有涵蓋；PR #14 審查仍有待修項，不能把本機驗證當成遠端已生效。前者是 project-scope subagent 記憶，官方定位為團隊共享，範本放行但仍審查內容。`memory: local` 使用後者，範本以 `**/.claude/agent-memory-local/` 排除根目錄與子目錄中的同名目錄；子目錄案例驗證規則邊界，不宣稱工具必然自動在子目錄產生它。主 session 的家目錄 auto memory 是另一機制 | 官方 claude-directory 文件＋五版 Git 邊界實測 | 2026-09-21 | 文件快照；未執行 Claude runtime | 已驗證 |
 | C-106 | `CLAUDE.local.md` | 官方定位為個人專案指令並要求加入 gitignore，子目錄同名檔也可能被按需載入。範本使用不含斜線的 `CLAUDE.local.md`，保護根目錄與任意子目錄；不排除 `CLAUDE.local.md.example` 或共享 `CLAUDE.md` | 官方 memory 文件＋五版 Git 邊界實測 | 2026-09-21 | 文件快照；Git 實測 | 已驗證 |
 | C-107 | `.claude/scheduled_tasks.json` | 官方 2.1.273 修復複製此檔至其他資料夾／worktree 後於錯誤 session 執行任務的問題，證明它承載與執行情境相關的排程狀態。本 skill 將其列為本機狀態；根目錄既有 `.claude/*` 已擋下，本輪只補帳本與回歸案例，不新增同義規則 | 官方 CHANGELOG 2.1.273＋五版 Git 邊界實測 | 2026-09-21 | claude-code 2.1.273 修復紀錄 | 已驗證 |
 | C-108 | `~/.claude/skills/.trash/` | 停止同步後，已同步技能會移到此處且不再載入；可在 retention sweep 清除前復原。家目錄機制，不新增專案 gitignore 規則 | 官方 skills 文件；摘錄見下 | 2026-09-21 | 文件快照 | 已驗證 |
 | C-109 | `AGENTS.md`、`.claude/AGENTS.md` | Claude Code 2.1.277 起且功能可用時支援。預設目前目錄及上層沒有 `CLAUDE.md`、`.claude/CLAUDE.md` 或 `CLAUDE.local.md` 才讀 AGENTS 指令；Project instructions 可改為兩者都讀。功能受 feature flags、provider、首次升級 session、hook／內建 plugin 設定等限制，**不宣稱所有 session 都可用**。官方此節明示不讀 `AGENTS.local.md`、`AGENTS.override.md` 或 `.agents/` 下的指令檔；這不改變其他工具的行為。根目錄 `AGENTS.md` 原已放行，本輪補 `.claude/AGENTS.md` 精準例外。C-50 是 Antigravity 主張，未被本次新增支援推翻 **2026-09-22 維護者政策決定（F2）**：維持 `AGENTS.local.md` 現行未排除狀態，需依實際內容、工具用途及專案追蹤決定處理；未被 ignore 不代表建議提交。不得僅由 `.local.md` 命名推定一律排除。`AGENTS.override.md`、`GEMINI.local.md` 亦未在本輪新增排除，官方不讀取的事實與維護者追蹤政策分開記錄。 | 官方 memory 文件與 CHANGELOG 2.1.277＋五版 Git 邊界實測 | 2026-09-21 | 功能起點 2.1.277；未執行 Claude runtime | 已驗證 |
+
+| C-112 | `~/.claude/settings.json`、`~/.claude/skills/`、`~/.claude/agent-memory/`、`~/.claude/workflows/`、`~/.claude/output-styles/`、`~/.claude/plugins/`、`~/.claude/plugins/synced/` | 新接 hooks／desktop／claude-directory 來源中的使用者層設定、技能、subagent 記憶、workflow、output style 與外掛資產；預設位於家目錄，不能把同尾名推導成專案產物。這是人工位置分類，並非全都可刪或全都應忽略；`CLAUDE_CONFIG_DIR` 可改變根目錄，重定位至 repo 時需重新檢核。專案同名路徑仍依各自既有主張判定，不新增 ignore 規則 | [官方 directory](https://code.claude.com/docs/en/claude-directory.md)＋[hooks](https://code.claude.com/docs/en/hooks.md)＋[desktop](https://code.claude.com/docs/en/desktop.md)；[逐 token 分類](./rounds/2026-09-22-codex.m1.md) | 2026-09-22 | 文件快照；未執行 runtime | 已驗證 |
+| C-113 | `~/.claude/debug/`、`~/.claude/history.jsonl`、`~/.claude/file-history/`、`~/.claude/paste-cache/`、`~/.claude/uploads/`、`~/.claude/plans/`、`~/.claude/session-env/`、`~/.claude/shell-snapshots/`、`~/.claude/cache/changelog.md`、`~/.claude/policy-limits.json`、`~/.claude/remote-settings.json`、`~/.claude/stats-cache.json`、`~/.claude/tasks/`、`~/.claude/usage-data/`、`~/.claude/feedback-bundles/`、`~/.claude/feedback/drafts/`、`~/.claude/plugins/.trash/`、`~/.claude/todos/`、`~/.claude/statsig/`、`~/.claude/logs/`、`~/.claude/image-cache/` | directory 頁列出的家目錄狀態、紀錄、快取、回饋與已移除外掛暫存位置；todos／statsig／logs／image-cache 明列為舊版遺留，不宣稱現行版本仍會產生。僅登記預設位置及人工分類，不推導清理安全性、保存期限或專案 ignore 規則；路徑 root 可受 `CLAUDE_CONFIG_DIR` 影響。backups、projects、skills/.trash 仍分別依 C-90、C-07、C-108 | [官方 directory](https://code.claude.com/docs/en/claude-directory.md)；[逐 token 分類](./rounds/2026-09-22-codex.m1.md) | 2026-09-22 | 文件快照；未執行 runtime | 已驗證 |
 
 ## Codex
 
@@ -144,7 +147,7 @@
 | C-56 | `.agents/<type>_<milestone>[_<N>][_gen<N>]/` | 子代理在**專案內**建立的工作目錄命名規則（二進位字串），內含 `ORIGINAL_REQUEST.md` 等記錄。已被 `.agents/*` 完整涵蓋 | 二進位字串分析 | 2026-07-30 | 1.0.13 | 已驗證 |
 | C-80 | Antigravity 的 worktree 處理 | 2.5.0 changelog 提到「environment selector 記住上次使用的 worktree」「側欄可依 worktree 排序」，但二進位中 worktree 相關字串全是 git 操作（`gitdir:`、`rev-parse`、`worktree list`、`repo root`），查無 `.agents/worktree*` 或 `~/.gemini/*/worktree*`。→ **Antigravity 讀取標準 git worktree，不自建工具管理的 worktree 目錄**，與 Claude Code 的 `.claude/worktrees/`（C-09）不同，**本 skill 無需為其新增規則** | 官方 changelog＋二進位字串分析 | 2026-08-04 | 2.5.0 | 已驗證 |
 | C-87 | `.agents/agents/<name>/agent.json` 的欄位結構 | Antigravity 回覆**誠實聲明無實機資料**（agy 1.0.13 為 headless，該檔通常由桌面端 GUI「Create New Agent」建立或人工編寫），並提供一份社群 schema。**維護者以二進位獨立複驗，結果比回覆自身的依據更強**：`customAgentSpec`(7)、`systemPromptSections`(2)、`toolNames`(4)、`customAgent`(15) 皆存在，且是 **protobuf 訊息定義**而非零星字串 —— 例：`protobuf:"bytes,2,opt,name=custom_agent_spec,json=customAgentSpec,proto3"`。欄位集合為 `name`／`displayName`／`description`／`hidden`／`customAgentSpec{customAgent{systemPromptSections, toolNames}}`，**全屬靜態角色宣告**，無 session／時間戳／對話等執行期欄位。→ 支持「性質適合提交」。⚠️ **仍不足以啟用白名單**（見 C-54）：(1) **無人目視過實體檔案**；(2) 交接包 Q3「目錄下還有沒有其他檔案」回覆自陳「無法由系統生成結果斷定」＝**未回答**；(3) **新發現的未決點** —— Go 結構標籤是 `json:"custom_agent_spec,omitempty"`，以 `encoding/json` 封送會輸出 **snake_case**，`customAgentSpec` 只是 protobuf JSON 名。回覆給的 camelCase schema 可能取自 protobuf JSON 形式而非磁碟實際內容，**實際 key 命名未定**。另：二進位有 `creating agent directory`、`writing agent.json`、`marshaling agent.json` 與 9 處 `AgentsCreatePath`，顯示寫入機制存在，但查無對應的使用者層子命令字串 | Antigravity 回覆（社群 schema，自陳無實機）＋維護者二進位複驗（protobuf 定義） | 2026-08-09 | agy 1.0.13 | 已驗證 |
-| C-81 | `.agent/skills/<name>/` | 舊佈局的專案技能目錄。**官方向後相容只明載 `.agent/rules`**（見 C-57），**未提及 skills**；現行 agy 1.0.13 二進位對 `.agent/` 0 命中。本條規則的真實依據是**實地觀察**：`PM-tools-Dashboard-docker` 存在 `.agent/skills/ui-ux-pro-max/`，由第三方安裝器（`uipro init --ai antigravity`）寫入，非 Antigravity 自身產生。⚠️ 依此，規則的正當性是「使用者刻意放的技能應提交」，**不是**「工具會讀這個路徑」—— 後者無依據，勿據以推論。範本已加註，無此目錄的專案可整組刪除 | 實地觀察（第三方安裝器產物）＋二進位反證 | 2026-08-04 | 1.0.13 | 已驗證 |
+| C-81 | `.agent/skills/<name>/` | 舊佈局的專案技能目錄。**官方向後相容只明載 `.agent/rules`**（見 C-57），**未提及 skills**；現行 agy 1.0.13 二進位對 `.agent/` 0 命中。本條規則的真實依據是**實地觀察**：`PM-tools-Dashboard-docker` 存在 `.agent/skills/ui-ux-pro-max/`，由第三方安裝器（`uipro init --ai antigravity`）寫入，非 Antigravity 自身產生。⚠️ 依此，規則的正當性是「使用者刻意放的技能應提交」，**不是**「工具會讀這個路徑」—— 後者無依據，勿據以推論。範本已加註，無此目錄的專案可整組刪除 | 實地觀察（第三方安裝器產物）＋二進位反證 | 2026-08-04 | 1.0.13 | 被取代→C-114 |
 | C-82 | `~/.codex/skills/.system/` | Codex **內建系統技能**的存放處（含 `.codex-system-skills.marker`，底下有 `imagegen`、`skill-creator`、`review-agent` 等）。意義：`~/.codex/skills/` 這個目錄**永遠存在**，不論使用者有沒有裝過第三方技能。⚠️ 因此安裝器判斷「舊版相容路徑要不要續寫」時，**不能用「目錄是否存在」當判準** —— 否則使用者手動刪掉的舊複本會在下次安裝時復活。判準已改為「該目錄裡是否已有本專案裝過的技能」 | 本機實查 | 2026-08-04 | 0.146.0-alpha.9.2 | 已驗證 |
 | C-57 | `.agents/rules/`、`.agent/rules/` | 工作區規則資料夾，官方：「Workspace rules live in the `.agents/rules` folder of your workspace or git root」，性質同 `.claude/rules/` → **應提交（已放行）**。官方另載「now defaults to `.agents/rules`, but still maintains backward support for `.agent/rules`」，故舊佈局一併放行 | 官方文件 `/docs/rules-workflows` | 2026-08-03 | 2.x | 已驗證 |
 | C-58 | `.agents/mcp_config.json` | 工作區層級 MCP server 定義，官方：「Workspace servers: `.agents/mcp_config.json`」（全域版為 `~/.gemini/config/mcp_config.json`）→ **應提交（已放行）**。原被 `.agents/*` 誤殺 | 官方文件 `/docs/cli/gcli-migration` | 2026-08-03 | 2.x | 已驗證 |
@@ -164,6 +167,8 @@
 > `~/.gemini/config/.migrated` 是可直接觀察的分界證據，比版本號更貼近實際行為（C-47、C-48）。
 >
 > 此版本號現已納入自動監控：**次版號跳動即告警**，作為重跑實機交接的觸發訊號。
+
+| C-114 | `.agent/skills/`、`.agents/skills/` | 取代 C-81 的「官方未提及 skills」現行判斷。2026-09-22 官方整合 skills 頁明示預設使用 `.agents/skills` 並相容 `.agent/skills`；此段為總述，未逐 surface 說明版本或優先序，因此不能代替各 runtime 的 discovery 實測。保留 C-81 的 agy 1.0.13 歷史取證。五版既有 `.agent/skills/` 規則不變，只修正依據註解；CLI 全域路徑 C-110 仍有疑 | [官方 skills](https://antigravity.google/docs/skills.md)；SHA 與 surface 核對見 [M1](./rounds/2026-09-22-codex.m1.md) | 2026-09-22 | 文件快照；未執行 runtime | 已驗證 |
 
 ## 跨工具
 
@@ -290,6 +295,7 @@
 
 | 日期 | 工具 | 涵蓋項目 | 交接包 | 回覆 |
 | :--- | :--- | :--- | :--- | :--- |
+| 2026-09-22 | Codex M0 審查與 M1 本機實作 | 來源搬遷、C-105 雙路徑、dry-run 隔離 | [Claude M1 交接](./rounds/2026-09-22-claude.to-codex-m1.md)（原件保留） | [M1 驗收](./rounds/2026-09-22-codex.m1.md)：28 來源／344 token；新增 C-112～C-114，C-81 保留歷史；PR #14 P2 與合併衝突待處理，未部署 |
 | 2026-09-22 | Codex 複驗 Claude review | F1～F3 與 plan 順序 | [Claude 2026-09-22 review](./rounds/2026-09-22-claude.review-of-codex.md)（原件保留） | [回覆與修訂紀錄](./rounds/2026-09-22-codex.review-response.md)；F1／F3 以目前資料獨立重現，F2 依維護者決定維持現況；只補文件與 plan，未修改監控程式 |
 | 2026-09-21 | Codex 獨立複驗與本機修正 | C-103～C-111；Issue #15／#16 | [Claude 2026-09-18 交接](./rounds/2026-09-18-claude.to-codex.md)＋GitHub 最新留言 | [修正紀錄](./rounds/2026-09-21-codex.issue-fixes.md)；五版範本與案例已修改，監控機制另列 [待確認計畫](./rounds/2026-09-21-codex.monitor-plan.md)，未部署或關閉遠端 issue |
 | 2026-07-29 | Antigravity 1.0.13 | C-41～C-49（新增 C-51、C-52） | [交接包](./rounds/2026-07-29-antigravity.md) | [回覆](./rounds/2026-07-29-antigravity.reply.md)　已回填；其中 C-44、C-48 經維護者複驗後**未採信**回報結論 |

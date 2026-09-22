@@ -132,6 +132,21 @@ major 告警會附上通用人工複驗提示，但**不代表機制一定改變
 > 📌 Antigravity 有兩套版本號：產品版本走 2.x（changelog 發行表），
 > `agy --version` 的 `1.0.13` 是 CLI 執行檔自身的版號。監控抓的是前者。
 
+### 本機測試與手動 dry-run
+
+```bash
+python -m pip install -r tests/requirements.txt
+python -m unittest discover -s tests -p 'test_*.py'
+python scripts/check_updates.py --dry-run
+```
+
+M1 的 `workflow_dispatch` 預設 `dry_run: true`，使用同一份規則式報告，保留 job summary 與
+失敗狀態，跳過 AI 摘要、Issue 通知、恢復關閉及 baseline commit／push。只有排程，或手動
+明確選擇 `dry_run: false` 才允許這些寫入。未知／缺少的模式輸入會停留在 dry-run。
+這項保護要在該 workflow 版本已存在於執行 ref 時才生效；不應 dispatch 尚未更新的版本。
+本機測試直接解析 workflow 條件並執行 checker 的 Bash 步驟（fixture 取代網路 checker）；
+它不等同 GitHub runner E2E。M1 部署狀態及取證見 [本輪紀錄](./rounds/2026-09-22-codex.m1.md)。
+
 ### 查監控盲區
 
 ```bash

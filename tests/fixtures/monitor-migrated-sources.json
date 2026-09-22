@@ -1,0 +1,5 @@
+{
+  "antigravity/skills": "Synthetic reduced fixture. Antigravity 2.0: .agents/skills/ ~/.gemini/config/skills/ . CLI: .agents/skills/ ~/.gemini/antigravity-cli/skills/ . IDE: .agents/skills/ ~/.gemini/config/skills/ (legacy ~/.gemini/antigravity/skills/). Compatibility: .agent/skills/.",
+  "claude-code/claude-directory": "Synthetic reduced fixture. Project memory: <C>.claude/agent-memory/</C>. The memory: local option uses <C>.claude/agent-memory-local/</C> in a sentence, without its own heading.",
+  "claude-code/desktop": "Synthetic reduced fixture. Preview configuration: `.claude/launch.json`."
+}
