@@ -56,6 +56,22 @@ def _github_bool(value):
     return "true" if value else "false"
 
 
+def is_dry_run(event_name, dry_run_input):
+    """Only schedules and an explicit manual false may write remotely."""
+    return not (
+        event_name == "schedule"
+        or (event_name == "workflow_dispatch" and dry_run_input == "false")
+    )
+
+
+def _mode(args):
+    value = _github_bool(is_dry_run(args.event, args.dry_run_input))
+    with open(args.github_output, "a", encoding="utf-8", newline="\n") as handle:
+        handle.write(f"dry_run={value}\n")
+    print(f"dry_run={value}")
+    return 0
+
+
 def write_github_outputs(path, decisions):
     """Append scalar policy decisions to a GitHub Actions output file."""
     values = {
@@ -89,6 +105,12 @@ def _targets(args):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    mode_parser = subparsers.add_parser("mode", help="決定 dry-run；未知或缺少輸入時禁止寫入")
+    mode_parser.add_argument("--event", required=True)
+    mode_parser.add_argument("--dry-run-input", default="")
+    mode_parser.add_argument("--github-output", required=True)
+    mode_parser.set_defaults(handler=_mode)
 
     analyze_parser = subparsers.add_parser("analyze", help="解析報告與 exit code")
     analyze_parser.add_argument("--report", required=True)

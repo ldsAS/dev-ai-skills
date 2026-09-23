@@ -7,6 +7,12 @@ on:
     #    選非整點只能略為降低排隊機率，無法消除延遲 — 這是預期行為，不必當成故障。
     - cron: '15 1 * * *'
   workflow_dispatch: # 允許在 Actions 頁面手動觸發，適合驗證與測試
+    inputs:
+      dry_run:
+        description: '僅產生報告；不通知、關閉 Issue 或推送 baseline'
+        type: boolean
+        required: true
+        default: true
 
 permissions:
   contents: write
@@ -33,11 +39,28 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Resolve run mode
+        id: mode
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DRY_RUN_INPUT: ${{ inputs.dry_run }}
+        run: |
+          python scripts/monitor_ci_policy.py mode \
+            --event "$EVENT_NAME" --dry-run-input "$DRY_RUN_INPUT" \
+            --github-output "$GITHUB_OUTPUT"
+
       - name: Run check script
         id: check
+        env:
+          DRY_RUN: ${{ steps.mode.outputs.dry_run }}
         run: |
+          # 未知模式也禁止寫 baseline；外部寫入另由各步驟的 if 保護。
+          args=()
+          if [ "$DRY_RUN" != 'false' ]; then
+            args+=(--dry-run)
+          fi
           set +e
-          python scripts/check_updates.py > report.md 2> stderr.txt
+          python scripts/check_updates.py "${args[@]}" > report.md 2> stderr.txt
           exit_code=$?
           set -e
 
@@ -65,7 +88,7 @@ jobs:
       - name: Summarize report with Copilot
         id: summarize
         if: >-
-          always() && steps.check.outcome == 'success' &&
+          always() && steps.mode.outputs.dry_run == 'false' && steps.check.outcome == 'success' &&
           (steps.check.outputs.updates == 'true' || steps.check.outputs.failure == 'true')
         continue-on-error: true
         env:
@@ -111,7 +134,7 @@ jobs:
 
       - name: Prepend summary to report
         if: >-
-          always() && steps.check.outcome == 'success' &&
+          always() && steps.mode.outputs.dry_run == 'false' && steps.check.outcome == 'success' &&
           (steps.check.outputs.updates == 'true' || steps.check.outputs.failure == 'true')
         continue-on-error: true
         run: |
@@ -132,9 +155,17 @@ jobs:
           } > report-with-summary.md
           mv report-with-summary.md report.md
 
+      - name: Save report in job summary
+        if: always() && steps.check.outcome == 'success'
+        env:
+          DRY_RUN: ${{ steps.mode.outputs.dry_run }}
+        run: |
+          echo "## AI tools monitor (dry_run=$DRY_RUN)" >> "$GITHUB_STEP_SUMMARY"
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+
       - name: Notify via GitHub Issues
         if: >-
-          always() && steps.check.outcome == 'success' &&
+          always() && steps.mode.outputs.dry_run == 'false' && steps.check.outcome == 'success' &&
           (steps.check.outputs.updates == 'true' || steps.check.outputs.failure == 'true')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -174,7 +205,7 @@ jobs:
 
       - name: Close recovered failure Issues
         if: >-
-          always() && steps.check.outcome == 'success' &&
+          always() && steps.mode.outputs.dry_run == 'false' && steps.check.outcome == 'success' &&
           steps.check.outputs.failure != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -194,7 +225,7 @@ jobs:
 
       - name: Commit baseline update
         if: >-
-          always() && steps.check.outcome == 'success' &&
+          always() && steps.mode.outputs.dry_run == 'false' && steps.check.outcome == 'success' &&
           steps.check.outputs.baseline == 'true'
         run: |
           if git diff --quiet -- scripts/last_checked.json; then
@@ -223,5 +254,5 @@ jobs:
       - name: Fail workflow when checks failed
         if: always() && steps.check.outputs.should_fail == 'true'
         run: |
-          echo "::error::一個或多個監控來源檢查失敗；通知與必要的 baseline 處理已完成。"
+          echo "::error::一個或多個監控來源檢查失敗；請查看報告。dry-run 不執行通知或 baseline 寫入。"
           exit 1

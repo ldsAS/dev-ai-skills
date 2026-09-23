@@ -103,6 +103,24 @@ CASES = [
     ("apps/web/.claude/commands/deploy.md", False),      # C-97 nested 團隊共用指令
     (".claude-plugin/marketplace.json", False),          # C-08
     (".mcp.json", False),                                # C-61 專案層 MCP 設定
+    # --- Claude 團隊指令、hooks 與記憶（C-103～C-109）---
+    (".claude/CLAUDE.md", False),                        # C-103 第二個專案指令位置
+    (".claude/AGENTS.md", False),                        # C-109 有條件載入的跨工具指令
+    (".claude/CLAUDE.md.bak", True),                     # 精準放行，不擴及備份
+    (".claude/AGENTS.md.bak", True),
+    (".claude/hooks/block-rm.sh", False),                # C-104 團隊 hook 的腳本
+    (".claude/hooks/block-rm.ps1", False),
+    (".claude/hooks/.env", True),                       # 既有機密／日誌規則仍有效
+    (".claude/hooks/debug.log", True),
+    (".claude/hooks-private/local.sh", True),           # 不放行名稱相近的目錄
+    (".claude/agent-memory/reviewer/MEMORY.md", False),  # C-105 project 記憶
+    ("apps/web/.claude/agent-memory/reviewer/MEMORY.md", False),
+    (".claude/agent-memory-local/reviewer/MEMORY.md", True),
+    ("apps/web/.claude/agent-memory-local/reviewer/MEMORY.md", True),
+    ("CLAUDE.local.md", True),                          # C-106 個人指令，含子目錄
+    ("apps/web/CLAUDE.local.md", True),
+    ("CLAUDE.local.md.example", False),                 # 不排除不同名稱的範例
+    (".claude/scheduled_tasks.json", True),             # C-107 既有廣域規則已涵蓋
     # --- Gemini CLI（C-21～C-23）---
     (".gemini/settings.json", False),                    # C-21 Workspace 設定
     (".geminiignore", False),                            # C-23 忽略規則，與 .gitignore 同性質
@@ -145,8 +163,13 @@ def check_variant(variant):
 
     tmp = tempfile.mkdtemp(prefix=f"gitignore-{variant}-")
     try:
+        # 驗證範本本身，避免個人 global excludes 掩蓋漏掉的排除規則。
+        git_env = os.environ.copy()
+        git_env["GIT_CONFIG_NOSYSTEM"] = "1"
+        git_env["GIT_CONFIG_GLOBAL"] = os.devnull
         subprocess.run(["git", "init", "-q"], cwd=tmp, check=True,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                       env=git_env)
         with open(os.path.join(tmp, ".gitignore"), "w",
                   encoding="utf-8", newline="\n") as handle:
             handle.write(template)
@@ -154,7 +177,9 @@ def check_variant(variant):
         mismatches = []
         for path, expect_blocked in CASES:
             result = subprocess.run(
-                ["git", "check-ignore", "--no-index", "-q", "--", path], cwd=tmp
+                ["git", "-c", f"core.excludesFile={os.devnull}",
+                 "check-ignore", "--no-index", "-q", "--", path],
+                cwd=tmp, env=git_env,
             )
             blocked = (result.returncode == 0)
             if result.returncode not in (0, 1):

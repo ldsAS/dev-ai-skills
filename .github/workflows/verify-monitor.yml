@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - 'scripts/check_updates.py'
+      - 'scripts/last_checked.json'
       - 'scripts/monitor_ci_policy.py'
       - 'tests/**'
       - '.github/workflows/check-updates.yml'
@@ -12,6 +13,7 @@ on:
   pull_request:
     paths:
       - 'scripts/check_updates.py'
+      - 'scripts/last_checked.json'
       - 'scripts/monitor_ci_policy.py'
       - 'tests/**'
       - '.github/workflows/check-updates.yml'
@@ -38,4 +40,6 @@ jobs:
         run: python -m py_compile scripts/check_updates.py scripts/monitor_ci_policy.py
 
       - name: Run monitor regression tests
-        run: python -m unittest discover -s tests -p 'test_*.py'
+        run: |
+          python -m pip install -r tests/requirements.txt
+          python -m unittest discover -s tests -p 'test_*.py'

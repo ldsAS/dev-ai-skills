@@ -1,0 +1,1297 @@
+{
+  "main_sha": "5883f03b95a965ceea908e726e796855159d581d",
+  "pr17_sha": "2a9cbc11e7d88ee998713fc9159491d3320d3375",
+  "baseline_before_sha256": "2c5ab29447b8d4a9780a3b33f360f37772be18a9c8d1a01fee4c746b0bbe5b08",
+  "baseline_after_sha256": "cc3eaf5616ca36e4f2b56e952ac7262797ebcd0431a891ef728b92cf220b7ea5",
+  "sources": [
+    {
+      "key": "claude-code/settings",
+      "action": "migrate-url",
+      "previous_url": "https://docs.claude.com/en/docs/claude-code/settings.md",
+      "url": "https://code.claude.com/docs/en/settings.md",
+      "fetched_at": "2026-09-22T08:07:22.620477+00:00",
+      "final_url": "https://code.claude.com/docs/en/settings.md",
+      "http_status": 200,
+      "body_bytes": 59264,
+      "body_sha256": "7e8821d26a2cfb3f5094900bca00820f159f3a0867a2bc75b14c767068f0d229",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".claude",
+        ".claude/",
+        ".claude/settings.json",
+        ".claude/settings.local.json",
+        "/.claude/settings.local.json",
+        "CLAUDE.md",
+        "\\.claude",
+        "settings.local.json",
+        "~/.claude",
+        "~/.claude/backups/",
+        "~/.claude/backups/.claude.json.corrupted",
+        "~/.claude/settings.json"
+      ]
+    },
+    {
+      "key": "claude-code/memory",
+      "action": "migrate-url",
+      "previous_url": "https://docs.claude.com/en/docs/claude-code/memory.md",
+      "url": "https://code.claude.com/docs/en/memory.md",
+      "fetched_at": "2026-09-22T08:07:23.065646+00:00",
+      "final_url": "https://code.claude.com/docs/en/memory.md",
+      "http_status": 200,
+      "body_bytes": 53171,
+      "body_sha256": "b94646b89a6a77501746ead8e6f6db5204ee2fcedfae1fccc719c902a3f0b018",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        "./.claude/CLAUDE.md",
+        ".agents/",
+        ".claude/",
+        ".claude/AGENTS.md",
+        ".claude/CLAUDE.md",
+        ".claude/rules/",
+        ".claude/rules/security.md",
+        ".claude/rules/shared",
+        ".claude/settings.json",
+        ".claude/settings.local.json",
+        "AGENTS.local.md",
+        "AGENTS.md",
+        "CLAUDE.local.md",
+        "CLAUDE.md",
+        "copilot-instructions.md",
+        "~/.claude/CLAUDE.md",
+        "~/.claude/my-project-instructions.md",
+        "~/.claude/projects/",
+        "~/.claude/rules/",
+        "~/.claude/settings.json"
+      ]
+    },
+    {
+      "key": "claude-code/skills",
+      "action": "migrate-url",
+      "previous_url": "https://docs.claude.com/en/docs/claude-code/skills.md",
+      "url": "https://code.claude.com/docs/en/skills.md",
+      "fetched_at": "2026-09-22T08:07:24.500806+00:00",
+      "final_url": "https://code.claude.com/docs/en/skills.md",
+      "http_status": 200,
+      "body_bytes": 116025,
+      "body_sha256": "c5941bf55ff9818ec4c66619ac1785c71b291a9c7d921287f86498121799a7e9",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".claude-plugin/plugin.json",
+        ".claude/agents/",
+        ".claude/commands/",
+        ".claude/commands/deploy.md",
+        ".claude/commands/frontend/component.md",
+        ".claude/settings.json",
+        ".claude/settings.local.json",
+        ".claude/skills",
+        ".claude/skills/",
+        ".claude/skills/deploy-staging/SKILL.md",
+        ".claude/skills/deploy/SKILL.md",
+        ".claude/skills/run-",
+        ".claude/skills/verify/SKILL.md",
+        ".mcp.json",
+        "/.claude/hooks/helper.sh",
+        "/.claude/skills/",
+        "CLAUDE.md",
+        "~/.claude/skills",
+        "~/.claude/skills/",
+        "~/.claude/skills/.trash/",
+        "~/.claude/skills/codebase-visualizer/SKILL.md",
+        "~/.claude/skills/codebase-visualizer/scripts",
+        "~/.claude/skills/codebase-visualizer/scripts/visualize.py",
+        "~/.claude/skills/render-chart/",
+        "~/.claude/skills/summarize-changes",
+        "~/.claude/skills/summarize-changes/SKILL.md",
+        "~/.claude/skills/synced/"
+      ]
+    },
+    {
+      "key": "claude-code/hooks",
+      "action": "add",
+      "previous_url": null,
+      "url": "https://code.claude.com/docs/en/hooks.md",
+      "fetched_at": "2026-09-22T08:07:24.526890+00:00",
+      "final_url": "https://code.claude.com/docs/en/hooks.md",
+      "http_status": 200,
+      "body_bytes": 330917,
+      "body_sha256": "37781a4f4313622de8be5af094e0ce05ab22522283076ae0734b70a53b0bba95",
+      "added": [
+        "$HOME/.claude/worktrees/",
+        "../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+        "../.claude/projects/.../transcript.jsonl",
+        ".claude/",
+        ".claude/hooks/",
+        ".claude/hooks/block-opus-46.ps1",
+        ".claude/hooks/block-rm.ps1",
+        ".claude/hooks/block-rm.sh",
+        ".claude/hooks/plain-display.ps1",
+        ".claude/hooks/plain-display.sh",
+        ".claude/hooks/run-tests-async.sh",
+        ".claude/projects/.../transcript.jsonl",
+        ".claude/rules/",
+        ".claude/settings.json",
+        ".claude/settings.local.json",
+        ".claude/skills/",
+        ".claude/worktrees/feature-auth",
+        "/.claude/hooks/audit-config-change.sh",
+        "/.claude/hooks/block-opus-46.ps1",
+        "/.claude/hooks/block-rm.ps1",
+        "/.claude/hooks/block-rm.sh",
+        "/.claude/hooks/check-style.sh",
+        "/.claude/hooks/plain-display.ps1",
+        "/.claude/hooks/plain-display.sh",
+        "/.claude/hooks/run-tests-async.sh",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "\\.claude\\",
+        "~/.claude/",
+        "~/.claude/debug/",
+        "~/.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+        "~/.claude/projects/.../abc123.jsonl",
+        "~/.claude/projects/.../abc123/subagents/agent-def456.jsonl",
+        "~/.claude/settings.json",
+        "~/.claude/skills/",
+        "~/.claude/skills/team-skills"
+      ],
+      "removed": [],
+      "preserved": []
+    },
+    {
+      "key": "claude-code/desktop",
+      "action": "add",
+      "previous_url": null,
+      "url": "https://code.claude.com/docs/en/desktop.md",
+      "fetched_at": "2026-09-22T08:07:24.556121+00:00",
+      "final_url": "https://code.claude.com/docs/en/desktop.md",
+      "http_status": 200,
+      "body_bytes": 103799,
+      "body_sha256": "cb291a4ab1019ed2e8fa4409054ee8d132e26de05f8269605581ac4df281bbfa",
+      "added": [
+        ".claude/launch.json",
+        ".claude/settings.json",
+        ".mcp.json",
+        "/.claude/worktrees/",
+        "CLAUDE.local.md",
+        "CLAUDE.md",
+        "~/.claude",
+        "~/.claude/settings.json",
+        "~/.claude/skills/"
+      ],
+      "removed": [],
+      "preserved": []
+    },
+    {
+      "key": "claude-code/claude-directory",
+      "action": "add",
+      "previous_url": null,
+      "url": "https://code.claude.com/docs/en/claude-directory.md",
+      "fetched_at": "2026-09-22T08:07:24.655541+00:00",
+      "final_url": "https://code.claude.com/docs/en/claude-directory.md",
+      "http_status": 200,
+      "body_bytes": 104975,
+      "body_sha256": "42b34cc35611f9645f0354129118ee9a0505079dcd547f74a84801616d84fa88",
+      "added": [
+        ".claude",
+        ".claude/",
+        ".claude/CLAUDE.md",
+        ".claude/agent-memory-local/",
+        ".claude/agent-memory/",
+        ".claude/backups",
+        ".claude/history.jsonl",
+        ".claude/projects/-home-user-work-my-repo",
+        ".claude/rules/",
+        ".claude/rules/frontend/react.md",
+        ".claude/settings.local.json",
+        ".claude/workflows/",
+        ".mcp.json",
+        "/.claude/settings.local.json",
+        "AGENTS.md",
+        "CLAUDE.local.md",
+        "CLAUDE.md",
+        "\\.claude",
+        "settings.local.json",
+        "~/.claude",
+        "~/.claude/",
+        "~/.claude/agent-memory/",
+        "~/.claude/backups/",
+        "~/.claude/cache/changelog.md",
+        "~/.claude/debug/",
+        "~/.claude/feedback-bundles/",
+        "~/.claude/feedback/drafts/",
+        "~/.claude/file-history/",
+        "~/.claude/history.jsonl",
+        "~/.claude/image-cache/",
+        "~/.claude/logs/",
+        "~/.claude/output-styles/",
+        "~/.claude/paste-cache/",
+        "~/.claude/plans/",
+        "~/.claude/plugins",
+        "~/.claude/plugins/",
+        "~/.claude/plugins/.trash/",
+        "~/.claude/plugins/synced/",
+        "~/.claude/policy-limits.json",
+        "~/.claude/projects/",
+        "~/.claude/remote-settings.json",
+        "~/.claude/session-env/",
+        "~/.claude/settings.json",
+        "~/.claude/shell-snapshots/",
+        "~/.claude/skills/.trash/",
+        "~/.claude/stats-cache.json",
+        "~/.claude/statsig/",
+        "~/.claude/tasks/",
+        "~/.claude/todos/",
+        "~/.claude/uploads/",
+        "~/.claude/usage-data/",
+        "~/.claude/workflows/"
+      ],
+      "removed": [],
+      "preserved": []
+    },
+    {
+      "key": "claude-code/changelog",
+      "action": "preserve",
+      "previous_url": "https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md",
+      "url": "https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md",
+      "fetched_at": "2026-09-22T08:07:20.894216+00:00",
+      "final_url": "https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md",
+      "http_status": 200,
+      "body_bytes": 746701,
+      "body_sha256": "54ad047868ac051debc25361c6e2c2fe23422ca47e557c6dd4c011e1f4a34e24",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".claude",
+        ".claude/",
+        ".claude/agents/",
+        ".claude/commands/",
+        ".claude/commands/frontend/component.md",
+        ".claude/hooks",
+        ".claude/rules",
+        ".claude/rules/",
+        ".claude/scheduled_tasks.json",
+        ".claude/settings.json",
+        ".claude/settings.local.json",
+        ".claude/skills",
+        ".claude/skills/",
+        ".claude/workflows/",
+        ".claude/worktrees",
+        ".claude/worktrees/",
+        ".mcp.json",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "settings.local.json",
+        "~/.claude",
+        "~/.claude/",
+        "~/.claude/.credentials.json",
+        "~/.claude/CLAUDE.md",
+        "~/.claude/backups/",
+        "~/.claude/daemon",
+        "~/.claude/history.jsonl",
+        "~/.claude/keybindings.json",
+        "~/.claude/plugins/known_marketplaces.json",
+        "~/.claude/sessions",
+        "~/.claude/settings.json",
+        "~/.claude/shell-snapshots/",
+        "~/.claude/skills",
+        "~/.claude/tasks/",
+        "~/.claude/themes/",
+        "~/.claude/workflows/"
+      ]
+    },
+    {
+      "key": "codex/config-reference",
+      "action": "preserve",
+      "previous_url": "https://learn.chatgpt.com/docs/config-file/config-reference",
+      "url": "https://learn.chatgpt.com/docs/config-file/config-reference",
+      "fetched_at": "2026-09-22T08:07:20.894718+00:00",
+      "final_url": "https://learn.chatgpt.com/docs/config-file/config-reference",
+      "http_status": 200,
+      "body_bytes": 1415181,
+      "body_sha256": "2f435dc520819b57138205ca358b7bc226741984724f92150a32809a9ec01307",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".agents/plugins/marketplace.json",
+        ".codex/",
+        ".codex/config.toml",
+        "AGENTS.md",
+        "~/.codex/config.toml"
+      ]
+    },
+    {
+      "key": "codex/config-basic",
+      "action": "preserve",
+      "previous_url": "https://learn.chatgpt.com/docs/config-file/config-basic",
+      "url": "https://learn.chatgpt.com/docs/config-file/config-basic",
+      "fetched_at": "2026-09-22T08:07:20.895681+00:00",
+      "final_url": "https://learn.chatgpt.com/docs/config-file/config-basic",
+      "http_status": 200,
+      "body_bytes": 384382,
+      "body_sha256": "36f3354affcd4e92dbc24b0bbc57cc8672c7d1b2fdbd9c72b1f67de807bc0746",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".codex",
+        ".codex/",
+        ".codex/config.toml",
+        "AGENTS.md",
+        "~/.codex/config.toml",
+        "~/.codex/profile-name.config.toml"
+      ]
+    },
+    {
+      "key": "codex/changelog",
+      "action": "preserve",
+      "previous_url": "https://learn.chatgpt.com/docs/changelog",
+      "url": "https://learn.chatgpt.com/docs/changelog",
+      "fetched_at": "2026-09-22T08:07:21.187720+00:00",
+      "final_url": "https://learn.chatgpt.com/docs/changelog",
+      "http_status": 200,
+      "body_bytes": 1326162,
+      "body_sha256": "a1bd8fc4d7d6a2fa57a99385dfda19566ce985e6bc7770956da80c92e73a85b7",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".agents/plugins/marketplace.json",
+        ".codex-plugin/",
+        ".codex-plugin/plugin.json",
+        ".codex/",
+        ".codex/skills",
+        ".mcp.json",
+        "AGENTS.md",
+        "~/.agents/plugins/marketplace.json",
+        "~/.codex/",
+        "~/.codex/plugins/",
+        "~/.codex/skills"
+      ]
+    },
+    {
+      "key": "codex/skills",
+      "action": "preserve",
+      "previous_url": "https://learn.chatgpt.com/docs/build-skills",
+      "url": "https://learn.chatgpt.com/docs/build-skills",
+      "fetched_at": "2026-09-22T08:07:21.255780+00:00",
+      "final_url": "https://learn.chatgpt.com/docs/build-skills",
+      "http_status": 200,
+      "body_bytes": 381638,
+      "body_sha256": "dfd83783bfb5287fde3308acedf998fe12c4dc8a3e4c4dd9caa8657081bb2a66",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        "$HOME/.agents/skills",
+        "../.agents/skills",
+        ".agents/skills",
+        "AGENTS.md",
+        "~/.codex/config.toml"
+      ]
+    },
+    {
+      "key": "codex/hooks",
+      "action": "preserve",
+      "previous_url": "https://learn.chatgpt.com/docs/hooks",
+      "url": "https://learn.chatgpt.com/docs/hooks",
+      "fetched_at": "2026-09-22T08:07:21.403399+00:00",
+      "final_url": "https://learn.chatgpt.com/docs/hooks",
+      "http_status": 200,
+      "body_bytes": 493554,
+      "body_sha256": "7eb615adde134b0010c80092676d8e43151fbd402eb5fcc1ef314d3faaca792f",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".codex-plugin/plugin.json",
+        ".codex/",
+        ".codex/hooks/",
+        ".codex/rollout.jsonl",
+        "/.codex/config.toml",
+        "/.codex/hooks.json",
+        "/.codex/hooks/permission_request.py",
+        "/.codex/hooks/post_tool_use_review.py",
+        "/.codex/hooks/pre_tool_use_policy.py",
+        "/.codex/hooks/session_start.py",
+        "/.codex/hooks/stop_continue.py",
+        "/.codex/hooks/user_prompt_submit_data_flywheel.py",
+        "AGENTS.md",
+        "~/.codex/config.toml",
+        "~/.codex/hooks.json",
+        "~/.codex/hooks/post_tool_use.py",
+        "~/.codex/hooks/session_end.py",
+        "~/.codex/hooks/session_start.py"
+      ]
+    },
+    {
+      "key": "gemini-cli/settings",
+      "action": "preserve",
+      "previous_url": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/settings.md",
+      "url": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/settings.md",
+      "fetched_at": "2026-09-22T08:07:21.403878+00:00",
+      "final_url": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/settings.md",
+      "http_status": 200,
+      "body_bytes": 37345,
+      "body_sha256": "f20e3dfa2c27974be9d2200a5d0f6804e45b09b90810b432ca9bebec9fc355e2",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".gemini/settings.json",
+        ".geminiignore",
+        "GEMINI.md",
+        "~/.gemini/settings.json"
+      ]
+    },
+    {
+      "key": "gemini-cli/gemini-md",
+      "action": "preserve",
+      "previous_url": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/gemini-md.md",
+      "url": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/gemini-md.md",
+      "fetched_at": "2026-09-22T08:07:21.560878+00:00",
+      "final_url": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/gemini-md.md",
+      "http_status": 200,
+      "body_bytes": 3807,
+      "body_sha256": "d00eeaef22453de4756a9862d8467750f772e239c4ee9b6f755709429b47c2cf",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        "AGENTS.md",
+        "GEMINI.md",
+        "~/.gemini/GEMINI.md"
+      ]
+    },
+    {
+      "key": "gemini-cli/skills",
+      "action": "preserve",
+      "previous_url": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/skills.md",
+      "url": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/skills.md",
+      "fetched_at": "2026-09-22T08:07:21.609541+00:00",
+      "final_url": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/skills.md",
+      "http_status": 200,
+      "body_bytes": 5740,
+      "body_sha256": "51e8573ef4c068dbdef5f73bd665c47ab16718aefe4edba365fe333b2d85f96d",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".agents/skills/",
+        ".gemini/skills/",
+        "GEMINI.md",
+        "~/.agents/skills/",
+        "~/.gemini/skills/"
+      ]
+    },
+    {
+      "key": "gemini-cli/ignore",
+      "action": "preserve",
+      "previous_url": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/gemini-ignore.md",
+      "url": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/gemini-ignore.md",
+      "fetched_at": "2026-09-22T08:07:21.625082+00:00",
+      "final_url": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/cli/gemini-ignore.md",
+      "http_status": 200,
+      "body_bytes": 2065,
+      "body_sha256": "21cf247e9066355a3ec1130097e3aaa6ec7065a95d1b52c623e7e46d975253cc",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".aiexclude",
+        ".geminiignore"
+      ]
+    },
+    {
+      "key": "antigravity/changelog",
+      "action": "preserve",
+      "previous_url": "https://antigravity.google/changelog",
+      "url": "https://antigravity.google/changelog",
+      "fetched_at": "2026-09-22T08:24:08.487423+00:00",
+      "final_url": "https://antigravity.google/changelog",
+      "http_status": 200,
+      "body_bytes": 479604,
+      "body_sha256": "52da0789b7fe6eb634d5dbf3288b51b600d5401a1374c415a83b8e99d70951e3",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".antigravitycli",
+        ".antigravitycli/",
+        ".antigravityignore",
+        ".gemini/",
+        "/.agents/hooks.json",
+        "AGENTS.md",
+        "GEMINI.md",
+        "~/.gemini/antigravity-cli/",
+        "~/.gemini/antigravity-cli/cache",
+        "~/.gemini/antigravity-cli/cache/projects.json",
+        "~/.gemini/antigravity-cli/hooks.json",
+        "~/.gemini/antigravity-cli/settings.json",
+        "~/.gemini/config/",
+        "~/.gemini/config/hooks.json",
+        "~/.gemini/config/projects/"
+      ],
+      "content_encoding": "gzip"
+    },
+    {
+      "key": "antigravity/skills",
+      "action": "migrate-url",
+      "previous_url": "https://antigravity.google/docs/skills",
+      "url": "https://antigravity.google/docs/skills.md",
+      "fetched_at": "2026-09-22T08:07:24.752860+00:00",
+      "final_url": "https://antigravity.google/docs/skills.md",
+      "http_status": 200,
+      "body_bytes": 6134,
+      "body_sha256": "960996451a11754bbc66852d49bd634bddbc06c85332fe7650c5d97cd5a008d9",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".agent/skills",
+        ".agents/skills",
+        "/.agents/skills/",
+        "~/.gemini/antigravity-cli/plugins/",
+        "~/.gemini/antigravity-cli/skills/",
+        "~/.gemini/antigravity/skills/",
+        "~/.gemini/config/skills/"
+      ]
+    },
+    {
+      "key": "antigravity/subagents",
+      "action": "migrate-url",
+      "previous_url": "https://antigravity.google/docs/subagents",
+      "url": "https://antigravity.google/docs/subagents.md",
+      "fetched_at": "2026-09-22T08:07:25.010705+00:00",
+      "final_url": "https://antigravity.google/docs/subagents.md",
+      "http_status": 200,
+      "body_bytes": 13682,
+      "body_sha256": "1ee0151871a920bb978963eb502fd9732b70563cc650b10248d000d300d17c03",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".agents/agents/",
+        "~/.gemini/config/agents/"
+      ]
+    },
+    {
+      "key": "antigravity/hooks",
+      "action": "migrate-url",
+      "previous_url": "https://antigravity.google/docs/hooks",
+      "url": "https://antigravity.google/docs/hooks.md",
+      "fetched_at": "2026-09-22T08:07:24.810400+00:00",
+      "final_url": "https://antigravity.google/docs/hooks.md",
+      "http_status": 200,
+      "body_bytes": 16798,
+      "body_sha256": "b029802d91cbafc3d45925f45e9b627830d722573e79e515938b689f68c2870d",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".agents/hooks.json",
+        "~/.gemini/antigravity",
+        "~/.gemini/antigravity-cli",
+        "~/.gemini/antigravity-cli/settings.json",
+        "~/.gemini/antigravity-ide",
+        "~/.gemini/antigravity/brain/ec33ebf9-0cba-4100-8142-c61503f6c587",
+        "~/.gemini/antigravity/brain/ec33ebf9-0cba-4100-8142-c61503f6c587/.system_generated/logs/transcript.jsonl",
+        "~/.gemini/config/hooks.json"
+      ]
+    },
+    {
+      "key": "antigravity/rules-workflows",
+      "action": "migrate-url",
+      "previous_url": "https://antigravity.google/docs/rules-workflows",
+      "url": "https://antigravity.google/docs/rules-workflows.md",
+      "fetched_at": "2026-09-22T08:07:24.872896+00:00",
+      "final_url": "https://antigravity.google/docs/rules-workflows.md",
+      "http_status": 200,
+      "body_bytes": 3424,
+      "body_sha256": "a399aa1f4957296626dc670972fdb75783d57ef233bdc8c71dc6787d9c60d4bf",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".agent/rules",
+        ".agents/rules",
+        ".agents/rules/",
+        ".agents/rules/testing-style.md",
+        "~/.gemini/GEMINI.md",
+        "~/.gemini/antigravity-cli/plugins/",
+        "~/.gemini/antigravity-cli/rules/"
+      ]
+    },
+    {
+      "key": "antigravity/plugins",
+      "action": "migrate-url",
+      "previous_url": "https://antigravity.google/docs/plugins",
+      "url": "https://antigravity.google/docs/plugins.md",
+      "fetched_at": "2026-09-22T08:07:24.991354+00:00",
+      "final_url": "https://antigravity.google/docs/plugins.md",
+      "http_status": 200,
+      "body_bytes": 5701,
+      "body_sha256": "eb17356708c5ed38f83f8cbcaa6c14fc10fe0aa3091e81806119c3ebe453ad15",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".agents/plugins/",
+        "~/.gemini/antigravity-cli/plugins/",
+        "~/.gemini/config/plugins/"
+      ]
+    },
+    {
+      "key": "antigravity/gcli-migration",
+      "action": "migrate-url",
+      "previous_url": "https://antigravity.google/docs/cli/gcli-migration",
+      "url": "https://antigravity.google/docs/cli/gcli-migration.md",
+      "fetched_at": "2026-09-22T08:07:25.011584+00:00",
+      "final_url": "https://antigravity.google/docs/cli/gcli-migration.md",
+      "http_status": 200,
+      "body_bytes": 4717,
+      "body_sha256": "26803485af6e4791e217350e5f26c1577b14cd716e8798b5b4a39283a9e336b3",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".agents/mcp_config.json",
+        ".agents/skills/",
+        ".gemini/skills/",
+        "AGENTS.md",
+        "GEMINI.md",
+        "~/.gemini/GEMINI.md",
+        "~/.gemini/antigravity-cli/skills/",
+        "~/.gemini/config/mcp_config.json",
+        "~/.gemini/settings.json",
+        "~/.gemini/skills/"
+      ]
+    },
+    {
+      "key": "copilot/customization",
+      "action": "preserve",
+      "previous_url": "https://code.visualstudio.com/docs/copilot/customization/overview",
+      "url": "https://code.visualstudio.com/docs/copilot/customization/overview",
+      "fetched_at": "2026-09-22T08:07:22.259705+00:00",
+      "final_url": "https://code.visualstudio.com/docs/agent-customization/overview",
+      "http_status": 200,
+      "body_bytes": 133116,
+      "body_sha256": "09e5907de96d3364a16d745c916a1a96b3c6958a16e3a75b29c9aae6a3e306e0",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".agent.md",
+        ".instructions.md",
+        ".prompt.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "copilot-instructions.md",
+        "review.prompt.md",
+        "reviewer.agent.md",
+        "style.instructions.md",
+        "~/.claude",
+        "~/.copilot"
+      ]
+    },
+    {
+      "key": "copilot/prompt-files",
+      "action": "preserve",
+      "previous_url": "https://code.visualstudio.com/docs/copilot/customization/prompt-files",
+      "url": "https://code.visualstudio.com/docs/copilot/customization/prompt-files",
+      "fetched_at": "2026-09-22T08:07:22.326809+00:00",
+      "final_url": "https://code.visualstudio.com/docs/agent-customization/prompt-files",
+      "http_status": 200,
+      "body_bytes": 122136,
+      "body_sha256": "ea1399f8457042b6a1a4b3239bbc76b1e009cc0d5c27fd5b7aecfb3290c74f11",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".github/prompts",
+        ".prompt.md",
+        "coding.instructions.md"
+      ]
+    },
+    {
+      "key": "copilot/agent-skills",
+      "action": "preserve",
+      "previous_url": "https://code.visualstudio.com/docs/copilot/customization/agent-skills",
+      "url": "https://code.visualstudio.com/docs/copilot/customization/agent-skills",
+      "fetched_at": "2026-09-22T08:07:22.359408+00:00",
+      "final_url": "https://code.visualstudio.com/docs/agent-customization/agent-skills",
+      "http_status": 200,
+      "body_bytes": 139545,
+      "body_sha256": "c535f7714e17353a38b9300a2ab92d067841dd94fd700f4b9bfcbabe74868557",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".agents/skills/",
+        ".claude/skills/",
+        ".github/skills/",
+        "~/.agents/skills/",
+        "~/.claude/skills/",
+        "~/.copilot/skills/"
+      ]
+    },
+    {
+      "key": "copilot/hooks",
+      "action": "preserve",
+      "previous_url": "https://code.visualstudio.com/docs/copilot/customization/hooks",
+      "url": "https://code.visualstudio.com/docs/copilot/customization/hooks",
+      "fetched_at": "2026-09-22T08:07:22.411947+00:00",
+      "final_url": "https://code.visualstudio.com/docs/agent-customization/hooks",
+      "http_status": 200,
+      "body_bytes": 171695,
+      "body_sha256": "12f203b0ecc9c33faf06e37728f9eda06450ae053801ac7cea763e23a0a50d64",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".agent.md",
+        ".claude/settings.json",
+        ".claude/settings.local.json",
+        ".github/hooks",
+        ".github/hooks/",
+        ".github/hooks/approval.json",
+        ".github/hooks/audit.json",
+        ".github/hooks/audit.log",
+        ".github/hooks/context.json",
+        ".github/hooks/format.json",
+        ".github/hooks/formatting.json",
+        ".github/hooks/security.json",
+        "~/.claude/settings.json",
+        "~/.copilot/hooks"
+      ]
+    },
+    {
+      "key": "copilot/repo-instructions",
+      "action": "preserve",
+      "previous_url": "https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions",
+      "url": "https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions",
+      "fetched_at": "2026-09-22T08:07:22.484213+00:00",
+      "final_url": "https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions",
+      "http_status": 200,
+      "body_bytes": 702008,
+      "body_sha256": "237222200434a608b4058ff7535f0dbc812167410aa2f2256bdf883b883c99f9",
+      "added": [],
+      "removed": [],
+      "preserved": [
+        ".github/instructions",
+        ".instructions.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "GEMINI.md",
+        "NAME.instructions.md",
+        "copilot-instructions.md"
+      ]
+    },
+    {
+      "key": "antigravity/ide-skills",
+      "action": "retire",
+      "previous_url": "https://antigravity.google/docs/ide/skills",
+      "replacement": "antigravity/skills",
+      "fetched_at": "2026-09-22T08:07:22.046046+00:00",
+      "http_status": 200,
+      "body_bytes": 377,
+      "body_sha256": "db706d077d9ab01ee21f0e6405c5bb20af55d29073ce18d899dd2ba9bdc688e8",
+      "added": [],
+      "removed": [
+        ".agent/skills",
+        ".agents/skills",
+        ".agents/skills/",
+        ".agents/skills/my-skill/",
+        "/.agents/skills/",
+        "~/.gemini/antigravity/skills/"
+      ],
+      "preserved": []
+    }
+  ],
+  "new_source_classification": [
+    {
+      "source": "claude-code/hooks",
+      "token": "$HOME/.claude/worktrees/",
+      "classification": "自訂 WorktreeCreate hook 的 SVN 範例輸出；不是預設工作區位置，不新增規則"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+      "classification": "絕對家目錄範例被抽成尾段；C-07／C-90／C-113，不能解讀成專案路徑"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "../.claude/projects/.../transcript.jsonl",
+      "classification": "絕對家目錄範例被抽成尾段；C-07／C-90／C-113，不能解讀成專案路徑"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": ".claude/",
+      "classification": "父目錄或 Windows 路徑片段；不據此新增子路徑主張"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": ".claude/hooks/",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": ".claude/hooks/block-opus-46.ps1",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": ".claude/hooks/block-rm.ps1",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": ".claude/hooks/block-rm.sh",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": ".claude/hooks/plain-display.ps1",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": ".claude/hooks/plain-display.sh",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": ".claude/hooks/run-tests-async.sh",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": ".claude/projects/.../transcript.jsonl",
+      "classification": "絕對家目錄範例被抽成尾段；C-07／C-90／C-113，不能解讀成專案路徑"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": ".claude/rules/",
+      "classification": "專案指令／範例；C-05"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": ".claude/settings.json",
+      "classification": "專案共享設定；C-02"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": ".claude/settings.local.json",
+      "classification": "個人專案設定或 glob／裸檔名別名；C-03／C-97"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": ".claude/skills/",
+      "classification": "專案技能；C-06，追蹤依用途判定"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": ".claude/worktrees/feature-auth",
+      "classification": "專案 worktree 位置／範例；C-09"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "/.claude/hooks/audit-config-change.sh",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "/.claude/hooks/block-opus-46.ps1",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "/.claude/hooks/block-rm.ps1",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "/.claude/hooks/block-rm.sh",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "/.claude/hooks/check-style.sh",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "/.claude/hooks/plain-display.ps1",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "/.claude/hooks/plain-display.sh",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "/.claude/hooks/run-tests-async.sh",
+      "classification": "專案 hook 目錄或自撰腳本範例；C-104；不是工具必然產生物"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "AGENTS.md",
+      "classification": "Claude 指令支援或 hook 限制說明；C-109，不能沿用其他工具語意"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "CLAUDE.md",
+      "classification": "專案指令；C-103（根目錄／替代位置）"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "\\.claude\\",
+      "classification": "父目錄或 Windows 路徑片段；不據此新增子路徑主張"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "~/.claude/",
+      "classification": "父目錄／使用者層位置；不代表所有子項已獲語意驗證"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "~/.claude/debug/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "~/.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+      "classification": "家目錄 transcript／memory；C-07；具體檔名是範例"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "~/.claude/projects/.../abc123.jsonl",
+      "classification": "家目錄 transcript／memory；C-07；具體檔名是範例"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "~/.claude/projects/.../abc123/subagents/agent-def456.jsonl",
+      "classification": "家目錄 transcript／memory；C-07；具體檔名是範例"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "~/.claude/settings.json",
+      "classification": "家目錄使用者設定／資產；C-112；不新增專案規則"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "~/.claude/skills/",
+      "classification": "家目錄使用者設定／資產；C-112；不新增專案規則"
+    },
+    {
+      "source": "claude-code/hooks",
+      "token": "~/.claude/skills/team-skills",
+      "classification": "家目錄使用者設定／資產；C-112；不新增專案規則"
+    },
+    {
+      "source": "claude-code/desktop",
+      "token": ".claude/launch.json",
+      "classification": "專案 preview 設定；C-83，保留逐案放行政策"
+    },
+    {
+      "source": "claude-code/desktop",
+      "token": ".claude/settings.json",
+      "classification": "專案共享設定；C-02"
+    },
+    {
+      "source": "claude-code/desktop",
+      "token": ".mcp.json",
+      "classification": "專案 MCP 設定；C-61"
+    },
+    {
+      "source": "claude-code/desktop",
+      "token": "/.claude/worktrees/",
+      "classification": "專案 worktree 位置／範例；C-09"
+    },
+    {
+      "source": "claude-code/desktop",
+      "token": "CLAUDE.local.md",
+      "classification": "個人專案指令；C-106"
+    },
+    {
+      "source": "claude-code/desktop",
+      "token": "CLAUDE.md",
+      "classification": "專案指令；C-103（根目錄／替代位置）"
+    },
+    {
+      "source": "claude-code/desktop",
+      "token": "~/.claude",
+      "classification": "父目錄／使用者層位置；不代表所有子項已獲語意驗證"
+    },
+    {
+      "source": "claude-code/desktop",
+      "token": "~/.claude/settings.json",
+      "classification": "家目錄使用者設定／資產；C-112；不新增專案規則"
+    },
+    {
+      "source": "claude-code/desktop",
+      "token": "~/.claude/skills/",
+      "classification": "家目錄使用者設定／資產；C-112；不新增專案規則"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": ".claude",
+      "classification": "父目錄或 Windows 路徑片段；不據此新增子路徑主張"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": ".claude/",
+      "classification": "父目錄或 Windows 路徑片段；不據此新增子路徑主張"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": ".claude/CLAUDE.md",
+      "classification": "專案指令；C-103（根目錄／替代位置）"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": ".claude/agent-memory-local/",
+      "classification": "精準 project／local subagent 記憶；C-105（兩者追蹤政策不同）"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": ".claude/agent-memory/",
+      "classification": "精準 project／local subagent 記憶；C-105（兩者追蹤政策不同）"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": ".claude/backups",
+      "classification": "絕對家目錄範例被抽成尾段；C-07／C-90／C-113，不能解讀成專案路徑"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": ".claude/history.jsonl",
+      "classification": "絕對家目錄範例被抽成尾段；C-07／C-90／C-113，不能解讀成專案路徑"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": ".claude/projects/-home-user-work-my-repo",
+      "classification": "絕對家目錄範例被抽成尾段；C-07／C-90／C-113，不能解讀成專案路徑"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": ".claude/rules/",
+      "classification": "專案指令／範例；C-05"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": ".claude/rules/frontend/react.md",
+      "classification": "專案指令／範例；C-05"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": ".claude/settings.local.json",
+      "classification": "個人專案設定或 glob／裸檔名別名；C-03／C-97"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": ".claude/workflows/",
+      "classification": "專案共享 workflow；C-09"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": ".mcp.json",
+      "classification": "專案 MCP 設定；C-61"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "/.claude/settings.local.json",
+      "classification": "個人專案設定或 glob／裸檔名別名；C-03／C-97"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "AGENTS.md",
+      "classification": "Claude 指令支援或 hook 限制說明；C-109，不能沿用其他工具語意"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "CLAUDE.local.md",
+      "classification": "個人專案指令；C-106"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "CLAUDE.md",
+      "classification": "專案指令；C-103（根目錄／替代位置）"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "\\.claude",
+      "classification": "父目錄或 Windows 路徑片段；不據此新增子路徑主張"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "settings.local.json",
+      "classification": "個人專案設定或 glob／裸檔名別名；C-03／C-97"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude",
+      "classification": "父目錄／使用者層位置；不代表所有子項已獲語意驗證"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/",
+      "classification": "父目錄／使用者層位置；不代表所有子項已獲語意驗證"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/agent-memory/",
+      "classification": "家目錄使用者設定／資產；C-112；不新增專案規則"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/backups/",
+      "classification": "家目錄備份；C-90"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/cache/changelog.md",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/debug/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/feedback-bundles/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/feedback/drafts/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/file-history/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/history.jsonl",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/image-cache/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/logs/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/output-styles/",
+      "classification": "家目錄使用者設定／資產；C-112；不新增專案規則"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/paste-cache/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/plans/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/plugins",
+      "classification": "家目錄使用者設定／資產；C-112；不新增專案規則"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/plugins/",
+      "classification": "家目錄使用者設定／資產；C-112；不新增專案規則"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/plugins/.trash/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/plugins/synced/",
+      "classification": "家目錄使用者設定／資產；C-112；不新增專案規則"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/policy-limits.json",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/projects/",
+      "classification": "家目錄 transcript／memory；C-07；具體檔名是範例"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/remote-settings.json",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/session-env/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/settings.json",
+      "classification": "家目錄使用者設定／資產；C-112；不新增專案規則"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/shell-snapshots/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/skills/.trash/",
+      "classification": "家目錄同步技能回收位置；C-108"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/stats-cache.json",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/statsig/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/tasks/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/todos/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/uploads/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/usage-data/",
+      "classification": "家目錄 runtime／cache／回饋或遺留目錄；C-113；不宣稱可安全刪除"
+    },
+    {
+      "source": "claude-code/claude-directory",
+      "token": "~/.claude/workflows/",
+      "classification": "家目錄使用者設定／資產；C-112；不新增專案規則"
+    }
+  ],
+  "failed_markdown_probes": [
+    {
+      "key": "probe/changelog",
+      "url": "https://antigravity.google/changelog.md",
+      "fetched_at": "2026-09-22T08:07:25.021728+00:00",
+      "status": 404,
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "key": "probe/docs-changelog",
+      "url": "https://antigravity.google/docs/changelog.md",
+      "fetched_at": "2026-09-22T08:07:25.124415+00:00",
+      "status": 404,
+      "error": "HTTP Error 404: Not Found"
+    }
+  ],
+  "body_hash_definition": "SHA-256 of HTTP response body after Content-Encoding decompression, before token normalization; UTF-8 text."
+}
