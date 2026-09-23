@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.277",
-    "codex": "0.155.1",
+    "claude-code": "2.1.280",
+    "codex": "0.156.0",
     "gemini-cli": "0.60.0",
-    "antigravity": "2.15.0"
+    "antigravity": "2.16.0"
   },
   "sources": {
     "antigravity/changelog": {
@@ -128,10 +128,13 @@
         "~/.claude/history.jsonl",
         "~/.claude/keybindings.json",
         "~/.claude/plugins/known_marketplaces.json",
+        "~/.claude/session-env",
         "~/.claude/sessions",
         "~/.claude/settings.json",
         "~/.claude/shell-snapshots/",
         "~/.claude/skills",
+        "~/.claude/skills/",
+        "~/.claude/skills/.trash/",
         "~/.claude/tasks/",
         "~/.claude/themes/",
         "~/.claude/workflows/"
