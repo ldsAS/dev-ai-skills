@@ -84,7 +84,7 @@ SOURCES = [
     ("antigravity", "skills", "https://antigravity.google/docs/skills.md"),
     ("antigravity", "subagents", "https://antigravity.google/docs/subagents.md"),
     ("antigravity", "hooks", "https://antigravity.google/docs/hooks.md"),
-    ("antigravity", "rules-workflows", "https://antigravity.google/docs/rules-workflows.md"),
+    ("antigravity", "rules", "https://antigravity.google/docs/rules.md"),
     ("antigravity", "plugins", "https://antigravity.google/docs/plugins.md"),
     ("antigravity", "gcli-migration", "https://antigravity.google/docs/cli/gcli-migration.md"),
     # VS Code / GitHub Copilot

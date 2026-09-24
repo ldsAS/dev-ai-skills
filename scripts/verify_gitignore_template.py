@@ -54,9 +54,27 @@ FENCE_RE = re.compile(r"(?ms)^```[a-zA-Z]*\n(.*?)^```$")
 # (路徑, 是否應該被擋)；括號內為對應的帳本編號，依據見 verification/CLAIMS.md
 CASES = [
     # --- Antigravity 工作區（C-41～C-56）---
-    # 原有 .agents/AGENTS.md、.agents/settings.json 兩案（預期放行）已於 2026-08-04 移除：
-    # 兩者皆為不存在的檔案，白名單規則本身已刪（見 C-41、C-42）。對不存在的路徑斷言行為
-    # 沒有保護價值，且會讓人誤以為該路徑有效 —— 與 .codex/rollout.jsonl 同樣的處置
+    # C-115 取代 C-41 的無版本限制否定；settings.json 仍不放行（C-116）。
+    (".agents/AGENTS.md", False),
+    (".agents/GEMINI.md", False),
+    (".agents/rules.json", False),
+    (".agents/AGENTS.md.bak", True),
+    (".agents/settings.json", True),
+    ("apps/web/.agents/AGENTS.md", False),
+    ("apps/web/.agents/GEMINI.md", False),
+    ("apps/web/.agents/rules.json", False),
+    # C-117 防禦性政策；不代表下列位置有 runtime 寫入證據。
+    (".agents/rules/ORIGINAL_REQUEST.md", True),
+    (".agents/skills/foo/ORIGINAL_REQUEST.md", True),
+    (".agents/plugins/ORIGINAL_REQUEST.md", True),
+    (".agents/agents/x/ORIGINAL_REQUEST.md", True),
+    ("apps/web/.agents/ORIGINAL_REQUEST.md", True),
+    ("apps/web/.agents/x/ORIGINAL_REQUEST.md", True),
+    ("apps/web/.agents/x/y/ORIGINAL_REQUEST.md", True),
+    ("apps/web/.agents/rules/ORIGINAL_REQUEST.md", True),
+    ("docs/ORIGINAL_REQUEST.md", False),
+    ("apps/web/.agents/ORIGINAL_REQUEST.md.example", False),
+    ("apps/web/.agents-other/ORIGINAL_REQUEST.md", False),
     (".agents/settings.local.json", True),               # C-43 規則已移除，仍被 .agents/* 涵蓋
     (".agents/hooks.json", True),                        # C-44 白名單預設註解，由開發者決定
     (".agents/ORIGINAL_REQUEST.md", True),               # C-55 逐字記錄使用者訊息，敏感
@@ -123,11 +141,14 @@ CASES = [
     (".claude/scheduled_tasks.json", True),             # C-107 既有廣域規則已涵蓋
     # --- Gemini CLI（C-21～C-23）---
     (".gemini/settings.json", False),                    # C-21 Workspace 設定
+    (".gemini/config.json", True),                      # C-116 opt-in 預設不啟用
     (".geminiignore", False),                            # C-23 忽略規則，與 .gitignore 同性質
     (".aiexclude", False),                               # C-23
     (".gemini/cache/x", True),
     # --- 一般檔案不可被誤殺 ---
     (".github/prompts/a.prompt.md", False),
+    (".github/hooks/log-tool-use.cjs", False),           # 官方 hook 範例程式
+    (".github/hooks/tool-use.log", True),               # 範例執行輸出
     ("CLAUDE.md", False),
     ("AGENTS.md", False),
     ("src/main.py", False),

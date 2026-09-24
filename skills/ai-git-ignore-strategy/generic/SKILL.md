@@ -68,6 +68,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 
 - **Claude Code 專案指令**：`.claude/CLAUDE.md` 與 `.claude/AGENTS.md` 同屬團隊指令，範本精準放行（C-103、C-109）。後者從 2.1.277 起、且功能可用時才支援；預設在目前目錄與上層沒有 `CLAUDE.md`、`.claude/CLAUDE.md` 或 `CLAUDE.local.md` 時載入，可用 Project instructions 改變選擇，不能假設所有 session 都會讀。
 - **Claude Code 團隊 hook 與記憶**：`.claude/hooks/` 放置團隊設定引用的腳本；`.claude/agent-memory/` 是 `memory: project` 的共享記憶。範本預設放行，提交前仍須逐檔審查可執行內容及敏感資訊。私人 hook 應另列精準排除；不共享的記憶使用 `memory: local`，寫入 `.claude/agent-memory-local/`（C-104、C-105）。
+- **Antigravity 團隊規則**：`.agents/AGENTS.md`、`.agents/GEMINI.md`、`.agents/rules.json` 依現行官方文件精準放行（C-115；文件證據，未經本輪實機驗證）。`rules.json` 可登記巢狀規則及引用共用規則；提交前核對引用位置與團隊可用性，私人路徑另行處理。
 - **專案原始碼**：.py, .html, .css, .js, .ts, .sh, .bat, .ps1 等開發者撰寫的程式碼。
 - **設計系統藍圖**：design-system/MASTER.md 等記錄專案色票、字型、元件規格的檔案。AI 依此量身定製視覺風格，刪除後 AI 無法維持一致性。
 - **部署與維運文件**：DEPLOY.md, README.md, CHANGELOG.md, docs/。
@@ -94,7 +95,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 
 - **Claude Code 個人指令與本機狀態**：`CLAUDE.local.md` 與 `.claude/agent-memory-local/` 應排除，子目錄中的同名檔／目錄也受保護；`.claude/scheduled_tasks.json` 與 session 綁定，根目錄的既有 `.claude/*` 已排除它（C-105～C-107）。
 - **AI 對話紀錄與快取**：.agent/（Antigravity 1.x）、.antigravitycli/（Antigravity CLI 舊版的工作區對應檔；新版已改集中到 ~/.gemini/antigravity-cli/cache/projects.json 並淘汰此目錄，舊專案仍會殘留） 的工作區暫存、.codex/、.gemini/ 的快取、session logs、索引檔。
-  - ⚠️ 注意（最容易誤殺的一區）：多數工具的對話紀錄存在**使用者家目錄**（如 ~/.claude/projects/），不在專案內；專案根目錄的 .agents/（skills/, rules/）（.agents/AGENTS.md、.agents/settings.json 曾列於此，2026-08-04 查證為**不存在的檔案**，規則與敘述均已移除）、.claude/（settings.json, commands/, agents/, skills/）、.github/prompts/*.prompt.md 多半是**刻意共享**的設定與規則，屬於 🟢 或 ⚠️ 類。真正該擋的是 .claude/settings.local.json 這類個人本機檔與各工具快取。 另外，.agents/ 並非 Antigravity 專屬，而是**跨工具共用目錄** — Codex 會從當前工作目錄逐層往上掃 .agents/skills、Gemini CLI 以 .agents/skills/ 作為 .gemini/skills/ 的高優先別名、Antigravity 讀 .agents/hooks.json；只裝 Codex 的專案一樣會出現 .agents/，不要當成 Antigravity 殘留。　Antigravity 實查（1.0.13，2026-07-30）：對話紀錄位於 ~/.gemini/antigravity/conversations/ 等家目錄，**但專案內並非乾淨** — agent 會把使用者訊息**逐字**附加到 .agents/ORIGINAL_REQUEST.md（含 UTC 時間戳），屬本 skill 開頭所述的 Security Risks，必須排除。
+  - ⚠️ 注意（最容易誤殺的一區）：多數工具的對話紀錄存在**使用者家目錄**（如 ~/.claude/projects/），不在專案內；專案根目錄的 .agents/（skills/, rules/）（現行官方 rules 文件另列 `.agents/AGENTS.md`、`.agents/GEMINI.md`、`.agents/rules.json`，見 C-115；舊否定觀察僅屬 1.0.13 歷史）、.claude/（settings.json, commands/, agents/, skills/）、.github/prompts/*.prompt.md 多半是**刻意共享**的設定與規則，屬於 🟢 或 ⚠️ 類。真正該擋的是 .claude/settings.local.json 這類個人本機檔與各工具快取。 另外，.agents/ 並非 Antigravity 專屬，而是**跨工具共用目錄** — Codex 會從當前工作目錄逐層往上掃 .agents/skills、Gemini CLI 以 .agents/skills/ 作為 .gemini/skills/ 的高優先別名、Antigravity 讀 .agents/hooks.json；只裝 Codex 的專案一樣會出現 .agents/，不要當成 Antigravity 殘留。　Antigravity 實查（1.0.13，2026-07-30）：對話紀錄位於 ~/.gemini/antigravity/conversations/ 等家目錄，**但專案內並非乾淨** — agent 會把使用者訊息**逐字**附加到 .agents/ORIGINAL_REQUEST.md（含 UTC 時間戳），屬本 skill 開頭所述的 Security Risks，必須排除。
 - **自動執行日誌**：*.log（無限增長、無版本控制意義）。
 - **Runtime 狀態檔**：像 last_run.txt, last_scan.txt, last_download.txt 這類「每次執行就覆寫」的狀態檔。它們會讓 git status 永遠滿江紅。
 - **二進位大型檔案**：PDF、圖片、影片、字型檔。Git 不擅長處理 binary，會永久佔用歷史空間。可考慮用 Git LFS 或改放 Notion/Drive 連結。
@@ -114,6 +115,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 - **AI 技能庫 (Skills)**：各 AI 工具的 skills/ 目錄（如 .claude/skills/、.agents/skills/（跨工具：Codex／Gemini CLI／Antigravity 共用）、.agent/skills/（1.x）、.gemini/skills/）。
   → 判準見下方「技能庫 (Skills) 的性質判準」——**先問技能是怎麼來的，不要憑目錄名決定**。
 - **Antigravity 工作區 agent 定義**：.agents/agents/<name>/agent.json（由 agy 1.0.13 二進位內的路徑模板 {workspace}/.agents/agents/{agent_name}/agent.json 證實）。agy 1.0.13 二進位顯示 agents 與 skills 有**完全對稱**的 workspace／global 建立路徑函式，且執行期狀態另有去處，性質看似角色宣告。但**尚無人目視過實體檔案** —— **範本預設不放行**，確認內容是角色宣告而非執行狀態後，再把 # !.agents/agents/ 的註解拿掉。　**2026-08-09 補充**：欄位結構已由 agy 二進位的 protobuf 定義佐證 —— name／displayName／description／hidden／customAgentSpec{customAgent{systemPromptSections, toolNames}}，全屬靜態角色宣告，無 session／時間戳等執行期欄位（C-87）。**但仍維持不放行**：無人目視過實體檔案、該目錄下是否還有其他檔案未確認、且實際 key 命名（custom_agent_spec 或 customAgentSpec）未定。
+- **Antigravity 專案 customization 設定**：`.gemini/config.json`（產品 2.17.0 公告，C-116）。可能含 `personal_customization_dir` 等個人路徑；範本預設排除，檢視完整內容及專案分享政策後，才啟用 `# !.gemini/config.json`。公告不證明 CLI 行為，也沒有子目錄設定用途的依據。
 - **Claude Code 開發伺服器啟動設定**：.claude/launch.json（C-83）。內容是具名的啟動指令（runtimeExecutable／runtimeArgs／port），性質等同 .vscode/launch.json。**範本預設不放行** —— 它可能寫入個人絕對路徑，而且「要不要公開建置方式」是專案決定。確認過內容是相對路徑後，把範本裡 # !.claude/launch.json 的註解拿掉即可。
 - **產生的設定檔**：如 design-system/pages/*.md。需確認是可重新產生的快取，或有手動調整過的客製設定。
 - **大型 PDF / 文件快照**：是否是 Notion/雲端文件的靜態匯出？若是，**建議改以連結指向活文件**，避免靜態快照過時誤導。
@@ -444,17 +446,21 @@ CLAUDE.local.md
 !.agents/plugins/
 .agents/plugins/*
 !.agents/plugins/marketplace.json
-# ⚠️ 此處原有 `!.agents/AGENTS.md`、`!.agents/settings.json` 兩條白名單，2026-08-04 移除。
-# 移除理由：兩者皆為**不存在的檔案**。agy 1.0.13 二進位中 `{workspace}/.agents/` 的路徑
-# 模板完整清單只有三條 —— `skills`、`agents`、`ORIGINAL_REQUEST.md`，兩者都不在內；
-# 本機五個實際專案的 `.agents/` 亦 0 次出現。Antigravity 只讀**根目錄**的 `AGENTS.md`，
-# 專案設定實存於 `~/.gemini/config/projects/<uuid>.json`。
-# 為不存在的路徑留白名單會讓讀者誤以為該路徑有效 —— 請勿補回（C-41、C-42）
+# 目錄層團隊規則；依 2026-09-24 官方 rules 文件，未經本輪實機驗證（C-115）。
+# C-41 的 1.0.13 否定觀察保留為歷史，不能外推至現行文件。
+!.agents/AGENTS.md
+!.agents/GEMINI.md
+# 登記巢狀規則檔；只提交 .agents/rules/<sub>/*.md 而未登記，文件說不會載入。
+# 官方範例以 ../ 引用共用規則：提交前核對實際解析位置及隊友環境的可用性。
+# 若內容含私人絕對路徑，請先調整或精準排除；白名單不表示整份都適合分享。
+!.agents/rules.json
 # agent 會把使用者訊息逐字寫入下列檔案（含 UTC 時間戳），可能含對話中貼過的敏感資訊。
 # 已被上方 .agents/* 涵蓋，仍 explicit 列名一次 —— 廣域規則日後若被放寬仍有保護
 .agents/ORIGINAL_REQUEST.md
 .agents/**/ORIGINAL_REQUEST.md
-# .agents/settings.local.json 已移除：實查確認 Antigravity 無此概念，原規則誤類比 Claude Code（C-43）
+# 子目錄 .agents/ 的同名 prompt 檔防禦；尚未驗證工具會在此寫入（C-117）。
+**/.agents/**/ORIGINAL_REQUEST.md
+# .agents/settings.local.json 的否定觀察僅限 agy 1.0.13；本輪無新證據（C-43）。
 # 工作區 hooks 位置已有官方文件佐證；內含可執行指令，依專案決定是否放行（C-44）
 # !.agents/hooks.json
 # Antigravity CLI 舊版工作區對應檔（新版已淘汰，舊專案仍可能殘留）
@@ -481,6 +487,9 @@ CLAUDE.local.md
 # （CODEX_HOME 預設 ~/.codex），不寫入專案。見 C-17。
 .gemini/*
 !.gemini/settings.json
+# Antigravity 產品 2.17.0 的專案 customization 設定，不能直接外推 CLI（C-116）。
+# 可能含 personal_customization_dir 等個人路徑；先檢視內容及專案分享政策再啟用。
+# !.gemini/config.json
 !.gemini/skills/
 .gemini/skills/*
 # !.gemini/skills/<project-skill>/
