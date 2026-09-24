@@ -116,7 +116,7 @@ URL 會爛、頁面會改版、同一段說明會搬到別的章節。只留連�
 
 登記已查證的事實時，同步核對其取證來源是否列在 `SOURCES`，以及 baseline 是否有該具體路徑或有指向性的子路徑 token。**事實成立與自動監控涵蓋是兩件事**：可以先登記有依據但尚未監控的主張，不必等來源接入；主張欄必須明寫盲區、未納入的來源與後續處理計畫，不能只靠 `--coverage` 的綠色分類判定。
 
-2026-09-22 實例：C-105 的兩個記憶目錄在 baseline 均無具體 token；現行 `--coverage` 卻把 `.claude/` 父目錄算成支持來源。PR #14 的 C-102 可修正這項報表誤判，但**不會自動接入缺少的來源**。來源與狀態比對的後續調整見 [監控計畫](./rounds/2026-09-21-codex.monitor-plan.md)。
+歷史實例（2026-09-22 修正前）：C-105 的兩個記憶目錄在 baseline 均無具體 token，當時 `--coverage` 卻把 `.claude/` 父目錄算成支持來源。C-102 修報表、M1 補精準來源，兩者已於 09-23 經 PR #18 合併。這說明**比對修正不會自動接入來源**；歷史過程見 [monitor plan](./rounds/2026-09-21-codex.monitor-plan.md)，09-24 新的來源與帳本修復見 [Rules 計畫](./rounds/2026-09-24-codex.rules-followup-plan.md)。
 
 同樣地，`被取代→C-XX` 是歷史證據標記，不代表仍屬活躍主張。現行 `load_claims()` 尚未排除該狀態；修正前讀取涵蓋率及告警時，應人工辨識這些歷史列，不得將它們計成獨立的現行證據。
 
@@ -161,7 +161,7 @@ python scripts/check_updates.py --coverage
 ```
 
 列出每條主張是否有監控 token 涵蓋。**沒有涵蓋的就是路徑 token 自動偵測照不到的地方**。
-截至 2026-09-23，整合 C-100～C-114 與 M1 baseline 後為 **59 條涵蓋、6 條盲區／共 65 條有路徑主張**。
+歷史快照（2026-09-23）：整合 C-100～C-114 與 M1 baseline 後為 **59 條涵蓋、6 條盲區／共 65 條有路徑主張**。09-24 新增 C-115～C-117 後的輸出見 [實作紀錄](./rounds/2026-09-24-codex.rules-followup-implementation.md)，不得沿用舊數字當現況。
 C-105 兩個記憶目錄與 C-83 已分別接入精準來源。歷史數字（09-11）為 46／7；請以實際執行輸出為準。
 目前 loader 仍會納入被取代列，工具 scope 與反向主張也尚未獨立分類，這些限制列於 M2 計畫；
 本數字不是「65 條有效且獲語意驗證的主張」。
@@ -172,14 +172,16 @@ C-105 兩個記憶目錄與 C-83 已分別接入精準來源。歷史數字（09
 > 有涵蓋，但上游改掉那個檔名時裸 `.agents/` 不會變，監控不會響。兩邊統一後，盲區由 2 條
 > 變成 7 條（見 C-102）。**監控本身沒有變差，是報表變誠實了。**
 
-目前六條盲區與它們原本的取證方式：
+目前需人工辨識的證據類型（不等於 `--coverage` 自動計數分類；M2 尚未實作）：
 
 | 盲區 | 為什麼照不到 |
 | :--- | :--- |
-| C-24 `~/.gemini/tmp/`、C-78 `User/workspaceStorage/` | 原本就列為盲區 |
-| C-55 `.agents/ORIGINAL_REQUEST.md` | 實機取證，現有官方來源無精準 token；C-83 已由 desktop 來源補足 |
-| C-41 `.agents/AGENTS.md`、C-42 `.agents/settings.json` | 反向主張；尚未與正向監控分開計數，不能將無 token 當成不存在的自動證明 |
-| C-43 `.agents/settings.local.json` | 規則已移除，仍被 `.agents/*` 涵蓋 |
+| C-24 `~/.gemini/tmp/`、C-78 `User/workspaceStorage/` | 含正向位置事實，移動時仍需人工複驗；不因位於 repo 外就算純反向主張 |
+| C-55 `.agents/ORIGINAL_REQUEST.md` | 歷史二進位取證，現有官方來源無精準 token；C-117 的子目錄排除是防禦政策，尚無寫入證據 |
+| C-41 `.agents/AGENTS.md`、C-42 `.agents/settings.json` | 保留 1.0.13 歷史；現行文件／政策分別由 C-115／C-116 取代。即使歷史列被新 token 命中，也不代表舊否定結論重新成立 |
+| C-43 `.agents/settings.local.json` | 負向讀取主張只限受檢版本；未有新反證，仍需人工複驗。Git 排除成立不證明檔案存在或不存在 |
+| C-110 CLI 全域探索 | skills 與 rules／plugins 的相關官方資料不足以確定現行 skills discovery，維持有疑，不改 installer |
+| IDE Workflows 的時間／機制文字 | [新頁](https://antigravity.google/docs/ide/workflows.md) 09-24 取得 2,181 bytes 正文，現有抽取器 0 token；文件規劃於 2026-11-01 前轉向 skills。已人工複閱，不加入零 token 來源假裝涵蓋；後續複驗節奏／監控方式由 M2／M3 設計 |
 
 → 行動項只有一條：**這幾條的複驗不能依賴排程**，要靠時間或明確風險觸發的人工檢查。
 

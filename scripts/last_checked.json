@@ -61,15 +61,25 @@
         "~/.gemini/config/plugins/"
       ]
     },
-    "antigravity/rules-workflows": {
+    "antigravity/rules": {
       "tokens": [
-        ".agent/rules",
-        ".agents/rules",
+        ".agents/rules.json",
         ".agents/rules/",
-        ".agents/rules/testing-style.md",
+        ".agents/rules/frontend/react.md",
+        ".agents/rules/typescript.md",
+        "/.agent/rules/",
+        "/.agents/AGENTS.md",
+        "/.agents/GEMINI.md",
+        "/.agents/rules/",
+        "AGENTS.md",
+        "GEMINI.md",
+        "~/.gemini/AGENTS.md",
         "~/.gemini/GEMINI.md",
         "~/.gemini/antigravity-cli/plugins/",
-        "~/.gemini/antigravity-cli/rules/"
+        "~/.gemini/antigravity-cli/rules/",
+        "~/.gemini/config/AGENTS.md",
+        "~/.gemini/config/GEMINI.md",
+        "~/.gemini/config/rules/"
       ]
     },
     "antigravity/skills": {
