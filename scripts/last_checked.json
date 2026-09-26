@@ -1,8 +1,8 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.281",
-    "codex": "0.156.1",
+    "claude-code": "2.1.283",
+    "codex": "0.157.1",
     "gemini-cli": "0.61.0",
     "antigravity": "2.17.0"
   },
@@ -311,6 +311,7 @@
         "/.claude/hooks/helper.sh",
         "/.claude/skills/",
         "CLAUDE.md",
+        "~/.claude/",
         "~/.claude/skills",
         "~/.claude/skills/",
         "~/.claude/skills/.trash/",
