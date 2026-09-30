@@ -136,8 +136,21 @@ major 告警會附上通用人工複驗提示，但**不代表機制一定改變
 沒有版本或 token 訊號卻仍值得複驗的語意／實機盲區，應採低頻、以時間或明確風險為依據的
 人工檢查；不要把每次 AI 工具版本更新都轉成提醒。
 
-> 📌 Antigravity 有兩套版本號：產品版本走 2.x（changelog 發行表），
-> `agy --version` 的 `1.0.13` 是 CLI 執行檔自身的版號。監控抓的是前者。
+> 📌 Antigravity 的產品、CLI、SDK、IDE 各有版本。`versions.antigravity` 只記錄
+> [changelog Markdown](https://antigravity.google/docs/changelog.md) 的 `Antigravity 2.0` 產品區段；
+> 歷史 `agy --version` 的 `1.0.13` 是 CLI 版本，不可混入產品欄。CLI major 目前沒有獨立版本告警。
+
+09-30 本機修復後，每輪報告固定列「本輪版本取得結果」。Antigravity 的版號、區段及發行日期
+來自所選記錄的解析結果；只有版本字串時不補造區段／日期。解析失敗保留 baseline 並輸出
+`CHECK_FAILED`，錯誤附來源、標題與原始行號。新增診斷先壓平控制字元／空白、限制 240 個文字
+字元，再 escape HTML、方括號及反引號，防止被當成 CI 訊號；這沒有修復既有摘錄的通用問題。
+解析器精確選區段，未知發行格式或區段改名會可見失敗，不回退較舊版號。路徑與版本目前各抓一次，
+摘要不證明兩者使用同一份正文。詳見 [實作紀錄](./rounds/2026-09-29-codex.changelog-recovery-implementation.md)。
+
+CLI 1.2.10 的目錄登記改成平坦載入，巢狀項目可能需 `include_only`（C-118）；CLI 1.2.11 的
+agents discovery／plugins 啟用修復亦已人工分類。這些語意不能因 token 已存在就視為沒有變化。
+共用正文、CLI major 監控、`analyze_report()` 只認獨立成行訊號，以及 [#21](https://github.com/ldsAS/dev-ai-skills/issues/21)
+的範本／登記檔問題，仍依 [計畫第 7 節](./rounds/2026-09-29-codex.changelog-recovery-plan.md#7-留待後續的工作與回復策略) 分案處理。
 
 ### 本機測試與手動 dry-run
 

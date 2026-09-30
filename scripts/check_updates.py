@@ -32,6 +32,9 @@ import time
 import urllib.error
 import urllib.request
 import zlib
+from datetime import date
+from typing import NamedTuple
+from urllib.parse import parse_qs, urlsplit
 
 # Windows 主控台預設可能是 cp950／cp1252；本腳本的 Markdown 報告包含
 # ↔、⚠️、❌ 等字元。若不先固定輸出編碼，檢查邏輯即使成功也會在 print 階段崩潰，
@@ -50,6 +53,9 @@ SCHEMA_VERSION = 2
 USER_AGENT = "Mozilla/5.0 (compatible; dev-ai-skills-watch/2.0; +https://github.com/ldsAS/dev-ai-skills)"
 TIMEOUT = 25
 RETRIES = 3
+
+# 路徑監控與產品版本使用同一正式 Markdown URL，但各自抓取一次。
+ANTIGRAVITY_CHANGELOG = "https://antigravity.google/docs/changelog.md"
 
 # --------------------------------------------------------------------------
 # 監控來源：每一筆都是「技能引用過的路徑事實」的權威出處
@@ -79,8 +85,8 @@ SOURCES = [
     # Antigravity — 官方文件站在 /docs/<section> 之下（索引頁 /docs 只是 stub，
     # 2026-07-30 曾因此誤判為「沒有公開文件站」）。
     # skills.md 包含 2.0、CLI、IDE 三個 surface（C-110／C-111）。
-    # 舊 ide/skills 已成 meta-refresh 空殼；changelog 無 .md 端點，保留 HTML。
-    ("antigravity", "changelog", "https://antigravity.google/changelog"),
+    # 舊 ide/skills 與 /changelog 已成 meta-refresh 空殼；changelog.md 含四個 surface。
+    ("antigravity", "changelog", ANTIGRAVITY_CHANGELOG),
     ("antigravity", "skills", "https://antigravity.google/docs/skills.md"),
     ("antigravity", "subagents", "https://antigravity.google/docs/subagents.md"),
     ("antigravity", "hooks", "https://antigravity.google/docs/hooks.md"),
@@ -102,14 +108,6 @@ NPM_PACKAGES = {
     "codex": "@openai/codex",
     "gemini-cli": "@google/gemini-cli",
 }
-
-# Antigravity 不在 npm 上，版本號改由 changelog 的發行表取得
-# （表格形如「2.4.3　July 28, 2026　Preview tabs, ...」）
-ANTIGRAVITY_CHANGELOG = "https://antigravity.google/changelog"
-RELEASE_ROW_RE = re.compile(
-    r"\b(\d+\.\d+\.\d+)\s+(?:January|February|March|April|May|June|July|August|"
-    r"September|October|November|December)\s+\d{1,2},\s+\d{4}"
-)
 
 # 各工具偏離預設值的版本告警門檻 override。
 # 預設 major：路徑事實以官方文件監控為主，版本號只是低頻輔助訊號。
@@ -365,13 +363,132 @@ def fetch_npm_version(package):
     return json.loads(body).get("version")
 
 
+class AntigravityRelease(NamedTuple):
+    """所選產品發行記錄的原文證據；不把 baseline 或常數當解析結果。"""
+
+    version: str
+    section: str
+    released_on: str
+    line: int
+
+
+def report_text(value, limit=240):
+    """新增診斷／摘要用的單行文字；不改動現有 CI 訊號辨識政策。
+
+    先壓平控制字元與空白、限制文字長度，再 escape HTML、方括號及反引號。
+    原始報告因而不含外部輸入的 [SIGNAL: 標記或可跳出顯示範圍的換行。
+    """
+    text = re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", str(value))
+    text = " ".join(text.split())
+    if len(text) > limit:
+        text = text[:limit] + "…（已截斷）"
+    return (html.escape(text).replace("[", "&#91;").replace("]", "&#93;")
+            .replace("`", "&#96;"))
+
+
+def _changelog_error(reason, line=None, heading=None):
+    location = f"第 {line} 行：{report_text(heading)}；" if line is not None else ""
+    return ValueError(f"{ANTIGRAVITY_CHANGELOG}：{location}{reason}")
+
+
+def _changelog_visible_lines(lines):
+    """只處理本契約的 fenced code；保留原始行號，日期仍按原始行定位。"""
+    visible = []
+    fence = None
+    for number, line in enumerate(lines, 1):
+        if fence is not None:
+            marker = fence[0]
+            if re.fullmatch(r" {0,3}" + re.escape(marker[0]) +
+                            "{" + str(len(marker)) + r",}[ \t]*", line):
+                fence = None
+            continue
+        opening = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line)
+        if opening:
+            fence = (opening.group(1), number, line)
+        else:
+            visible.append((number, line))
+    if fence is not None:
+        _marker, number, line = fence
+        raise _changelog_error("程式碼 fence 未閉合", number, line)
+    return visible
+
+
+def parse_antigravity_changelog(body):
+    """只選產品區段的最高 X.Y.Z；任何可辨識的損壞記錄都要可見失敗。"""
+    lines = body.splitlines()
+    if re.match(r"(?i)\s*(?:<!doctype\s+html|<html\b)", body):
+        raise _changelog_error("預期 Markdown，卻收到 HTML／轉向頁", 1,
+                               lines[0] if lines else "")
+    visible = _changelog_visible_lines(lines)
+    sections = []
+    for number, line in visible:
+        heading = re.fullmatch(r" {0,3}##[ \t]+(.+?)\s*", line)
+        if heading:
+            sections.append((number, heading.group(1), line))
+    products = [item for item in sections if item[1] == "Antigravity 2.0"]
+    if len(products) != 1:
+        seen = "、".join(f"第 {number} 行 {report_text(raw)}"
+                        for number, _name, raw in sections) or "無"
+        raise _changelog_error(
+            f"預期唯一產品區段 Antigravity 2.0，實得 {len(products)} 個；"
+            f"實際 H2：{seen}。區段可能改名，需核對是否涉及產品主版本更名")
+    start, section, section_heading = products[0]
+    end = next((number for number, _name, _raw in sections if number > start), len(lines) + 1)
+    months = {name: i for i, name in enumerate((
+        "January", "February", "March", "April", "May", "June", "July", "August",
+        "September", "October", "November", "December"), 1)}
+    releases = []
+    for number, raw in visible:
+        if not start < number < end:
+            continue
+        h3 = re.fullmatch(r" {0,3}###[ \t]+(.+?)\s*", raw)
+        if not h3:
+            continue
+        title = h3.group(1)
+        # 辨認刻意寬於合格文法：無 v、無連結或 link 錯誤都不能靜默回退。
+        if not (re.match(r"^\[?v?\d+\.\d+", title) or
+                re.search(r"\]\([^)]*/releases", title)):
+            continue
+        release = re.fullmatch(
+            r'''\[v([0-9]+\.[0-9]+\.[0-9]+)\]\(([^\s()]+)(?:[ \t]+(?:"[^"\r\n]*"|'[^'\r\n]*'))?\)''',
+            title)
+        if not release:
+            raise _changelog_error("發行候選不符合 [vX.Y.Z](release-link) 格式", number, raw)
+        version, link = release.groups()
+        try:
+            url = urlsplit(link)
+        except ValueError:
+            raise _changelog_error("release link 無法解析", number, raw) from None
+        query = parse_qs(url.query, keep_blank_values=True)
+        if (url.scheme or url.netloc or url.fragment or url.path != "/releases" or
+                query.get("tab") != ["hub"] or query.get("version") != [version]):
+            raise _changelog_error("release link 的路徑／tab／version 不符或重複", number, raw)
+        # number 是一基 heading 行號，恰好是下一行的零基 index。
+        index = number
+        while index < end - 1 and not lines[index].strip():
+            index += 1
+        if index < end - 1 and lines[index].strip() == "Latest":
+            index += 1
+            while index < end - 1 and not lines[index].strip():
+                index += 1
+        date_text = lines[index].strip() if index < end - 1 else ""
+        match = re.fullmatch(r"([A-Za-z]+) ([0-9]{1,2}), ([0-9]{4})", date_text)
+        try:
+            if not match:
+                raise ValueError("missing date")
+            month, day, year = match.groups()
+            date(int(year), months[month], int(day))
+        except (ValueError, KeyError):
+            raise _changelog_error("發行記錄開頭缺少有效英文日期", number, raw) from None
+        releases.append(AntigravityRelease(version, section, date_text, number))
+    if not releases:
+        raise _changelog_error("產品區段沒有合格發行記錄", start, section_heading)
+    return max(releases, key=lambda release: tuple(map(int, release.version.split("."))))
+
+
 def fetch_antigravity_version():
-    """從 changelog 的發行表取最高版本號。抓不到就回 None（不當成失敗）。"""
-    text = normalize(fetch(ANTIGRAVITY_CHANGELOG))
-    found = RELEASE_ROW_RE.findall(text)
-    if not found:
-        return None
-    return ".".join(str(n) for n in max(tuple(int(p) for p in v.split(".")) for v in found))
+    """回傳本輪產品發行記錄；來源或格式失敗沿用 main 的 CHECK_FAILED 路徑。"""
+    return parse_antigravity_changelog(fetch(ANTIGRAVITY_CHANGELOG))
 
 
 def version_key(version, level):
@@ -491,17 +608,22 @@ def main():
     new_versions = dict(baseline_versions)
     version_alerts = []
     version_notes = []
+    version_observations = []  # 本輪 getter 結果，不能從保留 baseline 的 new_versions 推論
     version_sources = [(tool, pkg, lambda p=pkg: fetch_npm_version(p))
                        for tool, pkg in NPM_PACKAGES.items()]
-    version_sources.append(("antigravity", "antigravity.google/changelog",
+    version_sources.append(("antigravity", ANTIGRAVITY_CHANGELOG,
                             fetch_antigravity_version))
 
     for tool, label, getter in version_sources:
         try:
-            version = getter()
+            observation = getter()
         except Exception as exc:  # noqa: BLE001
+            version_observations.append((tool, label, None, "未取得（失敗）"))
             failures.append((f"version/{label}", str(exc)))
             continue
+        version_observations.append((tool, label, observation, "未取得（空值）"))
+        # 保留字串 getter 相容性，但只有解析器的結構化結果才提供區段／日期證據。
+        version = observation.version if isinstance(observation, AntigravityRelease) else observation
         if not version:
             continue
         old = baseline_versions.get(tool)
@@ -667,6 +789,21 @@ def main():
         lines.append("")
         lines.append("</details>")
         lines.append("")
+
+    lines.append("<details><summary>本輪版本取得結果</summary>")
+    lines.append("")
+    for tool, label, observation, missing in version_observations:
+        if isinstance(observation, AntigravityRelease):
+            value = (f"`{report_text(observation.version)}`（{report_text(observation.released_on)}；"
+                     f"區段 {report_text(observation.section)}；發行標題第 {observation.line} 行）")
+        elif observation:
+            value = f"`{report_text(observation)}`"
+        else:
+            value = missing
+        lines.append(f"- {report_text(tool)}: {value}；來源 {report_text(label)}")
+    lines.append("")
+    lines.append("</details>")
+    lines.append("")
 
     print("\n".join(lines).rstrip())
 
