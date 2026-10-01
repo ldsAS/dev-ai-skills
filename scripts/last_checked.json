@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.283",
-    "codex": "0.157.1",
-    "gemini-cli": "0.61.0",
-    "antigravity": "2.18.1"
+    "claude-code": "2.1.286",
+    "codex": "0.159.3",
+    "gemini-cli": "0.62.0",
+    "antigravity": "2.19.1"
   },
   "sources": {
     "antigravity/changelog": {
@@ -185,6 +185,8 @@
         "~/.claude/plugins",
         "~/.claude/plugins/",
         "~/.claude/plugins/.trash/",
+        "~/.claude/plugins/installed_plugins.set-aside",
+        "~/.claude/plugins/installed_plugins.unreadable",
         "~/.claude/plugins/synced/",
         "~/.claude/policy-limits.json",
         "~/.claude/projects/",
@@ -399,6 +401,8 @@
         ".agents/skills/",
         ".claude/skills/",
         ".github/skills/",
+        "AGENTS.md",
+        "copilot-instructions.md",
         "~/.agents/skills/",
         "~/.claude/skills/",
         "~/.copilot/skills/"
@@ -408,6 +412,7 @@
       "tokens": [
         ".agent.md",
         ".instructions.md",
+        ".mcp.json",
         ".prompt.md",
         "AGENTS.md",
         "CLAUDE.md",
