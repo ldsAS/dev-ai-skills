@@ -193,7 +193,7 @@ C-105 兩個記憶目錄與 C-83 已分別接入精準來源。歷史數字（09
 | C-55 `.agents/ORIGINAL_REQUEST.md` | 歷史二進位取證，現有官方來源無精準 token；C-117 的子目錄排除是防禦政策，尚無寫入證據 |
 | C-41 `.agents/AGENTS.md`、C-42 `.agents/settings.json` | 保留 1.0.13 歷史；現行文件／政策分別由 C-115／C-116 取代。即使歷史列被新 token 命中，也不代表舊否定結論重新成立 |
 | C-43 `.agents/settings.local.json` | 負向讀取主張只限受檢版本；未有新反證，仍需人工複驗。Git 排除成立不證明檔案存在或不存在 |
-| C-110 CLI 全域探索 | skills 與 rules／plugins 的相關官方資料不足以確定現行 skills discovery，維持有疑，不改 installer |
+| C-110 CLI 全域探索 | 此歷史輪次維持有疑；10-01 的 CLI 1.2.14 限定實測見下方 G5，不改 installer |
 | IDE Workflows 的時間／機制文字 | [新頁](https://antigravity.google/docs/ide/workflows.md) 09-24 取得 2,181 bytes 正文，現有抽取器 0 token；文件規劃於 2026-11-01 前轉向 skills。已人工複閱，不加入零 token 來源假裝涵蓋；後續複驗節奏／監控方式由 M2／M3 設計 |
 
 → 行動項只有一條：**這幾條的複驗不能依賴排程**，要靠時間或明確風險觸發的人工檢查。
@@ -228,3 +228,9 @@ CLI major 尚無自動監控欄位；人工觀察到 CLI 主版號跨越時才�
 ## #21 的文件依據與精準例外（D1）
 
 agy 1.2.14 內嵌文件仍明示提交 `.agents/skills.json` 及 repo 內團隊 skills（C-119）；五版放行精準檔名，`.bak`、`agents.json`、`plugins.json` 不類推。提交前確認 entries.path 的解析位置：repo 相對可落在庫外、绝對／`~/` 參照可能屬個人環境。D1 只確認文件定位與分享依據；#21 的 CLI 實際載入另看 G5 隔離實驗，不將同一份文件當 runtime 證據。裸檔名抽取 G3 未做，仍是已知自動監控缺口。
+
+## G5 CLI 隔離實測（2026-10-01）
+
+agy 1.2.14 在本 Windows 帳號、`-p --mode plan` 下，`~/.gemini/config/skills/` 的獨特探針載入，`~/.gemini/antigravity-cli/skills/` 的獨特探針未載入；config 陰性／移除對照均不可用，正例 stream-json 的 view_file 指向 config 的實體 SKILL.md 並回傳 prompt 未提供的隨機碼。現有 installer 已含 config 目標，本輪不改 installer 路徑。不是同名技能 precedence 結論，app／IDE 未測。C-110 改為版本／環境／模式限定的已驗證，歷史疑點保留。
+
+#21 的 repo 內相對 entries.path 也通過 registry 新增／移除對照；C-119 補入此單一 CLI 行為範圍。三個全域 skills 目錄逐檔清單／hash 與升級前完全一致，所有探測技能和自建目錄已移除。詳見 [實測紀錄](./rounds/2026-10-01-codex.c110-runtime.md) 與 [可核對證據](./rounds/2026-10-01-codex.c110-runtime-evidence.json)。
