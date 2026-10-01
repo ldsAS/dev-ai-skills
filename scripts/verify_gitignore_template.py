@@ -58,6 +58,11 @@ CASES = [
     (".agents/AGENTS.md", False),
     (".agents/GEMINI.md", False),
     (".agents/rules.json", False),
+    (".agents/skills.json", False),                    # C-119 精準團隊登記檔
+    (".agents/skills.json.bak", True),
+    (".agents/agents.json", True),
+    (".agents/plugins.json", True),
+    ("apps/web/.agents/skills.json", False),            # 既有子目錄行為，不是 runtime 證據
     (".agents/AGENTS.md.bak", True),
     (".agents/settings.json", True),
     ("apps/web/.agents/AGENTS.md", False),
@@ -169,7 +174,8 @@ def variants():
 def extract_template(variant):
     """抽出含 `.agents/*` 的 fenced block，也就是 .gitignore 範本。"""
     path = os.path.join(SKILL_ROOT, variant, "SKILL.md")
-    text = open(path, encoding="utf-8").read()
+    with open(path, encoding="utf-8") as handle:
+        text = handle.read()
     for match in FENCE_RE.finditer(text):
         if ".agents/*" in match.group(1):
             return match.group(1)
