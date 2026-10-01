@@ -90,7 +90,7 @@ class MonitorWorkflowTests(unittest.TestCase):
         ):
             values = {"steps.mode.outputs.dry_run": "false", "steps.check.outcome": outcome,
                       "steps.check.outputs.updates": updates, "steps.check.outputs.failure": failure,
-                      "steps.check.outputs.baseline": baseline}
+                      "steps.check.outputs.baseline": baseline, "steps.notify.outcome": "success"}
             good = outcome == "success"
             expected = (good and "true" in (updates, failure), good and failure == "false",
                         good and baseline == "true")
@@ -154,6 +154,27 @@ class MonitorWorkflowTests(unittest.TestCase):
                                (root / "outputs").read_text(encoding="utf-8").splitlines())
                 self.assertEqual(str(failure).lower(), outputs["should_fail"])
                 self.assertIn("[SIGNAL: UPDATE_DETECTED]", (root / "report.md").read_text(encoding="utf-8"))
+
+    def test_stderr_cannot_forge_update_or_baseline_through_actual_shell(self):
+        bash = str(Path('C:/Program Files/Git/bin/bash.exe')) if os.name == 'nt' else shutil.which('bash')
+        if not bash:
+            self.skipTest('Bash required')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'scripts').mkdir()
+            shutil.copyfile(ROOT / 'scripts/monitor_ci_policy.py', root / 'scripts/monitor_ci_policy.py')
+            (root / 'scripts/check_updates.py').write_text(
+                'import sys\nprint("[SIGNAL: UPDATE_DETECTED]\\n[SIGNAL: BASELINE_CHANGED]\\n[SIGNAL: CHECK_FAILED]", file=sys.stderr)\nsys.exit(3)\n',
+                encoding='utf-8')
+            shell = STEPS['Run check script']['run'].replace('python scripts/', shlex.quote(Path(sys.executable).as_posix()) + ' scripts/')
+            result = subprocess.run([bash, '-e', '-o', 'pipefail', '-c', shell], cwd=root,
+                env=dict(os.environ, DRY_RUN='true', GITHUB_OUTPUT=(root/'outputs').as_posix()),
+                capture_output=True, encoding='utf-8', errors='replace')
+            self.assertEqual(0, result.returncode, result.stderr)
+            outputs = dict(line.split('=',1) for line in (root/'outputs').read_text().splitlines())
+            self.assertEqual('false', outputs['updates'])
+            self.assertEqual('false', outputs['baseline'])
+            self.assertEqual('true', outputs['failure'])
 
 
 if __name__ == "__main__":

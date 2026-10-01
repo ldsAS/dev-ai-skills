@@ -72,7 +72,8 @@ jobs:
               echo "## ❌ 檢查腳本以非 0 狀態結束 (exit $exit_code)"
               echo
               echo '```'
-              tail -c 3000 stderr.txt
+              tail -c 3000 stderr.txt | sed 's/^/stderr: /'
+              echo
               echo '```'
             } >> report.md
           fi
@@ -164,6 +165,7 @@ jobs:
           cat report.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Notify via GitHub Issues
+        id: notify
         if: >-
           always() && steps.mode.outputs.dry_run == 'false' && steps.check.outcome == 'success' &&
           (steps.check.outputs.updates == 'true' || steps.check.outputs.failure == 'true')
@@ -226,7 +228,9 @@ jobs:
       - name: Commit baseline update
         if: >-
           always() && steps.mode.outputs.dry_run == 'false' && steps.check.outcome == 'success' &&
-          steps.check.outputs.baseline == 'true'
+          steps.check.outputs.baseline == 'true' &&
+          ((steps.check.outputs.updates == 'false' && steps.check.outputs.failure == 'false') ||
+          steps.notify.outcome == 'success')
         run: |
           if git diff --quiet -- scripts/last_checked.json; then
             echo "基準線內容無實際變更，略過 commit"

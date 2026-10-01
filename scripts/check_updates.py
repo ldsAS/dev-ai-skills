@@ -373,14 +373,14 @@ class AntigravityRelease(NamedTuple):
 
 
 def report_text(value, limit=240):
-    """新增診斷／摘要用的單行文字；不改動現有 CI 訊號辨識政策。
+    """外部顯示文字單行化；limit=None 保留完整 context 視窗。
 
     先壓平控制字元與空白、限制文字長度，再 escape HTML、方括號及反引號。
     原始報告因而不含外部輸入的 [SIGNAL: 標記或可跳出顯示範圍的換行。
     """
     text = re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", str(value))
     text = " ".join(text.split())
-    if len(text) > limit:
+    if limit is not None and len(text) > limit:
         text = text[:limit] + "…（已截斷）"
     return (html.escape(text).replace("[", "&#91;").replace("]", "&#93;")
             .replace("`", "&#96;"))
@@ -540,7 +540,7 @@ def report_coverage():
     if blind:
         print("## ⚠️ 監控盲區（路徑異動不會被自動偵測）\n")
         for claim, _ in blind:
-            print(f"- **{claim['id']}** `{claim['label']}` — 狀態 {claim['status']}")
+            print(f"- **{claim['id']}** `{report_text(claim['label'])}` — 狀態 {report_text(claim['status'])}")
         print()
 
     print("## ✅ 有監控涵蓋\n")
@@ -644,7 +644,7 @@ def main():
         if is_bootstrap:
             lines.append("偵測到舊版 schema，已重新建立路徑基準線（本次不告警）。")
         for key, count in bootstrapped:
-            lines.append(f"- `{key}`：納入監控，記錄 {count} 個路徑 token")
+            lines.append(f"- `{report_text(key)}`：納入監控，記錄 {count} 個路徑 token")
         lines.append("")
 
     if changes:
@@ -685,15 +685,15 @@ def main():
                         "**不代表其下各主張失效**；請確認其他來源是否仍涵蓋該目錄（C-99）")
 
         def _srcs(keys):
-            return "、".join(f"`{k}`" for k in keys)
+            return "、".join(f"`{report_text(k)}`" for k in keys)
 
         for tool, source, added, removed, text in changes:
             key = f"{tool}/{source}"
-            lines.append(f"### `{tool}` — {source}")
+            lines.append(f"### `{report_text(tool)}` — {report_text(source)}")
             lines.append("")
             for token in removed:
                 tag, hits = _tag(token)
-                lines.append(f"- ❌ **消失**：`{token}`" + (f" →{tag}" if tag else ""))
+                lines.append(f"- ❌ **消失**：`{report_text(token)}`" + (f" →{tag}" if tag else ""))
                 elsewhere = _other_sources(token, verified_sources, key)
                 if elsewhere:
                     lines.append(f"  > ℹ️ **此路徑目前仍出現在** {_srcs(elsewhere)}："
@@ -702,13 +702,13 @@ def main():
                 if is_single_segment(token):
                     lines.append(segment_note)
                 for c in hits:
-                    affected.setdefault(c["id"], (c, []))[1].append(f"`{token}` 消失")
+                    affected.setdefault(c["id"], (c, []))[1].append(f"`{report_text(token)}` 消失")
             for token in added:
                 context = context_for(text, token)
                 tag, hits = _tag(token)
-                lines.append(f"- ✅ **新增**：`{token}`" + (f" →{tag}" if tag else ""))
+                lines.append(f"- ✅ **新增**：`{report_text(token)}`" + (f" →{tag}" if tag else ""))
                 if context:
-                    lines.append(f"  > {context}")
+                    lines.append(f"  > {report_text(context, limit=None)}")
                 elsewhere = _other_sources(token, baseline_sources, key)
                 if elsewhere:
                     lines.append(f"  > ℹ️ **此路徑在本次之前已存在於** {_srcs(elsewhere)}："
@@ -717,9 +717,9 @@ def main():
                 if is_single_segment(token):
                     lines.append(segment_note)
                 for c in hits:
-                    affected.setdefault(c["id"], (c, []))[1].append(f"`{token}` 新增")
+                    affected.setdefault(c["id"], (c, []))[1].append(f"`{report_text(token)}` 新增")
                 if claims and not hits:
-                    orphan_tokens.append(f"{tool}/{source}: `{token}`")
+                    orphan_tokens.append(f"{report_text(tool)}/{report_text(source)}: `{report_text(token)}`")
             lines.append("")
 
         if affected:
@@ -729,11 +729,11 @@ def main():
                          "請依 `verification/CLAIMS.md` 重新確認，必要時新增一列並將舊列標為「被取代」。")
             lines.append("")
             for cid, (claim, reasons) in sorted(affected.items()):
-                lines.append(f"- **{cid}** `{claim['label']}` — 狀態 {claim['status']}"
-                             f"，取證日 {claim['date']}")
+                lines.append(f"- **{cid}** `{report_text(claim['label'])}` — 狀態 {report_text(claim['status'])}"
+                             f"，取證日 {report_text(claim['date'])}")
                 lines.append(f"  - 觸發：{'、'.join(sorted(set(reasons)))}")
                 if claim["brief"]:
-                    lines.append(f"  - 原主張：{claim['brief']}")
+                    lines.append(f"  - 原主張：{report_text(claim['brief'])}")
             lines.append("")
 
         if orphan_tokens:
@@ -751,7 +751,7 @@ def main():
         lines.append("")
         for tool, label, old, new, level in version_alerts:
             scope = "主版號" if level == "major" else "次版號"
-            lines.append(f"- **{tool}**：`{old}` → `{new}`（{scope}變動；來源 {label}）")
+            lines.append(f"- **{tool}**：`{report_text(old)}` → `{report_text(new)}`（{scope}變動；來源 {report_text(label)}）")
         lines.append("")
         if any(level == "major" for _tool, _label, _old, _new, level in version_alerts):
             lines.append("> ⚠️ **主版號跨越是低頻人工複驗訊號，不代表機制一定變更。** "
@@ -769,7 +769,7 @@ def main():
         lines.append("以下來源本次未能取得，**不代表沒有異動**，基準線已保留待下次重試。")
         lines.append("")
         for label, reason in failures:
-            lines.append(f"- `{label}`：{reason}")
+            lines.append(f"- `{report_text(label)}`：{report_text(reason)}")
         lines.append("")
 
     if not has_update and not failures and not (is_bootstrap or bootstrapped):
@@ -785,7 +785,7 @@ def main():
         lines.append("以下差異是相對上次有意義 baseline 的累積值；不會因這些版本變化單獨寫回基準線。")
         lines.append("")
         for tool, old, new in version_notes:
-            lines.append(f"- {tool}: `{old}` → `{new}`")
+            lines.append(f"- {tool}: `{report_text(old)}` → `{report_text(new)}`")
         lines.append("")
         lines.append("</details>")
         lines.append("")
@@ -795,7 +795,7 @@ def main():
     for tool, label, observation, missing in version_observations:
         if isinstance(observation, AntigravityRelease):
             value = (f"`{report_text(observation.version)}`（{report_text(observation.released_on)}；"
-                     f"區段 {report_text(observation.section)}；發行標題第 {observation.line} 行）")
+                     f"區段 {report_text(observation.section)}；發行標題第 {report_text(observation.line)} 行）")
         elif observation:
             value = f"`{report_text(observation)}`"
         else:
@@ -839,7 +839,8 @@ if __name__ == "__main__":
         import traceback
         print("## ❌ 檢查腳本未預期地中止\n")
         print("```")
-        traceback.print_exc(file=sys.stdout)
+        for line in traceback.format_exc().split("\n"):
+            print("diagnostic: " + report_text(line, limit=None))
         print("```")
         print("\n[SIGNAL: CHECK_FAILED]")
         sys.exit(1)

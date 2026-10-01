@@ -24,9 +24,11 @@ for _stream in (sys.stdout, sys.stderr):
 
 def analyze_report(report_text, exit_code=0):
     """Return workflow decisions derived from report signals and exit status."""
-    updates = UPDATE_SIGNAL in report_text
-    failure = FAILURE_SIGNAL in report_text or exit_code != 0
-    baseline = BASELINE_SIGNAL in report_text
+    # Only LF/CRLF-delimited, unindented protocol lines are authoritative.
+    lines = {line.removesuffix("\r") for line in report_text.split("\n")}
+    updates = UPDATE_SIGNAL in lines
+    failure = FAILURE_SIGNAL in lines or exit_code != 0
+    baseline = BASELINE_SIGNAL in lines
     issue_kinds = []
     if updates:
         issue_kinds.append("update")
