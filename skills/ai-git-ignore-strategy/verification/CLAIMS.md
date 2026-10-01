@@ -3,18 +3,18 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-09-24（Rules 來源與五版修復，新增 C-115～C-117；C-41／C-42 保留歷史並連至現行主張，修正 hooks 範圍及盲區敘述。詳見 [實作紀錄](./rounds/2026-09-24-codex.rules-followup-implementation.md)。本批本機實作，尚未發布。）
+**最後更新**：2026-10-01（C 批：七列恢復表格，摘要同步 99 列；被取代 status 不參與現行候選比對，C-117 政策範例移到主張欄，所有歷史證據保留。）
 
-**整合來源**：PR #14、#17 與 M0／M1 已由 [PR #18](https://github.com/ldsAS/dev-ai-skills/pull/18) 於 09-23 合併至 main（`403a3f5`）。本批基底為後續 bot baseline commit `f10d4ca`；歷史交接與當時狀態保留。
+**整合來源**：M0／M1（PR #18）、Rules（PR #19）及 changelog（PR #22）已合併 main；本輪基底 `d49a0d6`。C 批修復在獨立分支，尚未合併。各輪歷史交接的當時狀態保留。
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 84 |
+| 已驗證 | 85 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
 | 被取代 | 6 |
 | 有疑 | 1 |
-| **總計** | **98** |
+| **總計** | **99** |
 
 ---
 
@@ -47,6 +47,8 @@
 | C-108 | `~/.claude/skills/.trash/` | 停止同步後，已同步技能會移到此處且不再載入；可在 retention sweep 清除前復原。家目錄機制，不新增專案 gitignore 規則 **09-23 佐證**：官方 CHANGELOG 2.1.280 修正 manifest 列名時將技能誤移到此回收位置的行為；不是新增專案路徑，未推翻預期同步回收用途。 | 官方 skills 文件；摘錄見下 | 2026-09-21 | 文件快照 | 已驗證 |
 | C-109 | `AGENTS.md`、`.claude/AGENTS.md` | Claude Code 2.1.277 起且功能可用時支援。預設目前目錄及上層沒有 `CLAUDE.md`、`.claude/CLAUDE.md` 或 `CLAUDE.local.md` 才讀 AGENTS 指令；Project instructions 可改為兩者都讀。功能受 feature flags、provider、首次升級 session、hook／內建 plugin 設定等限制，**不宣稱所有 session 都可用**。官方此節明示不讀 `AGENTS.local.md`、`AGENTS.override.md` 或 `.agents/` 下的指令檔；這不改變其他工具的行為。根目錄 `AGENTS.md` 原已放行，本輪補 `.claude/AGENTS.md` 精準例外。C-50 是 Antigravity 主張，未被本次新增支援推翻 **2026-09-22 維護者政策決定（F2）**：維持 `AGENTS.local.md` 現行未排除狀態，需依實際內容、工具用途及專案追蹤決定處理；未被 ignore 不代表建議提交。不得僅由 `.local.md` 命名推定一律排除。`AGENTS.override.md`、`GEMINI.local.md` 亦未在本輪新增排除，官方不讀取的事實與維護者追蹤政策分開記錄。 | 官方 memory 文件與 CHANGELOG 2.1.277＋五版 Git 邊界實測 | 2026-09-21 | 功能起點 2.1.277；未執行 Claude runtime | 已驗證 |
 
+| ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-112 | `~/.claude/settings.json`、`~/.claude/skills/`、`~/.claude/agent-memory/`、`~/.claude/workflows/`、`~/.claude/output-styles/`、`~/.claude/plugins/`、`~/.claude/plugins/synced/` | 新接 hooks／desktop／claude-directory 來源中的使用者層設定、技能、subagent 記憶、workflow、output style 與外掛資產；預設位於家目錄，不能把同尾名推導成專案產物。這是人工位置分類，並非全都可刪或全都應忽略；`CLAUDE_CONFIG_DIR` 可改變根目錄，重定位至 repo 時需重新檢核。專案同名路徑仍依各自既有主張判定，不新增 ignore 規則 | [官方 directory](https://code.claude.com/docs/en/claude-directory.md)＋[hooks](https://code.claude.com/docs/en/hooks.md)＋[desktop](https://code.claude.com/docs/en/desktop.md)；[逐 token 分類](./rounds/2026-09-22-codex.m1.md) | 2026-09-22 | 文件快照；未執行 runtime | 已驗證 |
 | C-113 | `~/.claude/debug/`、`~/.claude/history.jsonl`、`~/.claude/file-history/`、`~/.claude/paste-cache/`、`~/.claude/uploads/`、`~/.claude/plans/`、`~/.claude/session-env/`、`~/.claude/shell-snapshots/`、`~/.claude/cache/changelog.md`、`~/.claude/policy-limits.json`、`~/.claude/remote-settings.json`、`~/.claude/stats-cache.json`、`~/.claude/tasks/`、`~/.claude/usage-data/`、`~/.claude/feedback-bundles/`、`~/.claude/feedback/drafts/`、`~/.claude/plugins/.trash/`、`~/.claude/todos/`、`~/.claude/statsig/`、`~/.claude/logs/`、`~/.claude/image-cache/` | directory 頁列出的家目錄狀態、紀錄、快取、回饋與已移除外掛暫存位置；todos／statsig／logs／image-cache 明列為舊版遺留，不宣稱現行版本仍會產生。僅登記預設位置及人工分類，不推導清理安全性、保存期限或專案 ignore 規則；路徑 root 可受 `CLAUDE_CONFIG_DIR` 影響。backups、projects、skills/.trash 仍分別依 C-90、C-07、C-108 **09-23 佐證**：官方 CHANGELOG 2.1.280 記錄 Windows 背景清理對重定位此類家目錄的 symlink／junction 修正；不新增專案 ignore 規則。 | [官方 directory](https://code.claude.com/docs/en/claude-directory.md)；[逐 token 分類](./rounds/2026-09-22-codex.m1.md) | 2026-09-22 | 文件快照；未執行 runtime | 已驗證 |
 
@@ -169,12 +171,18 @@
 > 上述版號與「次版號跳動即告警」屬 2026-08-03 歷史快照。現行監控採 **major 門檻**；
 > 2026-09-30 changelog 修復只解析產品區段，CLI／SDK／IDE 不混入此版本欄，見下方本輪補證與 README。
 
+| ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-114 | `.agent/skills/`、`.agents/skills/` | 取代 C-81 的「官方未提及 skills」現行判斷。2026-09-22 官方整合 skills 頁明示預設使用 `.agents/skills` 並相容 `.agent/skills`；此段為總述，未逐 surface 說明版本或優先序，因此不能代替各 runtime 的 discovery 實測。保留 C-81 的 agy 1.0.13 歷史取證。五版既有 `.agent/skills/` 規則不變，只修正依據註解；CLI 全域路徑 C-110 仍有疑 | [官方 skills](https://antigravity.google/docs/skills.md)；SHA 與 surface 核對見 [M1](./rounds/2026-09-22-codex.m1.md) | 2026-09-22 | 文件快照；未執行 runtime | 已驗證 |
 
+| ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-115 | `.agents/AGENTS.md`、`.agents/GEMINI.md`、`.agents/rules.json` | 取代 C-41 的無版本限制否定。現行官方 Rules 的一般目錄層段落列出前兩檔；`rules.json` 可登記巢狀 rules 與共用設定，未登記的巢狀 `.md` 不在預設平坦掃描範圍。五版精準放行三檔。**分享殘留風險**：官方範例用 `../` 引用共用規則，須核對實際解析位置與隊友環境可用性；`../` 本身不保證指 repo 外。若內容含私人絕對路徑，提交前調整或精準排除，不把放行當成整份適合分享的保證。**只驗證文件及 Git 規則，未驗證各 surface／版本 runtime；歷史觀察保留 C-41。** | [官方 Rules](https://antigravity.google/docs/rules.md)＋五版 Git 邊界測試；來源指紋與分類見 [09-24 實作](./rounds/2026-09-24-codex.rules-followup-implementation.md) | 2026-09-24 | 文件快照（產品 2.17.0 時期）；未執行 runtime | 已驗證 |
 | C-116 | `.gemini/config.json` | 取代 C-42 的無版本限制否定。產品 2.17.0 公告說 repository customization 改讀此檔，舊 `.agents/settings.json` 不再讀取；不推定中間版本或 CLI 1.x 支援情況。公告提到 `personal_customization_dir`，完整內容未必適合共享，因此五版預設排除，提供註解式 opt-in；先看內容及專案分享政策。**不新增巢狀 config 排除**：本輪只有 repo 根目錄用途依據；與 C-117 已有逐字 prompt 性質證據的防禦政策不同，不為形式對稱擴大規則。 | [官方 changelog 2.17.0](https://antigravity.google/changelog)＋五版預設／opt-in Git 邊界測試 | 2026-09-24 | 產品 2.17.0 文件；未驗證 CLI／runtime | 已驗證 |
-| C-117 | `apps/web/.agents/ORIGINAL_REQUEST.md`、`apps/web/.agents/x/ORIGINAL_REQUEST.md` | **防禦性追蹤政策，非 runtime 寫入主張**：C-55 的逐字 prompt 性質與現行目錄層 `.agents/` 用途，支持用 `**/.agents/**/ORIGINAL_REQUEST.md` 排除同名檔。未取得工具在 monorepo 子目錄寫入的證據。保留根目錄兩條既有防護；啟用 rules／skills／plugins／agents 白名單時亦應排除 prompt。`docs/ORIGINAL_REQUEST.md`、相似目錄及 `.example` 檔不受此規則影響。 | C-55 歷史證據＋C-115 文件範圍＋五版 Git 邊界與 opt-in 測試 | 2026-09-24 | 政策／Git 實測；子目錄寫入未驗 | 已驗證 |
+| C-117 | 防禦性追蹤政策（非外部路徑主張） | 範例：`apps/web/.agents/ORIGINAL_REQUEST.md`、`apps/web/.agents/x/ORIGINAL_REQUEST.md`。 **防禦性追蹤政策，非 runtime 寫入主張**：C-55 的逐字 prompt 性質與現行目錄層 `.agents/` 用途，支持用 `**/.agents/**/ORIGINAL_REQUEST.md` 排除同名檔。未取得工具在 monorepo 子目錄寫入的證據。保留根目錄兩條既有防護；啟用 rules／skills／plugins／agents 白名單時亦應排除 prompt。`docs/ORIGINAL_REQUEST.md`、相似目錄及 `.example` 檔不受此規則影響。 | C-55 歷史證據＋C-115 文件範圍＋五版 Git 邊界與 opt-in 測試 | 2026-09-24 | 政策／Git 實測；子目錄寫入未驗 | 已驗證 |
 
+| ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-118 | `.agents/skills/` | **Antigravity CLI 1.2.10 文件的載入語意**：公告以此目錄作對照，說明 `skills.json`、`rules.json`、`agents.json`、`plugins.json` 的目錄登記改成只載入直接子項；巢狀項目須以 `include_only` 指定。這些單獨檔名不推導成完整路徑；Git 放行不等於 runtime 會遞迴探索。僅驗證公告，未執行 CLI；不修改五版範本。`.agents/skills.json` 的位置與分享政策另由 #21 處理 | [官方 changelog CLI 1.2.10](https://antigravity.google/docs/changelog.md)；下方短摘錄及 [本輪紀錄](./rounds/2026-09-29-codex.changelog-recovery-implementation.md) | 2026-09-30 | CLI 1.2.10 公告；非 runtime | 已驗證 |
 
 ### 2026-09-30 changelog 補證（保留歷史與未決項）

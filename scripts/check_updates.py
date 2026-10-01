@@ -332,12 +332,19 @@ def _claim_paths(cell):
     return paths
 
 
+def is_current_claim(status):
+    """歷史列只供追溯；有疑保留，不從主張散文猜正向／負向。"""
+    status = status.strip()
+    return status != "移出範圍" and not re.fullmatch(r"被取代(?:\s*→\s*C-\d+)?", status)
+
+
 def load_claims():
     """讀取路徑主張帳本；讀不到就回空清單，監控本身不受影響。"""
     if not os.path.exists(CLAIMS_PATH):
         return []
     try:
-        text = open(CLAIMS_PATH, encoding="utf-8").read()
+        with open(CLAIMS_PATH, encoding="utf-8") as handle:
+            text = handle.read()
     except OSError:
         return []
     claims = []
@@ -345,7 +352,7 @@ def load_claims():
         cid, path_cell, brief, _basis, dated, _version, status = match.groups()
         # 已移出維護範圍者不參與比對，也不列入涵蓋率 ——
         # 它們保留在帳本裡只是歷史紀錄，算進盲區會讓報表失真。
-        if status.strip() == "移出範圍":
+        if not is_current_claim(status):
             continue
         paths = _claim_paths(path_cell)
         if not paths:
@@ -380,6 +387,8 @@ def claims_for_token(token, claims):
     value = _norm_path(token)
     hits = []
     for claim in claims:
+        if not is_current_claim(claim.get("status", "")):
+            continue
         for path in claim["paths"]:
             if value == path:
                 hits.append(claim)
