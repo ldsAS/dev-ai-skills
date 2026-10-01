@@ -98,6 +98,32 @@ class DeliveryTests(unittest.TestCase):
             calls, _ = self.run_delivery(kinds=kinds)
             self.assertIn(['git','push'], calls)
 
+    def test_failed_update_still_delivers_failure_and_blocks_baseline(self):
+        update = {'number':100,'title':'run update','state':'closed',
+                  'body':'<!-- ai-tools-monitor repository=test/repo kind=update run=123 -->\nold report',
+                  'repository_url':'https://api.github.com/repos/test/repo'}
+        for existing in (False, True):
+            with self.subTest(existing_failure=existing):
+                issues = [update]
+                if existing:
+                    issues.append({'number':20,'title':'⚠️ AI 工具異動檢查失敗','state':'open'})
+                calls, result = self.run_delivery(issues)
+                self.assertNotEqual(0, result.returncode)
+                self.assertIn('closed with different content', result.stderr)
+                if existing:
+                    self.assertTrue(any(c[:4] == ['gh','issue','comment','20'] for c in calls), calls)
+                else:
+                    self.assertTrue(any(i['title'] == '⚠️ AI 工具異動檢查失敗' and
+                                        'report' in i['body'] for i in self.remote['issues']))
+                self.assertFalse(any(c[0] == 'git' for c in calls), calls)
+
+    def test_failed_failure_first_still_delivers_update_and_blocks_baseline(self):
+        failure = {'number':20,'title':'⚠️ AI 工具異動檢查失敗','state':'open'}
+        calls, result = self.run_delivery([failure], fail_op='comment', kinds='failure update')
+        self.assertNotEqual(0, result.returncode)
+        self.assertTrue(any('kind=update run=123' in i.get('body','') for i in self.remote['issues']))
+        self.assertFalse(any(c[0] == 'git' for c in calls), calls)
+
     def test_dry_run_has_no_remote_writes(self):
         calls, _ = self.run_delivery(mode='true')
         self.assertEqual([], calls)

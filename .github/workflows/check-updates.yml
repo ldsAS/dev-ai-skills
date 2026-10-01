@@ -187,28 +187,38 @@ jobs:
           } >> report.md
 
           # updates 與 failure 是獨立狀態；同時發生時兩類 issue 都必須收到報告。
+          # 此函式在條件中呼叫，bash -e 不會替它中止；每個必要命令明確傳回失敗。
+          notify_failure() {
+            TITLE="⚠️ AI 工具異動檢查失敗"
+            gh issue list --state open --limit 1000 --json number,title,state > open-issues.json || return $?
+            python scripts/monitor_ci_policy.py targets \
+              --issues open-issues.json --title "$TITLE" > matching-issues.txt || return $?
+            EXISTING=$(head -n 1 matching-issues.txt) || return $?
+
+            if [ -n "$EXISTING" ]; then
+              gh issue comment "$EXISTING" --body-file report.md || return $?
+              echo "已在既有 issue #$EXISTING 追加留言"
+            else
+              gh issue create --title "$TITLE" --body-file report.md --assignee "$OWNER" || return $?
+            fi
+          }
+
+          NOTIFY_EXIT=0
           for kind in $ISSUE_KINDS; do
             case "$kind" in
               update)
-                python scripts/monitor_notifications.py --repo "$REPOSITORY" --run-id "$RUN_ID" \
-                  --owner "$OWNER" --report report.md --rules report-rules.md
-                continue ;;
-              failure) TITLE="⚠️ AI 工具異動檢查失敗" ;;
-              *) echo "::error::未知的 issue 類型：$kind"; exit 1 ;;
+                if ! python scripts/monitor_notifications.py --repo "$REPOSITORY" --run-id "$RUN_ID" \
+                  --owner "$OWNER" --report report.md --rules report-rules.md; then
+                  NOTIFY_EXIT=1
+                fi ;;
+              failure)
+                if ! notify_failure; then
+                  NOTIFY_EXIT=1
+                fi ;;
+              *) echo "::error::未知的 issue 類型：$kind"; NOTIFY_EXIT=1 ;;
             esac
-
-            gh issue list --state open --limit 1000 --json number,title,state > open-issues.json
-            python scripts/monitor_ci_policy.py targets \
-              --issues open-issues.json --title "$TITLE" > matching-issues.txt
-            EXISTING=$(head -n 1 matching-issues.txt)
-
-            if [ -n "$EXISTING" ]; then
-              gh issue comment "$EXISTING" --body-file report.md
-              echo "已在既有 issue #$EXISTING 追加留言"
-            else
-              gh issue create --title "$TITLE" --body-file report.md --assignee "$OWNER"
-            fi
           done
+          exit "$NOTIFY_EXIT"
 
       - name: Close recovered failure Issues
         if: >-
