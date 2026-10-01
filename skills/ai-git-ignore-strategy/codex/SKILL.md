@@ -101,7 +101,7 @@ git -c core.fileMode=false diff --summary
 
 - **Claude Code 專案指令**：`.claude/CLAUDE.md` 與 `.claude/AGENTS.md` 同屬團隊指令，範本精準放行（C-103、C-109）。後者從 2.1.277 起、且功能可用時才支援；預設在目前目錄與上層沒有 `CLAUDE.md`、`.claude/CLAUDE.md` 或 `CLAUDE.local.md` 時載入，可用 Project instructions 改變選擇，不能假設所有 session 都會讀。
 - **Claude Code 團隊 hook 與記憶**：`.claude/hooks/` 放置團隊設定引用的腳本；`.claude/agent-memory/` 是 `memory: project` 的共享記憶。範本預設放行，提交前仍須逐檔審查可執行內容及敏感資訊。私人 hook 應另列精準排除；不共享的記憶使用 `memory: local`，寫入 `.claude/agent-memory-local/`（C-104、C-105）。
-- **Antigravity 團隊規則**：`.agents/AGENTS.md`、`.agents/GEMINI.md`、`.agents/rules.json` 依現行官方文件精準放行（C-115；文件證據，未經本輪實機驗證）。`rules.json` 可登記巢狀規則及引用共用規則；提交前核對引用位置與團隊可用性，私人路徑另行處理。
+- **Antigravity 團隊規則與技能登記**：`.agents/AGENTS.md`、`.agents/GEMINI.md`、`.agents/rules.json` 依現行官方文件精準放行（C-115；文件證據，未經本輪實機驗證）；`.agents/skills.json` 也精準放行（C-119；agy CLI 1.2.14 文件及 repo 相對登記的隔離實測）。`rules.json` 可登記巢狀規則及引用共用規則，`skills.json` 的 `entries.path` 可指向 repo 內團隊技能目錄；提交前核對引用的解析位置與團隊可用性，私人絕對／家目錄參照另行處理。
 - 專案原始碼：`.py`, `.html`, `.css`, `.js`, `.ts`, `.sh`, `.bat`, `.ps1`。
 - 文件與維運資料：`README.md`, `DEPLOY.md`, `docs/`, `CHANGELOG.md`。
 - 跨平台 repo policy：`.gitattributes`, `.editorconfig`, `.nvmrc`。
@@ -128,7 +128,7 @@ git -c core.fileMode=false diff --summary
 
 - **Claude Code 個人指令與本機狀態**：`CLAUDE.local.md` 與 `.claude/agent-memory-local/` 應排除，子目錄中的同名檔／目錄也受保護；`.claude/scheduled_tasks.json` 與 session 綁定，根目錄的既有 `.claude/*` 已排除它（C-105～C-107）。
 - 本機 AI 工作區與 cache：`.agent/`（Antigravity 1.x）、`.antigravitycli/`（Antigravity CLI 舊版的工作區對應檔；新版已改集中到 `~/.gemini/antigravity-cli/cache/projects.json` 並淘汰此目錄，舊專案仍會殘留） 的工作區暫存、`.codex/`、`.gemini/` 的快取，但 confirmed project skills 例外。
-  - ⚠️ 注意（最容易誤殺）：專案內 `.claude/`（`settings.json`, `commands/`, `skills/`）、`.github/prompts/*.prompt.md` 多半是刻意共享的設定與規則，屬於 🟢 或 ⚠️ 類；專案內 `.agents/` 的 `skills/`、`rules/` 也是刻意共享的設定，不要整包封殺（現行官方 rules 文件另列 `.agents/AGENTS.md`、`.agents/GEMINI.md`、`.agents/rules.json`，見 C-115；舊否定觀察僅屬 1.0.13 歷史）；多數工具的對話紀錄存在使用者家目錄（如 `~/.claude/projects/`），不在專案內。 另外，`.agents/` 並非 Antigravity 專屬，而是**跨工具共用目錄** — Codex 會從當前工作目錄逐層往上掃 `.agents/skills`、Gemini CLI 以 `.agents/skills/` 作為 `.gemini/skills/` 的高優先別名、Antigravity 讀 `.agents/hooks.json`；只裝 Codex 的專案一樣會出現 `.agents/`，不要當成 Antigravity 殘留。　Antigravity 實查（1.0.13，2026-07-30）：對話紀錄位於 `~/.gemini/antigravity/conversations/` 等家目錄，**但專案內並非乾淨** — agent 會把使用者訊息**逐字**附加到 `.agents/ORIGINAL_REQUEST.md`（含 UTC 時間戳），屬本 skill 開頭所述的 Security Risks，必須排除。
+  - ⚠️ 注意（最容易誤殺）：專案內 `.claude/`（`settings.json`, `commands/`, `skills/`）、`.github/prompts/*.prompt.md` 多半是刻意共享的設定與規則，屬於 🟢 或 ⚠️ 類；專案內 `.agents/` 的 `skills/`、`rules/` 也是刻意共享的設定，不要整包封殺（現行官方 rules 文件另列 `.agents/AGENTS.md`、`.agents/GEMINI.md`、`.agents/rules.json`，見 C-115；舊否定觀察僅屬 1.0.13 歷史；`.agents/skills.json` 另為可共享的技能登記檔，見 C-119，提交前核對 `entries.path` 的解析位置與團隊可用性）；多數工具的對話紀錄存在使用者家目錄（如 `~/.claude/projects/`），不在專案內。 另外，`.agents/` 並非 Antigravity 專屬，而是**跨工具共用目錄** — Codex 會從當前工作目錄逐層往上掃 `.agents/skills`、Gemini CLI 以 `.agents/skills/` 作為 `.gemini/skills/` 的高優先別名、Antigravity 讀 `.agents/hooks.json`；只裝 Codex 的專案一樣會出現 `.agents/`，不要當成 Antigravity 殘留。　Antigravity 實查（1.0.13，2026-07-30）：對話紀錄位於 `~/.gemini/antigravity/conversations/` 等家目錄，**但專案內並非乾淨** — agent 會把使用者訊息**逐字**附加到 `.agents/ORIGINAL_REQUEST.md`（含 UTC 時間戳），屬本 skill 開頭所述的 Security Risks，必須排除。
 - Runtime logs：`*.log`，通常會自動輪替或持續增長，沒有版本控制價值。
 - 每次執行會覆寫的 runtime state：`last_run.txt`, `last_*.txt`。這些會讓 `git status` 長期保持 dirty。
 - 機密：`.env`, `.env.*`，但保留 `!.env.example`；另排除 `*.pem`, `*.key`, `credentials.json`, `certs/`。

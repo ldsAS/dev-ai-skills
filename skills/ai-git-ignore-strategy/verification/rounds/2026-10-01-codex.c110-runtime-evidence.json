@@ -926,7 +926,16 @@
   ],
   "official_document": {
     "url": "https://antigravity.google/docs/skills.md",
-    "utf8_bytes": 6413,
-    "sha256": "c8e45370efd573c6a8233fea8f6d7558de0116b5f891573e8e05044444818e5b"
+    "utf8_bytes": 6256,
+    "sha256": "3db1ead60d67823005aed8102c27c66e67308d721fdd07cb29861a696e082c48",
+    "fingerprint_basis": "Decoded UTF-8 official Markdown body with LF; independently refetched with curl --compressed on 2026-10-01.",
+    "saved_snapshot": {
+      "path": "<task-temp>/g5-official-skills.md",
+      "utf8_bytes": 6413,
+      "sha256": "c8e45370efd573c6a8233fea8f6d7558de0116b5f891573e8e05044444818e5b",
+      "crlf_count": 157,
+      "lf_normalized_equals_refetched_body": true
+    },
+    "correction_reason": "The old official_document hashed raw bytes of the Windows CRLF saved snapshot, while the Markdown record hashed the decoded LF body. The 157 extra CR bytes account for the size difference; the content is unchanged."
   }
 }
