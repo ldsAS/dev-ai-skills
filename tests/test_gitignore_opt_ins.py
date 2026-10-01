@@ -35,9 +35,11 @@ class OptInBoundaryTests(unittest.TestCase):
                 template = template.replace("# !.agents/agents/", "!.agents/agents/")
                 template = template.replace(".agents/plugins/*\n", ".agents/plugins/*\n!.agents/plugins/**\n")
                 cases = [(path, False) for path in (
+                    ".agents/skills.json", ".agents/rules.json", "apps/web/.agents/skills.json",
                     ".agents/rules/guide.md", ".agents/skills/foo/SKILL.md",
                     ".agents/plugins/guide.md", ".agents/agents/x/agent.json",
                 )] + [(path, True) for path in (
+                    ".agents/skills.json.bak", ".agents/agents.json", ".agents/plugins.json",
                     ".agents/rules/ORIGINAL_REQUEST.md", ".agents/skills/foo/ORIGINAL_REQUEST.md",
                     ".agents/plugins/ORIGINAL_REQUEST.md", ".agents/agents/x/ORIGINAL_REQUEST.md",
                 )]

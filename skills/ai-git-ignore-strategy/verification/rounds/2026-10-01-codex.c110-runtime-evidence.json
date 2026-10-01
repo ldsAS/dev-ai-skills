@@ -1,0 +1,941 @@
+{
+  "version": "1.2.14",
+  "binary_sha256": "07f7ed55654b7066886c7390d3f5e245dbe4ede425c005909342cfc90333f2f8",
+  "probe_names_and_codes": {
+    "config": {
+      "name": "codex-audit-config-8508bc04f1",
+      "code": "PROOF-58b46085e16f08726d61df26ec812e20"
+    },
+    "cli": {
+      "name": "codex-audit-cli-bb4e74610f",
+      "code": "PROOF-dae7ae887d9b34dd935c8b64c6fbefd1"
+    },
+    "registry": {
+      "name": "codex-audit-registry-129006440c",
+      "code": "PROOF-b5ff3d4b138487e01e0554ec988edd0d"
+    }
+  },
+  "runtime_calls": 10,
+  "results": [
+    {
+      "label": "negative-config",
+      "kind": "config",
+      "exit": 0,
+      "seconds": 12.09,
+      "stdout_sha256": "690b3bf94381992421f0956bff618b105c3799f791cac28e162d89ab154ea086",
+      "log_exists": true,
+      "log_sha256": "4b98c2974fda338ba243c55602373400d5a98bb118fd7622dc4919c30975c942",
+      "response": "PROBE_UNAVAILABLE\n",
+      "proof_correct": false,
+      "tools": []
+    },
+    {
+      "label": "negative-cli",
+      "kind": "cli",
+      "exit": 0,
+      "seconds": 12.39,
+      "stdout_sha256": "3d038193035092f2062eb30c7d657705bd31c3def99597f50afa70186cec5fdb",
+      "log_exists": true,
+      "log_sha256": "7dacc8aaf2fa18118835af236d332b39eeff9ad823b94be20857d78f5e9876d3",
+      "response": "PROBE_UNAVAILABLE\n",
+      "proof_correct": false,
+      "tools": []
+    },
+    {
+      "label": "positive-config",
+      "kind": "config",
+      "exit": 0,
+      "seconds": 16.2,
+      "stdout_sha256": "c029fba4b478c939aee146a905081a02792dfa02fa627811de61c227f6b7c2b8",
+      "log_exists": true,
+      "log_sha256": "9c904657a745842d9e2fdf989b9ab94ecd7625f8ea2b4b77baae0dcbfae82de8",
+      "response": "PROOF-58b46085e16f08726d61df26ec812e20\n",
+      "proof_correct": true,
+      "tools": []
+    },
+    {
+      "label": "positive-cli",
+      "kind": "cli",
+      "exit": 0,
+      "seconds": 7.79,
+      "stdout_sha256": "6c86504cc335c69debf4d154f2c9a5e23c38b75c5326afd9f12d93ebc0e02ddb",
+      "log_exists": true,
+      "log_sha256": "d93f6204fea8293c8144b775e73ab0d85c5ad3cb1a439f1b9a3eff118cd718ff",
+      "response": "PROBE_UNAVAILABLE\n",
+      "proof_correct": false,
+      "tools": []
+    },
+    {
+      "label": "positive-config-stream",
+      "kind": "config",
+      "exit": 0,
+      "seconds": 15.52,
+      "stdout_sha256": "e4bca2252b60d1dd3ffc809f7e6a04a98f6598ec911e959004327f7671e1afcf",
+      "log_exists": true,
+      "log_sha256": "07f24d5bbc2518e19769e498de9274a2d86516c0f2ec2f070bbf5d4b817e1dfd",
+      "response": "PROOF-58b46085e16f08726d61df26ec812e20\n",
+      "proof_correct": true,
+      "tools": [
+        {
+          "name": "view_file",
+          "parameters": {
+            "AbsolutePath": "~/.gemini/config/skills/codex-audit-config-8508bc04f1/SKILL.md"
+          },
+          "output": "9 lines, 332 bytes"
+        }
+      ]
+    },
+    {
+      "label": "removed-config",
+      "kind": "config",
+      "exit": 0,
+      "seconds": 10.26,
+      "stdout_sha256": "ddf5f065f50a19402c7d373c457eabd8f74cc13731ea86af001781afe559427f",
+      "log_exists": true,
+      "log_sha256": "8194f5ff314b54dae84a597791eec3f55d93fddd69f5ebd589d0cc6fee6c5a2d",
+      "response": "PROBE_UNAVAILABLE\n",
+      "proof_correct": false,
+      "tools": []
+    },
+    {
+      "label": "removed-cli",
+      "kind": "cli",
+      "exit": 0,
+      "seconds": 11.0,
+      "stdout_sha256": "09ebc3d7a5bbe8368802a5596f9b64fc2b841af379a2f9011f9b75ce05962e4e",
+      "log_exists": true,
+      "log_sha256": "fa028fcdd828c6b70acf9f4d0e450a8d9d5fa7be4de80c9061eb55d0bee6e5ae",
+      "response": "PROBE_UNAVAILABLE\n",
+      "proof_correct": false,
+      "tools": []
+    },
+    {
+      "label": "negative-registry",
+      "kind": "registry",
+      "exit": 0,
+      "seconds": 8.36,
+      "stdout_sha256": "7213e9e3397b90cefd34df01ddb9374da61030ecb5ff92c16614ea64734eb341",
+      "log_exists": true,
+      "log_sha256": "dcbdf1dd2d7606cf9cf1036cf37ee281c27925a10e2c78be17d7cd283a214a44",
+      "response": "PROBE_UNAVAILABLE\n",
+      "proof_correct": false,
+      "tools": []
+    },
+    {
+      "label": "positive-registry",
+      "kind": "registry",
+      "exit": 0,
+      "seconds": 14.64,
+      "stdout_sha256": "3c720827d58564c43bfa20d544b5e8a249ce90b62a8f785aee8d820ac020f0ec",
+      "log_exists": true,
+      "log_sha256": "00f7d7c393ea3ea757dc9b99764db7798b1bab73c67b1ebfbb623da2259367e6",
+      "response": "PROOF-b5ff3d4b138487e01e0554ec988edd0d\n",
+      "proof_correct": true,
+      "tools": [
+        {
+          "name": "view_file",
+          "parameters": {
+            "AbsolutePath": "~/AppData/Local/Temp/codex-monitor-20261001-vtsxq0rl/registry-workspace/tools/probe-skills/codex-audit-registry-129006440c/SKILL.md"
+          },
+          "output": "9 lines, 306 bytes"
+        }
+      ]
+    },
+    {
+      "label": "removed-registry",
+      "kind": "registry",
+      "exit": 0,
+      "seconds": 7.36,
+      "stdout_sha256": "93a05f75268d0a4981bca999c3d7bdceb4a8555b9181333cd34a8d0760cfaef9",
+      "log_exists": true,
+      "log_sha256": "874081144b613acfcab47c28039c1061af6e6bb21c76ce6399049386298dc278",
+      "response": "PROBE_UNAVAILABLE\n",
+      "proof_correct": false,
+      "tools": []
+    }
+  ],
+  "global_skills_canonical_manifest": {
+    "~/.gemini/config/skills": {
+      "exists": true,
+      "items": {
+        ".datacloud_skills_manifest": {
+          "sha256": "50b7d911236ba6a88492e62a229747eb2ea93601853af199f2ce8aae486b69f1",
+          "size": 3155
+        },
+        "accidental-data-loss-prevention": {
+          "directory": true
+        },
+        "accidental-data-loss-prevention/SKILL.md": {
+          "sha256": "82769e3c99fbbae081420ea62d6e3318eaf80b9c97da12a62c1cf97049826878",
+          "size": 1316
+        },
+        "ai-git-ignore-strategy": {
+          "directory": true
+        },
+        "ai-git-ignore-strategy/SKILL.md": {
+          "sha256": "35995222dc6fffffc9a691aeb2395ec59a93453958abbb57b110a890061603b6",
+          "size": 47448
+        },
+        "bigquery-data-transfer-service": {
+          "directory": true
+        },
+        "bigquery-data-transfer-service/scripts": {
+          "directory": true
+        },
+        "bigquery-data-transfer-service/scripts/bigquery_dts.py": {
+          "sha256": "df119b061911407d874ec62732fba3e7659b58dcd759eef444d82f379df0eb5c",
+          "size": 4984
+        },
+        "bigquery-data-transfer-service/SKILL.md": {
+          "sha256": "8b34bf814948ecbc1bc4fa4cd3aa1da829339efbf95347cbe75985665e78bb27",
+          "size": 7139
+        },
+        "building-data-apps": {
+          "directory": true
+        },
+        "building-data-apps/examples": {
+          "directory": true
+        },
+        "building-data-apps/examples/express_chat.ts": {
+          "sha256": "79ee5db7270cf6a8b3607b0bfea2d693c72daa192c8812ad1c9d849241dcd76a",
+          "size": 5108
+        },
+        "building-data-apps/examples/fastapi_chat.py": {
+          "sha256": "7dd0bf8bef98d24375362205e36705d256fc1a48d9b625a29718b428d35b3a09",
+          "size": 4774
+        },
+        "building-data-apps/examples/react_chat_panel.jsx": {
+          "sha256": "8e811a6e21d30ed2f0dd1ccb0c8b1acf712d82d2b1dbc639d22d81c06832242c",
+          "size": 11937
+        },
+        "building-data-apps/references": {
+          "directory": true
+        },
+        "building-data-apps/references/chat_integration.md": {
+          "sha256": "d5f8daaf7a040ef733fe0cdb1f25f95f48d71518e7b5bd87f159456989f862a5",
+          "size": 4389
+        },
+        "building-data-apps/references/react_framework.md": {
+          "sha256": "31c8abefb2dd0577bf979553f667a8015f1b645bac272f4e61b980d9a35a86aa",
+          "size": 10348
+        },
+        "building-data-apps/references/shared_design_system.md": {
+          "sha256": "aab74a43b3a3cd764d1c827dab484cb42a03e52607de27fba0f8935b10932f20",
+          "size": 1159
+        },
+        "building-data-apps/references/streamlit_framework.md": {
+          "sha256": "da541ad658b125d925a4e457d05775911f69c4e489d5c44e3bcd4fbb081b2b15",
+          "size": 8491
+        },
+        "building-data-apps/SKILL.md": {
+          "sha256": "a9153d270f9d50b3d265be48b778255f9b955fa0f1609c269220038d5880732f",
+          "size": 6317
+        },
+        "data-autocleaning": {
+          "directory": true
+        },
+        "data-autocleaning/scripts": {
+          "directory": true
+        },
+        "data-autocleaning/scripts/dataplex_scanner.py": {
+          "sha256": "c8ffbe895ead22329f07bd38c236dfd499f6313d652274e5848ddc7ce72b16c0",
+          "size": 7528
+        },
+        "data-autocleaning/SKILL.md": {
+          "sha256": "2d4339a699687f70e8ee87420fcb8a892b510aef1f5def97fa3f75dc8a33219e",
+          "size": 12134
+        },
+        "dataform-bigquery": {
+          "directory": true
+        },
+        "dataform-bigquery/SKILL.md": {
+          "sha256": "b08dc6fb0f31ee19b1ec681dfc31262443cbd247618e63adf36f7d5090ab94d8",
+          "size": 12302
+        },
+        "dbt-bigquery": {
+          "directory": true
+        },
+        "dbt-bigquery/SKILL.md": {
+          "sha256": "0cb1f9d102920836f4fda3bc1f9d508cf4e0ad0e9ded9292687495caf4234208",
+          "size": 11777
+        },
+        "developing-with-bigquery": {
+          "directory": true
+        },
+        "developing-with-bigquery/references": {
+          "directory": true
+        },
+        "developing-with-bigquery/references/ai-evaluate.md": {
+          "sha256": "5b195fc893ec4649577a32c410e9a1e1afb2c5f2ab7db41fb9eec0c05d1232b7",
+          "size": 2227
+        },
+        "developing-with-bigquery/references/ai-forecast.md": {
+          "sha256": "84279dbe6e2204a848e390815de00e4f394c582062fb55275891ca93dc398a11",
+          "size": 3055
+        },
+        "developing-with-bigquery/references/ai-generate-embedding.md": {
+          "sha256": "7f8522cc9973a71f79b952558bee03e4cdf5e15b48ddf2c24eb35606265b3092",
+          "size": 1685
+        },
+        "developing-with-bigquery/references/ai-generate-table.md": {
+          "sha256": "49de655028ca350182208605ee98792a4d38d329889c309012adf73b54f9e1c8",
+          "size": 3018
+        },
+        "developing-with-bigquery/references/BIGFRAMES.md": {
+          "sha256": "ae6de50874dbea7cc42e2716598ec6635987db81f5f7e39e258cf142a8214474",
+          "size": 2665
+        },
+        "developing-with-bigquery/references/BQML.md": {
+          "sha256": "b37051488fd00a06e285aad5593d80b393a8faa9102c49bceb9ebd865fbf2928",
+          "size": 1697
+        },
+        "developing-with-bigquery/references/ml-contribution-analysis.md": {
+          "sha256": "e6b4d0c705b437eebea236ab52d9caa5a4e7ed580dbfcc83ca6cf1c27b4d33ea",
+          "size": 4944
+        },
+        "developing-with-bigquery/references/OPTIMIZATION.md": {
+          "sha256": "2886f9ca72425730ab326b54015e76a17ed1cd7eebde670ef06525beff1665d7",
+          "size": 1407
+        },
+        "developing-with-bigquery/references/remote-models.md": {
+          "sha256": "58f7405ab59f6038222a5b95967739f41be568f736c22c9bd2240c307b6cd28e",
+          "size": 871
+        },
+        "developing-with-bigquery/references/vector-search.md": {
+          "sha256": "80c73327841576c2a5b220b4007354cf9a4e139fbd579f91f18fc651bdc7f4e6",
+          "size": 4147
+        },
+        "developing-with-bigquery/SKILL.md": {
+          "sha256": "3cb68b85d5a36274284a8913f0851aeae69aeef62045e94c3dbdf6c001ed573e",
+          "size": 2149
+        },
+        "discovering-gcp-data-assets": {
+          "directory": true
+        },
+        "discovering-gcp-data-assets/SKILL.md": {
+          "sha256": "558a0e0738a9d9448463193371400a3a82c6e17d24b6915cd35477f5329d3bd4",
+          "size": 9919
+        },
+        "federate-lakehouse-catalog": {
+          "directory": true
+        },
+        "federate-lakehouse-catalog/SKILL.md": {
+          "sha256": "5b3e2480a91c8fe92c92b26c14447d1415cc31794272160e4bcf90882baf58cf",
+          "size": 10330
+        },
+        "gcloud-auth-verification": {
+          "directory": true
+        },
+        "gcloud-auth-verification/SKILL.md": {
+          "sha256": "fcdd8ae4407ebc1cea71d06853decc9cebc356d4498b8b17347ecb6e9cce78b3",
+          "size": 1982
+        },
+        "gcp-composer-troubleshooting": {
+          "directory": true
+        },
+        "gcp-composer-troubleshooting/SKILL.md": {
+          "sha256": "5d9490d56980b30f29451a0e342b4a52420532c145e67dd1fa5488adf0e7e822",
+          "size": 9089
+        },
+        "gcp-data-pipelines": {
+          "directory": true
+        },
+        "gcp-data-pipelines/SKILL.md": {
+          "sha256": "9320eb3940628c68265fce533c8cc57a62626595cebf894e5c0855de5248fa9b",
+          "size": 9494
+        },
+        "gcp-dataflow": {
+          "directory": true
+        },
+        "gcp-dataflow/references": {
+          "directory": true
+        },
+        "gcp-dataflow/references/bottlenecks_and_parallelism_context.md": {
+          "sha256": "d04d12f0ad8fc481775f597525b53b3eaf7d98b031d2718c44bf9b7bc826994d",
+          "size": 5094
+        },
+        "gcp-dataflow/references/dataflow_diagnostics_reference.md": {
+          "sha256": "631979ecfe793cc3dcd64ed7719ae82ca4f386e11a2631dbf8b8c834a3923831",
+          "size": 3495
+        },
+        "gcp-dataflow/references/dataflow_metrics_bigquery.md": {
+          "sha256": "7a91f78acc2da1f5cd82d08a36eae39fdbcf324f1eb4f6962b5da1362a4502bd",
+          "size": 447
+        },
+        "gcp-dataflow/references/dataflow_metrics_core_job.md": {
+          "sha256": "e1f2e3bd4a18093fb27649fdcc26e7f22ff1438f6d8387ec35d21769cbfc3fea",
+          "size": 6915
+        },
+        "gcp-dataflow/references/dataflow_metrics_pubsub.md": {
+          "sha256": "3fd6710d0d75bb2857138cff821f430b09d1a93e886f2cc0810ad7ac214c8276",
+          "size": 3388
+        },
+        "gcp-dataflow/references/dataflow_metrics_streaming_engine.md": {
+          "sha256": "dea16eb4194737f8cb200142e9eb654fd79f1bbdc49e30a692f31ade4e9dd726",
+          "size": 5108
+        },
+        "gcp-dataflow/references/python_flex_template_reference.md": {
+          "sha256": "9c35060eccd8096d14be0137994bd650012ec3be0c87e92d66793ebc294f905e",
+          "size": 1933
+        },
+        "gcp-dataflow/references/streaming_horizontal_autoscaling_analysis.md": {
+          "sha256": "9f46bd512fb6589e58889e725d8352631f553f52eca7f29153f253051965b9bf",
+          "size": 4674
+        },
+        "gcp-dataflow/references/streaming_job_health.md": {
+          "sha256": "75cd1f44e27dedfcb453ca5585577027e403b503b88a70085ff6c1379a831e83",
+          "size": 2755
+        },
+        "gcp-dataflow/SKILL.md": {
+          "sha256": "9abf6cb8d9aaec574b8576bd41efe27a3c8d3b5079ff3a3328cd65298a1998ff",
+          "size": 21343
+        },
+        "gcp-pipeline-orchestration": {
+          "directory": true
+        },
+        "gcp-pipeline-orchestration/references": {
+          "directory": true
+        },
+        "gcp-pipeline-orchestration/references/orchestration-pipelines-schema.md": {
+          "sha256": "812ab0ff64f2274fd6473e59abde4ec2e2fe674c9f6271cb09cca476e8986f19",
+          "size": 14445
+        },
+        "gcp-pipeline-orchestration/scripts": {
+          "directory": true
+        },
+        "gcp-pipeline-orchestration/scripts/trigger": {
+          "directory": true
+        },
+        "gcp-pipeline-orchestration/scripts/trigger/airflow_trigger.py": {
+          "sha256": "f4122cf0245dd74cf259defd38de94597ee596ac0c6503a2555d9f050aeefeaf",
+          "size": 4582
+        },
+        "gcp-pipeline-orchestration/SKILL.md": {
+          "sha256": "496fb43d4b5f93f290ca545d44449804260444ed56b9cfd3cbbcd69b41ae79cf",
+          "size": 16979
+        },
+        "gcp-pipeline-resource-provisioning": {
+          "directory": true
+        },
+        "gcp-pipeline-resource-provisioning/references": {
+          "directory": true
+        },
+        "gcp-pipeline-resource-provisioning/references/gcp_pipeline_resource_provisioning_spec.md": {
+          "sha256": "6317e740d1bfae7fea202b4255bd50acfe73132c0ce25011409b82d4f7e5b241",
+          "size": 3362
+        },
+        "gcp-pipeline-resource-provisioning/SKILL.md": {
+          "sha256": "375d3a13d9fa91ee42b55ea5af7e57569c9ea702d46158573eec8f0055955ac9",
+          "size": 6528
+        },
+        "gcp-spark": {
+          "directory": true
+        },
+        "gcp-spark/references": {
+          "directory": true
+        },
+        "gcp-spark/references/gcloud_dataproc.md": {
+          "sha256": "7bc35ba7b0f8de377edb6e493dc678f9dcc6c1e84d21a5a2626bd81699118627",
+          "size": 7819
+        },
+        "gcp-spark/references/ml_tasks.md": {
+          "sha256": "8959f9d7ebc0c2ab20ae78348d967be64c4232da368a915c282d62478d6c54cf",
+          "size": 1895
+        },
+        "gcp-spark/references/read_write_data.md": {
+          "sha256": "68d132fa8a61b3e3e445a1ddde5584eeda1344098575729799cb61abbbb15abc",
+          "size": 13575
+        },
+        "gcp-spark/references/schema_direct_inspection.md": {
+          "sha256": "de064e628c2417edb266b0185edc6d4bcabd5e88b2938c97456b92b56aba9944",
+          "size": 595
+        },
+        "gcp-spark/references/spark_optimizations.md": {
+          "sha256": "0202c45a7e1467cb73e39a1224141b71f84741dbe0480dca627510f7a29d563e",
+          "size": 322
+        },
+        "gcp-spark/SKILL.md": {
+          "sha256": "fd9cc357a764832ca64570201ee45941e6a2b6be32073db66089ca02b6f6604e",
+          "size": 3892
+        },
+        "managing-python-dependencies": {
+          "directory": true
+        },
+        "managing-python-dependencies/SKILL.md": {
+          "sha256": "7ad459a5a8188fa0f2b8cf3e5e479825e7d7e93e1724750cd1707d896cbd7a05",
+          "size": 2757
+        },
+        "ml-best-practices": {
+          "directory": true
+        },
+        "ml-best-practices/SKILL.md": {
+          "sha256": "ae010fd52e6b29f9c18302c4bdb36ce444bfc5581a52a0e036ae1f0b6ab44473",
+          "size": 9805
+        },
+        "notebook-guidance": {
+          "directory": true
+        },
+        "notebook-guidance/SKILL.md": {
+          "sha256": "bddf53b2c3ab71eee53e83ef5c357adbe2f216ff324585f719da04e315a9862e",
+          "size": 15100
+        },
+        "skill-repair": {
+          "directory": true
+        },
+        "skill-repair/SKILL.md": {
+          "sha256": "7ed4b7eb5d82d14686967967159aa472869313bd9804ced44b16eab4884b7f00",
+          "size": 1777
+        },
+        "ui-ux-pro-max": {
+          "directory": true
+        },
+        "ui-ux-pro-max/data": {
+          "directory": true
+        },
+        "ui-ux-pro-max/data/app-interface.csv": {
+          "sha256": "331e7cf2c0b222d80c566c5f255c63cb339f65bfd02e471a720f28e4864a9f08",
+          "size": 11046
+        },
+        "ui-ux-pro-max/data/catalog-summary.json": {
+          "sha256": "65fe0b64480a8a827738297d0a64ca55c627d4afcb774fe4555c59cea8dd6905",
+          "size": 2392
+        },
+        "ui-ux-pro-max/data/charts.csv": {
+          "sha256": "4115cf1120680f2cedef0676cb648f30c7ef4699e2a947535d4113e71ed3b12a",
+          "size": 23365
+        },
+        "ui-ux-pro-max/data/colors.csv": {
+          "sha256": "8162429222bce22df62b564085946a30d07cc9722c58d0a3a494bd0d1d00841c",
+          "size": 37940
+        },
+        "ui-ux-pro-max/data/data-provenance.json": {
+          "sha256": "e82fb33ed49375a300e93d9c11ccd1c1493c999e84ee7ee295e527634786e2e0",
+          "size": 36686
+        },
+        "ui-ux-pro-max/data/google-font-licenses.json": {
+          "sha256": "35688523f2955795caa1a47c53b83099e60c1708461476f9cc3a050cf3b0148a",
+          "size": 433127
+        },
+        "ui-ux-pro-max/data/google-fonts.csv": {
+          "sha256": "1c8c3b2ea1faf6a1012da463756def8b3889db33f2226f0343bb4daa80307d03",
+          "size": 747241
+        },
+        "ui-ux-pro-max/data/icons.csv": {
+          "sha256": "50816c6012030178195a16ee481ebf58b47bd985d70e8ec58886cc83f6eddafc",
+          "size": 57945
+        },
+        "ui-ux-pro-max/data/landing.csv": {
+          "sha256": "9a2edd3bb676c2a58f00ade7a062e285222d4297bfd847c8d5b056f0dbbf52d0",
+          "size": 25449
+        },
+        "ui-ux-pro-max/data/motion.csv": {
+          "sha256": "381affe8df8ea1f66fbbda2598827f9f54299107bbe6a1b4e9b68f6b62091ceb",
+          "size": 14679
+        },
+        "ui-ux-pro-max/data/phosphor-icons-upstream.json": {
+          "sha256": "2399325233b277b5c97a80e6a5e8941154f5d057beee4e7613db87c87d700236",
+          "size": 823933
+        },
+        "ui-ux-pro-max/data/products.csv": {
+          "sha256": "42473f75e8dde5987bdf89ce55d8c168091b80a356cae691dd60247d80720b70",
+          "size": 75623
+        },
+        "ui-ux-pro-max/data/react-performance.csv": {
+          "sha256": "3d925802539abac5afeb63ae8aa1960b7229ad271b3a47caed40ab2d97ad0734",
+          "size": 15080
+        },
+        "ui-ux-pro-max/data/stacks": {
+          "directory": true
+        },
+        "ui-ux-pro-max/data/stacks/angular.csv": {
+          "sha256": "704be83f2bad30c7e6de01afb113ffa01e0c458762f48b7102f31ba2367b5553",
+          "size": 19863
+        },
+        "ui-ux-pro-max/data/stacks/astro.csv": {
+          "sha256": "2c2f55fadaafc05e04cc321c8194a1a28b656e6757fe2ba316f41b16428299c6",
+          "size": 14591
+        },
+        "ui-ux-pro-max/data/stacks/avalonia.csv": {
+          "sha256": "442fca14675a020683473e7e49f08abb27b9df0765c80efe54aef61f1a4ac258",
+          "size": 27327
+        },
+        "ui-ux-pro-max/data/stacks/flutter.csv": {
+          "sha256": "64dba0ac17349f28bce517a0f5f48c54d9ed2e487ec0c0258303463b382f41a0",
+          "size": 14192
+        },
+        "ui-ux-pro-max/data/stacks/html-tailwind.csv": {
+          "sha256": "d05a581d20af57b8ca0104a6d31d90a07c437d500662a96c3029fc2f9a4678ee",
+          "size": 16551
+        },
+        "ui-ux-pro-max/data/stacks/javafx.csv": {
+          "sha256": "2e819b8d5abdd23ad4dae0991650fdb57af497aabd68b37463aa9c442944c869",
+          "size": 33577
+        },
+        "ui-ux-pro-max/data/stacks/jetpack-compose.csv": {
+          "sha256": "699de218b286948eaec7d15767b6e1350ee299167e49bf476d82e3ff58724e0a",
+          "size": 12295
+        },
+        "ui-ux-pro-max/data/stacks/laravel.csv": {
+          "sha256": "854ea4daa5fc61292d22235ad33b49ba3fe22423c3de8d3cb03758ffed3b59f9",
+          "size": 20163
+        },
+        "ui-ux-pro-max/data/stacks/nextjs.csv": {
+          "sha256": "ecd2c27b2ea0127d203ae726060efcdd7335b5e83f96b99e4f3befbbfeebd5a4",
+          "size": 18687
+        },
+        "ui-ux-pro-max/data/stacks/nuxt-ui.csv": {
+          "sha256": "c36ee8470926b4a0748d241363c71664c9969c2edbc62f7f72de0db73880fac6",
+          "size": 24106
+        },
+        "ui-ux-pro-max/data/stacks/nuxtjs.csv": {
+          "sha256": "3d9b54ed2d151bd9c86e9e5609b8a6f88a00c4c52fa601a30af96c49b2c4d176",
+          "size": 23014
+        },
+        "ui-ux-pro-max/data/stacks/react-native.csv": {
+          "sha256": "ba31dd9c0c04da6bc02a74448bf121f9c0728ae5ba3b4d47b487778b0a1135b5",
+          "size": 14049
+        },
+        "ui-ux-pro-max/data/stacks/react.csv": {
+          "sha256": "2d2b9c198e875106a30f7ee68341a9ee0033cad60a7e130cf23152783e08aeda",
+          "size": 19036
+        },
+        "ui-ux-pro-max/data/stacks/shadcn.csv": {
+          "sha256": "e56cfde5b74907836ac3582a4779d5b7f3d206a702ab81b8669a1b668c3eeb51",
+          "size": 23184
+        },
+        "ui-ux-pro-max/data/stacks/svelte.csv": {
+          "sha256": "f6e379ba802941ba26b01d4ffbe3cd39120f2587659a1d93851c707f66bc13db",
+          "size": 15078
+        },
+        "ui-ux-pro-max/data/stacks/swiftui.csv": {
+          "sha256": "bdd9231ff3ad658f4e7c063e1eb49df2fd09ac8d90631a86df899b39833b9623",
+          "size": 15323
+        },
+        "ui-ux-pro-max/data/stacks/threejs.csv": {
+          "sha256": "97542e0ba34915a0ff7578be20e1619495df47c95c8c1c39b83e3785e1de771f",
+          "size": 46051
+        },
+        "ui-ux-pro-max/data/stacks/uno.csv": {
+          "sha256": "a0474363e4225b5367214d5675fd3e075f137026f9500f0d04357882ef4f6d48",
+          "size": 30091
+        },
+        "ui-ux-pro-max/data/stacks/uwp.csv": {
+          "sha256": "c409f08c1fbba1f1029f1acaa554e7b4471cc85517a5751c9f2e62465badcd5c",
+          "size": 24692
+        },
+        "ui-ux-pro-max/data/stacks/vue.csv": {
+          "sha256": "b655f1ebb9dff2652d15981f31b1784c8a6d4759efd2815a14f3088257569f95",
+          "size": 12813
+        },
+        "ui-ux-pro-max/data/stacks/winui.csv": {
+          "sha256": "e676dc1c13ee6c205c40b0746f1335150a346c7a49a0616d2545bc3d2c930c85",
+          "size": 27890
+        },
+        "ui-ux-pro-max/data/stacks/wpf.csv": {
+          "sha256": "9781a9950b20333637b30a02e498b7efca21b618a3eeb8665836f3ac6e974da7",
+          "size": 24158
+        },
+        "ui-ux-pro-max/data/styles.csv": {
+          "sha256": "a93a4d9d7025856575d7b7583bda020be9043013432c5af7c58af9dbdfb206b7",
+          "size": 149478
+        },
+        "ui-ux-pro-max/data/typography.csv": {
+          "sha256": "321fc446e89024488ebae96dda93efc4d2307bd8bddb240857ad51364f6782c8",
+          "size": 49997
+        },
+        "ui-ux-pro-max/data/ui-reasoning.csv": {
+          "sha256": "f0774dd741cecdad5eec842034bd6d5e9ea50e9f220a1910069748daa0bb8e9a",
+          "size": 77360
+        },
+        "ui-ux-pro-max/data/ux-guidelines.csv": {
+          "sha256": "ff81ec613f70ba9fc3fcce52dbe4ae35d44b2079dbe6dc066d2d6e38c28facd5",
+          "size": 27516
+        },
+        "ui-ux-pro-max/scripts": {
+          "directory": true
+        },
+        "ui-ux-pro-max/scripts/__pycache__": {
+          "directory": true
+        },
+        "ui-ux-pro-max/scripts/__pycache__/core.cpython-314.pyc": {
+          "sha256": "2167616dfe9b95fecab1e2b6845b08a0a00c0e17b9d50ee39209dc716bbd0965",
+          "size": 50524
+        },
+        "ui-ux-pro-max/scripts/__pycache__/design_system.cpython-314.pyc": {
+          "sha256": "6c35a4011c08a38448c1b6464cec21223ca5028fc0984aca74555f3bb4f5c7e1",
+          "size": 100114
+        },
+        "ui-ux-pro-max/scripts/__pycache__/reasoning_contract.cpython-314.pyc": {
+          "sha256": "4c1d300a511c14a902dffe46c35bfa13549138976e557be45c3b85c6c6497d7e",
+          "size": 8377
+        },
+        "ui-ux-pro-max/scripts/core.py": {
+          "sha256": "e544826963efefce3c59b65e18d83d92a5baf571f05458025bf1fa9021eced42",
+          "size": 41234
+        },
+        "ui-ux-pro-max/scripts/design_system.py": {
+          "sha256": "6a94743c3362c9c7e6d1450b94f4014d9ea752e7b4e151f6f0bdb217e0544bf7",
+          "size": 70937
+        },
+        "ui-ux-pro-max/scripts/reasoning_contract.py": {
+          "sha256": "b8bac1af82aa280d3e06f00aabaeac4337e632996b07fed874e2b6ee6e9c5913",
+          "size": 5824
+        },
+        "ui-ux-pro-max/scripts/search.py": {
+          "sha256": "8373e2dd2d560d9853ec116140de0e0d5bee45a6abe5e041173c84e1c36a7f87",
+          "size": 9123
+        },
+        "ui-ux-pro-max/scripts/tests": {
+          "directory": true
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures": {
+          "directory": true
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures/catalogs": {
+          "directory": true
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-api.json": {
+          "sha256": "22d8dc81a7d6827b7e8b64b53e7d184210fb9759e8e294e0d5133c81cc460176",
+          "size": 1079
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-catalog.json": {
+          "sha256": "c608ad5c4084ebc50a4bbbfb69ea2456c01fd5519c457e18410fffd250ae948f",
+          "size": 1772
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-existing.csv": {
+          "sha256": "4e0761b839dc6b2187a370e82eddc0aed8a7ff10c09e28dd814bb3656dac595b",
+          "size": 480
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-metadata.json": {
+          "sha256": "30bffc29ae348416a2de2f9c6c418e768e4578f136b0f4bac5d2f70124f2e9ba",
+          "size": 328
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-overrides.json": {
+          "sha256": "6243a48a4619986768c4628e2d0c98ff195beba71ba9be5df8f0c52fc6d90c0b",
+          "size": 97
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures/catalogs/icons-curated.csv": {
+          "sha256": "68362c9a700c13b96f000784a0198c1c7e117a7088a01c85744e44233038fe9d",
+          "size": 495
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-core.json": {
+          "sha256": "ae4d0bb076240824e1b643c2270d1f8cc0952a69502ec1e622b7dedd85b930bb",
+          "size": 571
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-package.json": {
+          "sha256": "500588c757d6de03e3d7e69b27a8b8b1f88ccf6bb0333e4c1e9b0d6a4f112475",
+          "size": 370
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-react-exports.json": {
+          "sha256": "d79f2ee0afdbc2f87776733e145df3538a16a25d7c2fba0056bb48295dad0ded",
+          "size": 87
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-react-package.json": {
+          "sha256": "1c57a1d76bcc0cdd3632d4c18b9c0e79576b4591df39831c9607e5d0eb4f2cec",
+          "size": 81
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures/relevance-baseline.json": {
+          "sha256": "38398452985116e74e31bd6bccca0f4decd1bbfe4eebc1ac99f7a1836baaf77f",
+          "size": 89436
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures/relevance-cases.json": {
+          "sha256": "e77d36eebbf6ddc2860946a02cdb659351da6c09f2688f1ed30939a418099646",
+          "size": 36734
+        },
+        "ui-ux-pro-max/scripts/tests/fixtures/relevance-thresholds.json": {
+          "sha256": "9d738e11c6b82fecc8d0946e7b38515518ded5ed3294a7eb19a021c4edb5b57d",
+          "size": 5079
+        },
+        "ui-ux-pro-max/scripts/tests/test_catalog_refresh.py": {
+          "sha256": "3e2ca5d12702318f641ae62d0c14f22a3bcc84d84e79b863c0e947d475604adb",
+          "size": 19466
+        },
+        "ui-ux-pro-max/scripts/tests/test_core.py": {
+          "sha256": "3527fe2f4b852f69f07c17ddc0d615d9a6e025c924e45a33985579a94a8d2118",
+          "size": 16680
+        },
+        "ui-ux-pro-max/scripts/tests/test_core_data_quality.py": {
+          "sha256": "3ffc6b4905c9ea26d7ac4527ab154d153584231aee71b2ae4bd017977fa09cc5",
+          "size": 8954
+        },
+        "ui-ux-pro-max/scripts/tests/test_data_contracts.py": {
+          "sha256": "0360d6e10080c0bca214f2b0bbad582ba50702a542ce21013351aca54938df3a",
+          "size": 19513
+        },
+        "ui-ux-pro-max/scripts/tests/test_design_system_mode.py": {
+          "sha256": "517ba1ba6195c94811126d1162139c51aff77fc68c3e320c7bb6c1e89e76bc9b",
+          "size": 7690
+        },
+        "ui-ux-pro-max/scripts/tests/test_native_desktop_stack_freshness.py": {
+          "sha256": "904f90bc6d364763673fa6067d98a4227d535760fa8b6d26abe22208176997ca",
+          "size": 8170
+        },
+        "ui-ux-pro-max/scripts/tests/test_relevance_evaluator.py": {
+          "sha256": "2fe56a4d6fe5fff15ff592274b0eeaba925146cefea6c0fa29d8f1b77c9aca1f",
+          "size": 8430
+        },
+        "ui-ux-pro-max/scripts/tests/test_style_taxonomy.py": {
+          "sha256": "cd14d0092e8a454d213aa104b53e4e70ba698491fa00fde9fdec5ca8a3d70011",
+          "size": 7425
+        },
+        "ui-ux-pro-max/scripts/tests/test_text_layout_resilience.py": {
+          "sha256": "b51d32ee8a15505b87cb81957fb2d1b385e041e8beb4463c311d236bfd29ebd4",
+          "size": 5874
+        },
+        "ui-ux-pro-max/scripts/tests/test_web_stack_freshness.py": {
+          "sha256": "becc5fa40e7516613d4e9930f226aa483e3796090c17cb16542c93d1927e680d",
+          "size": 7699
+        },
+        "ui-ux-pro-max/scripts/validate_data.py": {
+          "sha256": "718ad4cbb227436015c9c2bc80fc583d6ed738b01c1a940ef85e350780d99f58",
+          "size": 52064
+        },
+        "ui-ux-pro-max/SKILL.md": {
+          "sha256": "07c55b76043d0eb55156c4a9d2f15608c719e15c84e040d1100ac24840481a18",
+          "size": 28151
+        }
+      }
+    },
+    "~/.gemini/antigravity-cli/skills": {
+      "exists": false,
+      "items": {}
+    },
+    "~/.gemini/antigravity/skills": {
+      "exists": true,
+      "items": {
+        "ai-git-ignore-strategy": {
+          "directory": true
+        },
+        "ai-git-ignore-strategy/SKILL.md": {
+          "sha256": "35995222dc6fffffc9a691aeb2395ec59a93453958abbb57b110a890061603b6",
+          "size": 47448
+        }
+      }
+    }
+  },
+  "before_upgrade_equals_after": true,
+  "before_probe_equals_after": true,
+  "original_absolute_manifest_sha256": "0ee40e06f0fa17f6c222fcd0b28bb0e86856170bdc622fc0e0360f8547a839b3",
+  "published_manifest_sha256": "f70c1f6d535a29f705e971fb85abf2053bae32f8626ba104c75c43351c2122e5",
+  "manifest_hash_encoding": "SHA256 of UTF-8 JSON; ensure_ascii=false, sort_keys=true, separators=(comma,colon). Original hash uses Windows absolute root keys; published hash uses ~/ POSIX root keys.",
+  "scope": "Windows agy 1.2.14, print/plan CLI; unique probe names; no GUI or same-name precedence claim.",
+  "isolated_installer_validation": [
+    {
+      "platform": "powershell51",
+      "exit": 0,
+      "checks": [
+        {
+          "root": ".claude/skills",
+          "skill": "ai-git-ignore-strategy",
+          "variant": "claude",
+          "sha256": "f0052de5fa51a3dfdd45833e6bf2666c7606f8b709a2d67575da9959d85eac59"
+        },
+        {
+          "root": ".gemini/config/skills",
+          "skill": "ai-git-ignore-strategy",
+          "variant": "antigravity",
+          "sha256": "62ae9b5eeb6576bdd776c8dc187990c90b7937211bb1327f7c617bff63a8f40e"
+        },
+        {
+          "root": ".gemini/antigravity/skills",
+          "skill": "ai-git-ignore-strategy",
+          "variant": "antigravity",
+          "sha256": "62ae9b5eeb6576bdd776c8dc187990c90b7937211bb1327f7c617bff63a8f40e"
+        },
+        {
+          "root": ".agents/skills",
+          "skill": "ai-git-ignore-strategy",
+          "variant": "generic",
+          "sha256": "20416bee7ad0c960c9e764e634baa134f307174b2ae01be3aba9b8b2ef1363c9"
+        }
+      ],
+      "legacy_not_resurrected": true
+    },
+    {
+      "platform": "powershell7",
+      "exit": 0,
+      "checks": [
+        {
+          "root": ".claude/skills",
+          "skill": "ai-git-ignore-strategy",
+          "variant": "claude",
+          "sha256": "f0052de5fa51a3dfdd45833e6bf2666c7606f8b709a2d67575da9959d85eac59"
+        },
+        {
+          "root": ".gemini/config/skills",
+          "skill": "ai-git-ignore-strategy",
+          "variant": "antigravity",
+          "sha256": "62ae9b5eeb6576bdd776c8dc187990c90b7937211bb1327f7c617bff63a8f40e"
+        },
+        {
+          "root": ".gemini/antigravity/skills",
+          "skill": "ai-git-ignore-strategy",
+          "variant": "antigravity",
+          "sha256": "62ae9b5eeb6576bdd776c8dc187990c90b7937211bb1327f7c617bff63a8f40e"
+        },
+        {
+          "root": ".agents/skills",
+          "skill": "ai-git-ignore-strategy",
+          "variant": "generic",
+          "sha256": "20416bee7ad0c960c9e764e634baa134f307174b2ae01be3aba9b8b2ef1363c9"
+        }
+      ],
+      "legacy_not_resurrected": true
+    },
+    {
+      "platform": "bash",
+      "exit": 0,
+      "checks": [
+        {
+          "root": ".claude/skills",
+          "skill": "ai-git-ignore-strategy",
+          "variant": "claude",
+          "sha256": "f0052de5fa51a3dfdd45833e6bf2666c7606f8b709a2d67575da9959d85eac59"
+        },
+        {
+          "root": ".gemini/config/skills",
+          "skill": "ai-git-ignore-strategy",
+          "variant": "antigravity",
+          "sha256": "62ae9b5eeb6576bdd776c8dc187990c90b7937211bb1327f7c617bff63a8f40e"
+        },
+        {
+          "root": ".gemini/antigravity/skills",
+          "skill": "ai-git-ignore-strategy",
+          "variant": "antigravity",
+          "sha256": "62ae9b5eeb6576bdd776c8dc187990c90b7937211bb1327f7c617bff63a8f40e"
+        },
+        {
+          "root": ".agents/skills",
+          "skill": "ai-git-ignore-strategy",
+          "variant": "generic",
+          "sha256": "20416bee7ad0c960c9e764e634baa134f307174b2ae01be3aba9b8b2ef1363c9"
+        }
+      ],
+      "legacy_not_resurrected": true
+    }
+  ],
+  "global_registry_observation": [
+    {
+      "path": "~/.gemini/config/skills.json",
+      "exists": false
+    },
+    {
+      "path": "~/.gemini/antigravity-cli/skills.json",
+      "exists": false
+    }
+  ],
+  "official_document": {
+    "url": "https://antigravity.google/docs/skills.md",
+    "utf8_bytes": 6256,
+    "sha256": "3db1ead60d67823005aed8102c27c66e67308d721fdd07cb29861a696e082c48",
+    "fingerprint_basis": "Decoded UTF-8 official Markdown body with LF; independently refetched with curl --compressed on 2026-10-01.",
+    "saved_snapshot": {
+      "path": "<task-temp>/g5-official-skills.md",
+      "utf8_bytes": 6413,
+      "sha256": "c8e45370efd573c6a8233fea8f6d7558de0116b5f891573e8e05044444818e5b",
+      "crlf_count": 157,
+      "lf_normalized_equals_refetched_body": true
+    },
+    "correction_reason": "The old official_document hashed raw bytes of the Windows CRLF saved snapshot, while the Markdown record hashed the decoded LF body. The 157 extra CR bytes account for the size difference; the content is unchanged."
+  }
+}

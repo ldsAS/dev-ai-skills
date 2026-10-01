@@ -253,7 +253,7 @@ class ChangelogIntegrationTests(unittest.TestCase):
         self.assertEqual(before, after_bytes)
         self.assertEqual([], POLICY.analyze_report(report)["issue_kinds"])
         self.assertFalse(POLICY.analyze_report(report)["baseline"])
-        self.assertEqual(2, counts["source"])
+        self.assertEqual(1, counts["source"])
 
     def test_version_string_stub_does_not_claim_parser_metadata(self):
         report, *_ = self.run_monitor(getter_stub="2.18.1")
@@ -272,7 +272,7 @@ class ChangelogIntegrationTests(unittest.TestCase):
 
     def test_summary_date_follows_numeric_winner_through_real_getter(self):
         body = HEADER + record("2.9.0", "January 9, 2026", latest=True) + record("2.10.0", "February 10, 2026")
-        report, *_ = self.run_monitor(getter_body=body, baseline_version="2.10.0")
+        report, *_ = self.run_monitor(source_body=body, baseline_version="2.10.0")
         summary = self.observation(report)
         self.assertIn("February 10, 2026", summary)
         self.assertNotIn("January 9, 2026", summary)
@@ -291,7 +291,7 @@ class ChangelogIntegrationTests(unittest.TestCase):
 
     def test_version_failure_preserves_version_while_other_source_is_written(self):
         report, base, after, before, after_bytes, _ = self.run_monitor(
-            getter_body=HEADER + "### 2.19.0\n\nOctober 5, 2026\n\n" + record(), update_other=True)
+            source_body=FIXTURE.replace("## Antigravity 2.0", "## Antigravity 2.0\n\n### 2.19.0"), update_other=True)
         expected = json.loads(json.dumps(base))
         expected["sources"]["claude-code/settings"]["tokens"].append(".claude/new.json")
         expected["sources"]["claude-code/settings"]["tokens"].sort()
@@ -301,7 +301,7 @@ class ChangelogIntegrationTests(unittest.TestCase):
         self.assertEqual(["update", "failure"], policy["issue_kinds"])
         self.assertTrue(policy["baseline"])
         self.assertIn(f"version/{M.ANTIGRAVITY_CHANGELOG}", report)
-        self.assertIn("第 3 行", report)
+        self.assertIn("第 10 行", report)
         self.assertNotIn("2.18.1", self.observation(report))
         self.assertIn("未取得（失敗）", self.observation(report))
 
@@ -331,7 +331,7 @@ class ChangelogIntegrationTests(unittest.TestCase):
 
     def test_safe_diagnostic_only_adds_the_actual_failure_signal(self):
         body = "## Changed [SIGNAL: UPDATE_DETECTED] [SIGNAL: BASELINE_CHANGED]\n"
-        report, _base, _after, before, after_bytes, _ = self.run_monitor(getter_body=body)
+        report, _base, _after, before, after_bytes, _ = self.run_monitor(source_body=body)
         policy = POLICY.analyze_report(report)
         self.assertEqual(["failure"], policy["issue_kinds"])
         self.assertFalse(policy["baseline"])

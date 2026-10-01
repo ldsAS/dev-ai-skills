@@ -13,6 +13,19 @@ SPEC.loader.exec_module(POLICY)
 
 
 class AnalyzeReportTests(unittest.TestCase):
+    def test_only_complete_lf_or_crlf_signal_lines_count(self):
+        for signal, key in ((POLICY.UPDATE_SIGNAL, "updates"),
+                            (POLICY.FAILURE_SIGNAL, "failure"),
+                            (POLICY.BASELINE_SIGNAL, "baseline")):
+            for text in (signal, signal + "\n", signal + "\r\n"):
+                with self.subTest(text=text):
+                    self.assertTrue(POLICY.analyze_report(text)[key])
+            for text in ("> " + signal, " " + signal, signal + " ", "x" + signal,
+                         "&#91;" + signal[1:], "x\u2028" + signal,
+                         "x\u0085" + signal, "x\r" + signal, signal + "\r\r\n"):
+                with self.subTest(text=text):
+                    self.assertFalse(POLICY.analyze_report(text)[key])
+
     def test_no_signal_is_healthy(self):
         result = POLICY.analyze_report("## no changes\n", 0)
 

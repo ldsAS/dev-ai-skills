@@ -29,7 +29,7 @@ Repository customization uses `/.gemini/config.json` instead of `.agents/setting
 
 Latest
 
-September 28, 2026
+September 25, 2026
 
 Project custom agents in `.agents/agents/` have a discovery fix.
 Plugins directly in `~/.gemini/config/plugins` can need configuration before enabling.
@@ -44,7 +44,7 @@ Directory entries load immediate children, like `.agents/skills/`; nested entrie
 
 ### [v0.1.18](/download#antigravity-sdk "View release 0.1.18")
 
-September 28, 2026
+September 21, 2026
 
 ### Google Antigravity SDK release 0.1.2 updates
 
@@ -58,7 +58,7 @@ September 28, 2026
 
 ### [v2.5.5](/releases?tab=ide&version=2.5.5 "View release 2.5.5")
 
-September 28, 2026
+August 13, 2026
 
 ### [v2.99.0](/releases?tab=ide&version=2.99.0 "Synthetic larger IDE version")
 

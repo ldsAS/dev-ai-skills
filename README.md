@@ -77,8 +77,8 @@ cd dev-ai-skills
 | AI 工具 | 讀取路徑 | 安裝器寫入 | 帳本 |
 | :--- | :--- | :--- | :--- |
 | Claude Code | `~/.claude/skills/` | ✅ `claude` 版 | C-06 |
-| Antigravity CLI | `~/.gemini/config/skills/` | ✅ `antigravity` 版 | C-47 |
-| Antigravity IDE | `~/.gemini/antigravity/skills/` | ✅ `antigravity` 版 | C-48 |
+| Antigravity CLI | `~/.gemini/config/skills/` | ✅ `antigravity` 版 | C-110（CLI 1.2.14 已實測） |
+| Antigravity IDE | `~/.gemini/antigravity/skills/` | ✅ `antigravity` 版 | C-111（IDE 文件依據） |
 | Codex | `~/.agents/skills/` | ✅ `generic` 版 | C-12、C-64 |
 | Gemini CLI | `~/.agents/skills/` | ↑ **同一份**，不另外裝 | C-22 |
 | GitHub Copilot | `~/.agents/skills/` | ↑ **同一份**，不另外裝 | C-77 |

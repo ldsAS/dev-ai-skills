@@ -72,7 +72,8 @@ jobs:
               echo "## ❌ 檢查腳本以非 0 狀態結束 (exit $exit_code)"
               echo
               echo '```'
-              tail -c 3000 stderr.txt
+              tail -c 3000 stderr.txt | sed 's/^/stderr: /'
+              echo
               echo '```'
             } >> report.md
           fi
@@ -82,6 +83,7 @@ jobs:
             --report report.md \
             --exit-code "$exit_code" \
             --github-output "$GITHUB_OUTPUT"
+          cp report.md report-rules.md
 
       # AI 只負責「摘要」，不參與偵測。偵測結論一律由上一步的規則式比對決定，
       # 這樣「今天為什麼沒告警」永遠可以靠 tests/ 重現。本步驟壞掉不影響告警。
@@ -164,12 +166,15 @@ jobs:
           cat report.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Notify via GitHub Issues
+        id: notify
         if: >-
           always() && steps.mode.outputs.dry_run == 'false' && steps.check.outcome == 'success' &&
           (steps.check.outputs.updates == 'true' || steps.check.outputs.failure == 'true')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OWNER: ${{ github.repository_owner }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           ISSUE_KINDS: ${{ steps.check.outputs.issue_kinds }}
         run: |
@@ -181,27 +186,39 @@ jobs:
             echo "CC: @$OWNER"
           } >> report.md
 
-          gh issue list --state open --limit 1000 --json number,title,state > open-issues.json
-
           # updates 與 failure 是獨立狀態；同時發生時兩類 issue 都必須收到報告。
-          for kind in $ISSUE_KINDS; do
-            case "$kind" in
-              update) TITLE="🚨 偵測到 AI 工具路徑與機制異動" ;;
-              failure) TITLE="⚠️ AI 工具異動檢查失敗" ;;
-              *) echo "::error::未知的 issue 類型：$kind"; exit 1 ;;
-            esac
-
+          # 此函式在條件中呼叫，bash -e 不會替它中止；每個必要命令明確傳回失敗。
+          notify_failure() {
+            TITLE="⚠️ AI 工具異動檢查失敗"
+            gh issue list --state open --limit 1000 --json number,title,state > open-issues.json || return $?
             python scripts/monitor_ci_policy.py targets \
-              --issues open-issues.json --title "$TITLE" > matching-issues.txt
-            EXISTING=$(head -n 1 matching-issues.txt)
+              --issues open-issues.json --title "$TITLE" > matching-issues.txt || return $?
+            EXISTING=$(head -n 1 matching-issues.txt) || return $?
 
             if [ -n "$EXISTING" ]; then
-              gh issue comment "$EXISTING" --body-file report.md
+              gh issue comment "$EXISTING" --body-file report.md || return $?
               echo "已在既有 issue #$EXISTING 追加留言"
             else
-              gh issue create --title "$TITLE" --body-file report.md --assignee "$OWNER"
+              gh issue create --title "$TITLE" --body-file report.md --assignee "$OWNER" || return $?
             fi
+          }
+
+          NOTIFY_EXIT=0
+          for kind in $ISSUE_KINDS; do
+            case "$kind" in
+              update)
+                if ! python scripts/monitor_notifications.py --repo "$REPOSITORY" --run-id "$RUN_ID" \
+                  --owner "$OWNER" --report report.md --rules report-rules.md; then
+                  NOTIFY_EXIT=1
+                fi ;;
+              failure)
+                if ! notify_failure; then
+                  NOTIFY_EXIT=1
+                fi ;;
+              *) echo "::error::未知的 issue 類型：$kind"; NOTIFY_EXIT=1 ;;
+            esac
           done
+          exit "$NOTIFY_EXIT"
 
       - name: Close recovered failure Issues
         if: >-
@@ -226,7 +243,9 @@ jobs:
       - name: Commit baseline update
         if: >-
           always() && steps.mode.outputs.dry_run == 'false' && steps.check.outcome == 'success' &&
-          steps.check.outputs.baseline == 'true'
+          steps.check.outputs.baseline == 'true' &&
+          ((steps.check.outputs.updates == 'false' && steps.check.outputs.failure == 'false') ||
+          steps.notify.outcome == 'success')
         run: |
           if git diff --quiet -- scripts/last_checked.json; then
             echo "基準線內容無實際變更，略過 commit"

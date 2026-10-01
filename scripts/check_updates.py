@@ -33,8 +33,9 @@ import urllib.error
 import urllib.request
 import zlib
 from datetime import date
+from html.parser import HTMLParser
 from typing import NamedTuple
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, urljoin, urlsplit
 
 # Windows 主控台預設可能是 cp950／cp1252；本腳本的 Markdown 報告包含
 # ↔、⚠️、❌ 等字元。若不先固定輸出編碼，檢查邏輯即使成功也會在 print 階段崩潰，
@@ -54,7 +55,7 @@ USER_AGENT = "Mozilla/5.0 (compatible; dev-ai-skills-watch/2.0; +https://github.
 TIMEOUT = 25
 RETRIES = 3
 
-# 路徑監控與產品版本使用同一正式 Markdown URL，但各自抓取一次。
+# 路徑監控與產品版本共用當輪此 URL 的原文／失敗結果。
 ANTIGRAVITY_CHANGELOG = "https://antigravity.google/docs/changelog.md"
 
 # --------------------------------------------------------------------------
@@ -199,6 +200,44 @@ def normalize(body):
     return body
 
 
+def redirect_diagnostic(body, source_url):
+    """只解讀已取得的 HTML；目標是未驗證的文件宣告，絕不跟隨。"""
+    class RefreshParser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.entries = []
+
+        def handle_starttag(self, tag, attrs):
+            if tag != 'meta':
+                return
+            values = dict(attrs)
+            if (values.get('http-equiv') or '').strip().lower() == 'refresh':
+                # 重複屬性沒有唯一解釋，不任選第一／最後一個。
+                self.entries.append(None if len(values) != len(attrs) else values.get('content'))
+
+    parser = RefreshParser()
+    parser.feed(body)
+    targets = []
+    for content in parser.entries:
+        match = re.fullmatch(r'\s*\d+(?:\.\d+)?\s*;\s*url\s*=\s*(.*?)\s*', content or '', re.I)
+        target = match.group(1) if match else ''
+        if len(target) >= 2 and target[0] == target[-1] and target[0] in "\"'":
+            target = target[1:-1]
+        try:
+            resolved = urljoin(source_url, target)
+            url = urlsplit(resolved)
+            valid = (bool(target) and not re.search(r'[\s\x00-\x1f\x7f]', target) and
+                     url.scheme in ('https', 'http') and bool(url.hostname) and
+                     url.username is None and url.password is None)
+        except ValueError:
+            valid = False
+        targets.append(resolved if valid else '無效／不安全目標：' + (content or '缺少 content／屬性重複'))
+    if not targets:
+        return ''
+    status = '歧義（多個宣告），' if len(targets) > 1 else ''
+    return '；文件宣告的導向目標（未另行取證）：' + status + '、'.join(targets)
+
+
 def iter_token_matches(text):
     """逐一回傳清理後的 token 與原文 match span。"""
     for match in TOKEN_RE.finditer(text):
@@ -293,12 +332,19 @@ def _claim_paths(cell):
     return paths
 
 
+def is_current_claim(status):
+    """歷史列只供追溯；有疑保留，不從主張散文猜正向／負向。"""
+    status = status.strip()
+    return status != "移出範圍" and not re.fullmatch(r"被取代(?:\s*→\s*C-\d+)?", status)
+
+
 def load_claims():
     """讀取路徑主張帳本；讀不到就回空清單，監控本身不受影響。"""
     if not os.path.exists(CLAIMS_PATH):
         return []
     try:
-        text = open(CLAIMS_PATH, encoding="utf-8").read()
+        with open(CLAIMS_PATH, encoding="utf-8") as handle:
+            text = handle.read()
     except OSError:
         return []
     claims = []
@@ -306,7 +352,7 @@ def load_claims():
         cid, path_cell, brief, _basis, dated, _version, status = match.groups()
         # 已移出維護範圍者不參與比對，也不列入涵蓋率 ——
         # 它們保留在帳本裡只是歷史紀錄，算進盲區會讓報表失真。
-        if status.strip() == "移出範圍":
+        if not is_current_claim(status):
             continue
         paths = _claim_paths(path_cell)
         if not paths:
@@ -341,6 +387,8 @@ def claims_for_token(token, claims):
     value = _norm_path(token)
     hits = []
     for claim in claims:
+        if not is_current_claim(claim.get("status", "")):
+            continue
         for path in claim["paths"]:
             if value == path:
                 hits.append(claim)
@@ -373,14 +421,14 @@ class AntigravityRelease(NamedTuple):
 
 
 def report_text(value, limit=240):
-    """新增診斷／摘要用的單行文字；不改動現有 CI 訊號辨識政策。
+    """外部顯示文字單行化；limit=None 保留完整 context 視窗。
 
     先壓平控制字元與空白、限制文字長度，再 escape HTML、方括號及反引號。
     原始報告因而不含外部輸入的 [SIGNAL: 標記或可跳出顯示範圍的換行。
     """
     text = re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", str(value))
     text = " ".join(text.split())
-    if len(text) > limit:
+    if limit is not None and len(text) > limit:
         text = text[:limit] + "…（已截斷）"
     return (html.escape(text).replace("[", "&#91;").replace("]", "&#93;")
             .replace("`", "&#96;"))
@@ -415,7 +463,7 @@ def _changelog_visible_lines(lines):
 
 def parse_antigravity_changelog(body):
     """只選產品區段的最高 X.Y.Z；任何可辨識的損壞記錄都要可見失敗。"""
-    lines = body.splitlines()
+    lines = [line.removesuffix("\r") for line in body.split("\n")]
     if re.match(r"(?i)\s*(?:<!doctype\s+html|<html\b)", body):
         raise _changelog_error("預期 Markdown，卻收到 HTML／轉向頁", 1,
                                lines[0] if lines else "")
@@ -486,9 +534,9 @@ def parse_antigravity_changelog(body):
     return max(releases, key=lambda release: tuple(map(int, release.version.split("."))))
 
 
-def fetch_antigravity_version():
+def fetch_antigravity_version(fetcher=None):
     """回傳本輪產品發行記錄；來源或格式失敗沿用 main 的 CHECK_FAILED 路徑。"""
-    return parse_antigravity_changelog(fetch(ANTIGRAVITY_CHANGELOG))
+    return parse_antigravity_changelog((fetcher or fetch)(ANTIGRAVITY_CHANGELOG))
 
 
 def version_key(version, level):
@@ -540,7 +588,7 @@ def report_coverage():
     if blind:
         print("## ⚠️ 監控盲區（路徑異動不會被自動偵測）\n")
         for claim, _ in blind:
-            print(f"- **{claim['id']}** `{claim['label']}` — 狀態 {claim['status']}")
+            print(f"- **{claim['id']}** `{report_text(claim['label'])}` — 狀態 {report_text(claim['status'])}")
         print()
 
     print("## ✅ 有監控涵蓋\n")
@@ -573,10 +621,26 @@ def main():
     failures = []      # (label, reason)
     bootstrapped = []  # 首次納入監控的來源
 
+    # 生命周期只在這一次 main()：失敗也共用，避免兩個消費者各重試三次。
+    changelog_result = {}
+
+    def source_body(url):
+        if url != ANTIGRAVITY_CHANGELOG:
+            return fetch(url)
+        if not changelog_result:
+            try:
+                changelog_result['body'] = fetch(url)
+            except Exception as exc:
+                changelog_result['error'] = exc
+        if 'error' in changelog_result:
+            raise changelog_result['error']
+        return changelog_result['body']
+
     for tool, source, url in SOURCES:
         key = f"{tool}/{source}"
         try:
-            text = normalize(fetch(url))
+            raw = source_body(url)
+            text = normalize(raw)
         except Exception as exc:  # noqa: BLE001
             failures.append((key, str(exc)))
             # 抓取失敗時保留舊基準，下次再檢查，避免誤判為「路徑消失」
@@ -589,7 +653,7 @@ def main():
 
         if not tokens and len(previous) >= EMPTY_SUSPICION_THRESHOLD:
             failures.append((key, f"抓取成功但一個路徑都沒抽到（基準線原有 {len(previous)} 個），"
-                                  f"疑似頁面改版或內容未載入，本次保留舊基準"))
+                                  f"疑似頁面改版或內容未載入，本次保留舊基準" + redirect_diagnostic(raw, url)))
             new_sources[key] = baseline_sources[key]
             continue
 
@@ -612,7 +676,7 @@ def main():
     version_sources = [(tool, pkg, lambda p=pkg: fetch_npm_version(p))
                        for tool, pkg in NPM_PACKAGES.items()]
     version_sources.append(("antigravity", ANTIGRAVITY_CHANGELOG,
-                            fetch_antigravity_version))
+                            lambda: fetch_antigravity_version(fetcher=source_body)))
 
     for tool, label, getter in version_sources:
         try:
@@ -644,7 +708,7 @@ def main():
         if is_bootstrap:
             lines.append("偵測到舊版 schema，已重新建立路徑基準線（本次不告警）。")
         for key, count in bootstrapped:
-            lines.append(f"- `{key}`：納入監控，記錄 {count} 個路徑 token")
+            lines.append(f"- `{report_text(key)}`：納入監控，記錄 {count} 個路徑 token")
         lines.append("")
 
     if changes:
@@ -685,15 +749,15 @@ def main():
                         "**不代表其下各主張失效**；請確認其他來源是否仍涵蓋該目錄（C-99）")
 
         def _srcs(keys):
-            return "、".join(f"`{k}`" for k in keys)
+            return "、".join(f"`{report_text(k)}`" for k in keys)
 
         for tool, source, added, removed, text in changes:
             key = f"{tool}/{source}"
-            lines.append(f"### `{tool}` — {source}")
+            lines.append(f"### `{report_text(tool)}` — {report_text(source)}")
             lines.append("")
             for token in removed:
                 tag, hits = _tag(token)
-                lines.append(f"- ❌ **消失**：`{token}`" + (f" →{tag}" if tag else ""))
+                lines.append(f"- ❌ **消失**：`{report_text(token)}`" + (f" →{tag}" if tag else ""))
                 elsewhere = _other_sources(token, verified_sources, key)
                 if elsewhere:
                     lines.append(f"  > ℹ️ **此路徑目前仍出現在** {_srcs(elsewhere)}："
@@ -702,13 +766,13 @@ def main():
                 if is_single_segment(token):
                     lines.append(segment_note)
                 for c in hits:
-                    affected.setdefault(c["id"], (c, []))[1].append(f"`{token}` 消失")
+                    affected.setdefault(c["id"], (c, []))[1].append(f"`{report_text(token)}` 消失")
             for token in added:
                 context = context_for(text, token)
                 tag, hits = _tag(token)
-                lines.append(f"- ✅ **新增**：`{token}`" + (f" →{tag}" if tag else ""))
+                lines.append(f"- ✅ **新增**：`{report_text(token)}`" + (f" →{tag}" if tag else ""))
                 if context:
-                    lines.append(f"  > {context}")
+                    lines.append(f"  > {report_text(context, limit=None)}")
                 elsewhere = _other_sources(token, baseline_sources, key)
                 if elsewhere:
                     lines.append(f"  > ℹ️ **此路徑在本次之前已存在於** {_srcs(elsewhere)}："
@@ -717,9 +781,9 @@ def main():
                 if is_single_segment(token):
                     lines.append(segment_note)
                 for c in hits:
-                    affected.setdefault(c["id"], (c, []))[1].append(f"`{token}` 新增")
+                    affected.setdefault(c["id"], (c, []))[1].append(f"`{report_text(token)}` 新增")
                 if claims and not hits:
-                    orphan_tokens.append(f"{tool}/{source}: `{token}`")
+                    orphan_tokens.append(f"{report_text(tool)}/{report_text(source)}: `{report_text(token)}`")
             lines.append("")
 
         if affected:
@@ -729,11 +793,11 @@ def main():
                          "請依 `verification/CLAIMS.md` 重新確認，必要時新增一列並將舊列標為「被取代」。")
             lines.append("")
             for cid, (claim, reasons) in sorted(affected.items()):
-                lines.append(f"- **{cid}** `{claim['label']}` — 狀態 {claim['status']}"
-                             f"，取證日 {claim['date']}")
+                lines.append(f"- **{cid}** `{report_text(claim['label'])}` — 狀態 {report_text(claim['status'])}"
+                             f"，取證日 {report_text(claim['date'])}")
                 lines.append(f"  - 觸發：{'、'.join(sorted(set(reasons)))}")
                 if claim["brief"]:
-                    lines.append(f"  - 原主張：{claim['brief']}")
+                    lines.append(f"  - 原主張：{report_text(claim['brief'])}")
             lines.append("")
 
         if orphan_tokens:
@@ -751,7 +815,7 @@ def main():
         lines.append("")
         for tool, label, old, new, level in version_alerts:
             scope = "主版號" if level == "major" else "次版號"
-            lines.append(f"- **{tool}**：`{old}` → `{new}`（{scope}變動；來源 {label}）")
+            lines.append(f"- **{tool}**：`{report_text(old)}` → `{report_text(new)}`（{scope}變動；來源 {report_text(label)}）")
         lines.append("")
         if any(level == "major" for _tool, _label, _old, _new, level in version_alerts):
             lines.append("> ⚠️ **主版號跨越是低頻人工複驗訊號，不代表機制一定變更。** "
@@ -769,7 +833,7 @@ def main():
         lines.append("以下來源本次未能取得，**不代表沒有異動**，基準線已保留待下次重試。")
         lines.append("")
         for label, reason in failures:
-            lines.append(f"- `{label}`：{reason}")
+            lines.append(f"- `{report_text(label)}`：{report_text(reason)}")
         lines.append("")
 
     if not has_update and not failures and not (is_bootstrap or bootstrapped):
@@ -785,7 +849,7 @@ def main():
         lines.append("以下差異是相對上次有意義 baseline 的累積值；不會因這些版本變化單獨寫回基準線。")
         lines.append("")
         for tool, old, new in version_notes:
-            lines.append(f"- {tool}: `{old}` → `{new}`")
+            lines.append(f"- {tool}: `{report_text(old)}` → `{report_text(new)}`")
         lines.append("")
         lines.append("</details>")
         lines.append("")
@@ -795,7 +859,7 @@ def main():
     for tool, label, observation, missing in version_observations:
         if isinstance(observation, AntigravityRelease):
             value = (f"`{report_text(observation.version)}`（{report_text(observation.released_on)}；"
-                     f"區段 {report_text(observation.section)}；發行標題第 {observation.line} 行）")
+                     f"區段 {report_text(observation.section)}；發行標題第 {report_text(observation.line)} 行）")
         elif observation:
             value = f"`{report_text(observation)}`"
         else:
@@ -839,7 +903,8 @@ if __name__ == "__main__":
         import traceback
         print("## ❌ 檢查腳本未預期地中止\n")
         print("```")
-        traceback.print_exc(file=sys.stdout)
+        for line in traceback.format_exc().split("\n"):
+            print("diagnostic: " + report_text(line, limit=None))
         print("```")
         print("\n[SIGNAL: CHECK_FAILED]")
         sys.exit(1)

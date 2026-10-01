@@ -7,6 +7,7 @@ on:
       - 'scripts/check_updates.py'
       - 'scripts/last_checked.json'
       - 'scripts/monitor_ci_policy.py'
+      - 'scripts/monitor_notifications.py'
       - 'tests/**'
       - '.github/workflows/check-updates.yml'
       - '.github/workflows/verify-monitor.yml'
@@ -15,6 +16,7 @@ on:
       - 'scripts/check_updates.py'
       - 'scripts/last_checked.json'
       - 'scripts/monitor_ci_policy.py'
+      - 'scripts/monitor_notifications.py'
       - 'tests/**'
       - '.github/workflows/check-updates.yml'
       - '.github/workflows/verify-monitor.yml'
@@ -37,7 +39,7 @@ jobs:
           python-version: '3.11'
 
       - name: Compile monitor scripts
-        run: python -m py_compile scripts/check_updates.py scripts/monitor_ci_policy.py
+        run: python -m py_compile scripts/check_updates.py scripts/monitor_ci_policy.py scripts/monitor_notifications.py
 
       - name: Run monitor regression tests
         run: |
