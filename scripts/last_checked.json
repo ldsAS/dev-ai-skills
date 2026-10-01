@@ -4,12 +4,14 @@
     "claude-code": "2.1.286",
     "codex": "0.159.3",
     "gemini-cli": "0.62.0",
-    "antigravity": "2.17.0"
+    "antigravity": "2.19.1"
   },
   "sources": {
     "antigravity/changelog": {
       "tokens": [
+        ".agents/agents/",
         ".agents/settings.json",
+        ".agents/skills/",
         ".antigravitycli",
         ".antigravitycli/",
         ".antigravityignore",
@@ -25,6 +27,7 @@
         "~/.gemini/antigravity-cli/settings.json",
         "~/.gemini/config/",
         "~/.gemini/config/hooks.json",
+        "~/.gemini/config/plugins",
         "~/.gemini/config/projects/"
       ]
     },

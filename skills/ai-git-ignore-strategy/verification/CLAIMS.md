@@ -166,13 +166,24 @@
 > 路徑標籤仍維持「現行全域佈局／遷移前佈局」，但理由與版本無關：
 > `~/.gemini/config/.migrated` 是可直接觀察的分界證據，比版本號更貼近實際行為（C-47、C-48）。
 >
-> 此版本號現已納入自動監控：**次版號跳動即告警**，作為重跑實機交接的觸發訊號。
+> 上述版號與「次版號跳動即告警」屬 2026-08-03 歷史快照。現行監控採 **major 門檻**；
+> 2026-09-30 changelog 修復只解析產品區段，CLI／SDK／IDE 不混入此版本欄，見下方本輪補證與 README。
 
 | C-114 | `.agent/skills/`、`.agents/skills/` | 取代 C-81 的「官方未提及 skills」現行判斷。2026-09-22 官方整合 skills 頁明示預設使用 `.agents/skills` 並相容 `.agent/skills`；此段為總述，未逐 surface 說明版本或優先序，因此不能代替各 runtime 的 discovery 實測。保留 C-81 的 agy 1.0.13 歷史取證。五版既有 `.agent/skills/` 規則不變，只修正依據註解；CLI 全域路徑 C-110 仍有疑 | [官方 skills](https://antigravity.google/docs/skills.md)；SHA 與 surface 核對見 [M1](./rounds/2026-09-22-codex.m1.md) | 2026-09-22 | 文件快照；未執行 runtime | 已驗證 |
 
 | C-115 | `.agents/AGENTS.md`、`.agents/GEMINI.md`、`.agents/rules.json` | 取代 C-41 的無版本限制否定。現行官方 Rules 的一般目錄層段落列出前兩檔；`rules.json` 可登記巢狀 rules 與共用設定，未登記的巢狀 `.md` 不在預設平坦掃描範圍。五版精準放行三檔。**分享殘留風險**：官方範例用 `../` 引用共用規則，須核對實際解析位置與隊友環境可用性；`../` 本身不保證指 repo 外。若內容含私人絕對路徑，提交前調整或精準排除，不把放行當成整份適合分享的保證。**只驗證文件及 Git 規則，未驗證各 surface／版本 runtime；歷史觀察保留 C-41。** | [官方 Rules](https://antigravity.google/docs/rules.md)＋五版 Git 邊界測試；來源指紋與分類見 [09-24 實作](./rounds/2026-09-24-codex.rules-followup-implementation.md) | 2026-09-24 | 文件快照（產品 2.17.0 時期）；未執行 runtime | 已驗證 |
 | C-116 | `.gemini/config.json` | 取代 C-42 的無版本限制否定。產品 2.17.0 公告說 repository customization 改讀此檔，舊 `.agents/settings.json` 不再讀取；不推定中間版本或 CLI 1.x 支援情況。公告提到 `personal_customization_dir`，完整內容未必適合共享，因此五版預設排除，提供註解式 opt-in；先看內容及專案分享政策。**不新增巢狀 config 排除**：本輪只有 repo 根目錄用途依據；與 C-117 已有逐字 prompt 性質證據的防禦政策不同，不為形式對稱擴大規則。 | [官方 changelog 2.17.0](https://antigravity.google/changelog)＋五版預設／opt-in Git 邊界測試 | 2026-09-24 | 產品 2.17.0 文件；未驗證 CLI／runtime | 已驗證 |
 | C-117 | `apps/web/.agents/ORIGINAL_REQUEST.md`、`apps/web/.agents/x/ORIGINAL_REQUEST.md` | **防禦性追蹤政策，非 runtime 寫入主張**：C-55 的逐字 prompt 性質與現行目錄層 `.agents/` 用途，支持用 `**/.agents/**/ORIGINAL_REQUEST.md` 排除同名檔。未取得工具在 monorepo 子目錄寫入的證據。保留根目錄兩條既有防護；啟用 rules／skills／plugins／agents 白名單時亦應排除 prompt。`docs/ORIGINAL_REQUEST.md`、相似目錄及 `.example` 檔不受此規則影響。 | C-55 歷史證據＋C-115 文件範圍＋五版 Git 邊界與 opt-in 測試 | 2026-09-24 | 政策／Git 實測；子目錄寫入未驗 | 已驗證 |
+
+| C-118 | `.agents/skills/` | **Antigravity CLI 1.2.10 文件的載入語意**：公告以此目錄作對照，說明 `skills.json`、`rules.json`、`agents.json`、`plugins.json` 的目錄登記改成只載入直接子項；巢狀項目須以 `include_only` 指定。這些單獨檔名不推導成完整路徑；Git 放行不等於 runtime 會遞迴探索。僅驗證公告，未執行 CLI；不修改五版範本。`.agents/skills.json` 的位置與分享政策另由 #21 處理 | [官方 changelog CLI 1.2.10](https://antigravity.google/docs/changelog.md)；下方短摘錄及 [本輪紀錄](./rounds/2026-09-29-codex.changelog-recovery-implementation.md) | 2026-09-30 | CLI 1.2.10 公告；非 runtime | 已驗證 |
+
+### 2026-09-30 changelog 補證（保留歷史與未決項）
+
+取證來源：[整合 changelog](https://antigravity.google/docs/changelog.md)，正文 hash 及逐 token 比較見 [實作紀錄](./rounds/2026-09-29-codex.changelog-recovery-implementation.md)。三個新增 token 在其他來源已有對應，這次分類關注新增公告的語意。
+
+- **C-54／C-87**：CLI 1.2.11 的 `.agents/agents/` 修復摘錄為 “not being found or selectable”，涉及 Desktop 建立／信任的工作區、指定 agent 與 headless 等情境。此為現行 discovery 修復的相關文件證據，不能補證 agy 1.0.13 歷史 JSON 欄位、目錄完整內容或官方團隊分享定位；註解式白名單維持。
+- **C-118**：CLI 1.2.10 的目錄登記摘錄為 “only the items directly inside the directory”。巢狀內容可能需要 `include_only`，此語意變更不能只靠路徑 token 集合監控，需人工追蹤。
+- **C-110 相關資料點**：CLI 1.2.11 說直接放在 `~/.gemini/config/plugins`、且 MCP 需要設定變數的外掛 “starts disabled until you enable it”。屬家目錄 plugins 啟用政策，不是 skills discovery 或實際載入驗證；**C-110 維持有疑、installer 不變**。
 
 ## 跨工具
 
@@ -302,6 +313,7 @@
 
 | 日期 | 工具 | 涵蓋項目 | 交接包 | 回覆 |
 | :--- | :--- | :--- | :--- | :--- |
+| 2026-09-30 | Codex changelog 修復 | #20、N1～N4、#15 分類、C-118 | [計畫](./rounds/2026-09-29-codex.changelog-recovery-plan.md) | [實作與驗收紀錄](./rounds/2026-09-29-codex.changelog-recovery-implementation.md)；本機修復，正式恢復待發布後驗證；C-110／#21 保留後續 |
 | 2026-09-23 | Codex 整合與 P2 修正 | PR #14／#17／M1 的後續待修項 | [收尾紀錄](./rounds/2026-09-23-codex.m0-followup.md) | 95 列主張保留；「目前仍存在」只接受本輪成功來源，失敗 baseline 保留、異動與 CHECK_FAILED 訊號不變；55 項測試通過；同輪 live 新增兩個 changelog token 已分類為 C-108／C-113 的佐證 |
 | 2026-09-22 | Codex M0 審查與 M1 本機實作 | 來源搬遷、C-105 雙路徑、dry-run 隔離 | [Claude M1 交接](./rounds/2026-09-22-claude.to-codex-m1.md)（原件保留） | [M1 驗收](./rounds/2026-09-22-codex.m1.md)：28 來源／344 token；新增 C-112～C-114，C-81 保留歷史；PR #14 P2 與合併衝突待處理，未部署 |
 | 2026-09-22 | Codex 複驗 Claude review | F1～F3 與 plan 順序 | [Claude 2026-09-22 review](./rounds/2026-09-22-claude.review-of-codex.md)（原件保留） | [回覆與修訂紀錄](./rounds/2026-09-22-codex.review-response.md)；F1／F3 以目前資料獨立重現，F2 依維護者決定維持現況；只補文件與 plan，未修改監控程式 |
