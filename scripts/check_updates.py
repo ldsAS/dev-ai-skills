@@ -33,8 +33,9 @@ import urllib.error
 import urllib.request
 import zlib
 from datetime import date
+from html.parser import HTMLParser
 from typing import NamedTuple
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, urljoin, urlsplit
 
 # Windows 主控台預設可能是 cp950／cp1252；本腳本的 Markdown 報告包含
 # ↔、⚠️、❌ 等字元。若不先固定輸出編碼，檢查邏輯即使成功也會在 print 階段崩潰，
@@ -54,7 +55,7 @@ USER_AGENT = "Mozilla/5.0 (compatible; dev-ai-skills-watch/2.0; +https://github.
 TIMEOUT = 25
 RETRIES = 3
 
-# 路徑監控與產品版本使用同一正式 Markdown URL，但各自抓取一次。
+# 路徑監控與產品版本共用當輪此 URL 的原文／失敗結果。
 ANTIGRAVITY_CHANGELOG = "https://antigravity.google/docs/changelog.md"
 
 # --------------------------------------------------------------------------
@@ -197,6 +198,44 @@ def normalize(body):
     # class 名稱純屬版面雜訊，且改版時會整批變動
     body = re.sub(r'"className":"[^"]*"', " ", body)
     return body
+
+
+def redirect_diagnostic(body, source_url):
+    """只解讀已取得的 HTML；目標是未驗證的文件宣告，絕不跟隨。"""
+    class RefreshParser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.entries = []
+
+        def handle_starttag(self, tag, attrs):
+            if tag != 'meta':
+                return
+            values = dict(attrs)
+            if (values.get('http-equiv') or '').strip().lower() == 'refresh':
+                # 重複屬性沒有唯一解釋，不任選第一／最後一個。
+                self.entries.append(None if len(values) != len(attrs) else values.get('content'))
+
+    parser = RefreshParser()
+    parser.feed(body)
+    targets = []
+    for content in parser.entries:
+        match = re.fullmatch(r'\s*\d+(?:\.\d+)?\s*;\s*url\s*=\s*(.*?)\s*', content or '', re.I)
+        target = match.group(1) if match else ''
+        if len(target) >= 2 and target[0] == target[-1] and target[0] in "\"'":
+            target = target[1:-1]
+        try:
+            resolved = urljoin(source_url, target)
+            url = urlsplit(resolved)
+            valid = (bool(target) and not re.search(r'[\s\x00-\x1f\x7f]', target) and
+                     url.scheme in ('https', 'http') and bool(url.hostname) and
+                     url.username is None and url.password is None)
+        except ValueError:
+            valid = False
+        targets.append(resolved if valid else '無效／不安全目標：' + (content or '缺少 content／屬性重複'))
+    if not targets:
+        return ''
+    status = '歧義（多個宣告），' if len(targets) > 1 else ''
+    return '；文件宣告的導向目標（未另行取證）：' + status + '、'.join(targets)
 
 
 def iter_token_matches(text):
@@ -415,7 +454,7 @@ def _changelog_visible_lines(lines):
 
 def parse_antigravity_changelog(body):
     """只選產品區段的最高 X.Y.Z；任何可辨識的損壞記錄都要可見失敗。"""
-    lines = body.splitlines()
+    lines = [line.removesuffix("\r") for line in body.split("\n")]
     if re.match(r"(?i)\s*(?:<!doctype\s+html|<html\b)", body):
         raise _changelog_error("預期 Markdown，卻收到 HTML／轉向頁", 1,
                                lines[0] if lines else "")
@@ -486,9 +525,9 @@ def parse_antigravity_changelog(body):
     return max(releases, key=lambda release: tuple(map(int, release.version.split("."))))
 
 
-def fetch_antigravity_version():
+def fetch_antigravity_version(fetcher=None):
     """回傳本輪產品發行記錄；來源或格式失敗沿用 main 的 CHECK_FAILED 路徑。"""
-    return parse_antigravity_changelog(fetch(ANTIGRAVITY_CHANGELOG))
+    return parse_antigravity_changelog((fetcher or fetch)(ANTIGRAVITY_CHANGELOG))
 
 
 def version_key(version, level):
@@ -573,10 +612,26 @@ def main():
     failures = []      # (label, reason)
     bootstrapped = []  # 首次納入監控的來源
 
+    # 生命周期只在這一次 main()：失敗也共用，避免兩個消費者各重試三次。
+    changelog_result = {}
+
+    def source_body(url):
+        if url != ANTIGRAVITY_CHANGELOG:
+            return fetch(url)
+        if not changelog_result:
+            try:
+                changelog_result['body'] = fetch(url)
+            except Exception as exc:
+                changelog_result['error'] = exc
+        if 'error' in changelog_result:
+            raise changelog_result['error']
+        return changelog_result['body']
+
     for tool, source, url in SOURCES:
         key = f"{tool}/{source}"
         try:
-            text = normalize(fetch(url))
+            raw = source_body(url)
+            text = normalize(raw)
         except Exception as exc:  # noqa: BLE001
             failures.append((key, str(exc)))
             # 抓取失敗時保留舊基準，下次再檢查，避免誤判為「路徑消失」
@@ -589,7 +644,7 @@ def main():
 
         if not tokens and len(previous) >= EMPTY_SUSPICION_THRESHOLD:
             failures.append((key, f"抓取成功但一個路徑都沒抽到（基準線原有 {len(previous)} 個），"
-                                  f"疑似頁面改版或內容未載入，本次保留舊基準"))
+                                  f"疑似頁面改版或內容未載入，本次保留舊基準" + redirect_diagnostic(raw, url)))
             new_sources[key] = baseline_sources[key]
             continue
 
@@ -612,7 +667,7 @@ def main():
     version_sources = [(tool, pkg, lambda p=pkg: fetch_npm_version(p))
                        for tool, pkg in NPM_PACKAGES.items()]
     version_sources.append(("antigravity", ANTIGRAVITY_CHANGELOG,
-                            fetch_antigravity_version))
+                            lambda: fetch_antigravity_version(fetcher=source_body)))
 
     for tool, label, getter in version_sources:
         try:
