@@ -214,3 +214,7 @@ C-105 兩個記憶目錄與 C-83 已分別接入精準來源。歷史數字（09
 | `rounds/YYYY-MM-DD-<tool>.reply.md` | 收回的結果 |
 | `../../../scripts/last_checked.json` | 官方文件的 token 快照（機器可比對） |
 | `../../../.github/workflows/check-updates.yml` | 每日自動偵測 (a)(b) 類漂移 |
+
+## 2026-10-01 通知交付修正（A／G1）
+
+更新報告按 repository＋run id 歸屬 issue；同 run attempt 重試只查同一張，查找包括已關閉項及所有分頁，不再按舊 #15 的標題追加。failure issue 的原處理不變。比較規則式報告的 SHA，AI 摘要與 footer 不參與；closed 且報告相同可視為已交付，closed 但內容不同則失敗並禁止 baseline 寫回，需人工核查。create 回應不明只重新查找，不盲目 create。所有必要通知完成後才允許寫回 baseline；這不是跨 run 語意去重，也不自動關閉既有更新 issue。

@@ -83,6 +83,7 @@ jobs:
             --report report.md \
             --exit-code "$exit_code" \
             --github-output "$GITHUB_OUTPUT"
+          cp report.md report-rules.md
 
       # AI 只負責「摘要」，不參與偵測。偵測結論一律由上一步的規則式比對決定，
       # 這樣「今天為什麼沒告警」永遠可以靠 tests/ 重現。本步驟壞掉不影響告警。
@@ -172,6 +173,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OWNER: ${{ github.repository_owner }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           ISSUE_KINDS: ${{ steps.check.outputs.issue_kinds }}
         run: |
@@ -183,16 +186,18 @@ jobs:
             echo "CC: @$OWNER"
           } >> report.md
 
-          gh issue list --state open --limit 1000 --json number,title,state > open-issues.json
-
           # updates 與 failure 是獨立狀態；同時發生時兩類 issue 都必須收到報告。
           for kind in $ISSUE_KINDS; do
             case "$kind" in
-              update) TITLE="🚨 偵測到 AI 工具路徑與機制異動" ;;
+              update)
+                python scripts/monitor_notifications.py --repo "$REPOSITORY" --run-id "$RUN_ID" \
+                  --owner "$OWNER" --report report.md --rules report-rules.md
+                continue ;;
               failure) TITLE="⚠️ AI 工具異動檢查失敗" ;;
               *) echo "::error::未知的 issue 類型：$kind"; exit 1 ;;
             esac
 
+            gh issue list --state open --limit 1000 --json number,title,state > open-issues.json
             python scripts/monitor_ci_policy.py targets \
               --issues open-issues.json --title "$TITLE" > matching-issues.txt
             EXISTING=$(head -n 1 matching-issues.txt)
