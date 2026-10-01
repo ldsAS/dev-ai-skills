@@ -50,11 +50,16 @@ class DeliveryTests(unittest.TestCase):
             outcomes = []
             for attempt in (attempts or [{}]):
                 env.update(RUN_ID=attempt.get('run','123'), GITHUB_RUN_ATTEMPT=attempt.get('attempt','1'))
-                (root / 'report.md').write_text(attempt.get('display','AI summary\nreport\n'), encoding='utf-8')
-                (root / 'report-rules.md').write_text(attempt.get('rules','report\n'), encoding='utf-8')
+                rules = attempt.get('rules','report\n')
+                (root / 'report.md').write_text(attempt.get('display','AI summary\n') + '\n' + rules, encoding='utf-8')
+                (root / 'report-rules.md').write_text(rules, encoding='utf-8')
                 state = json.loads((root/'remote.json').read_text())
                 if attempt.get('close'):
                     for issue in state['issues']: issue['state'] = 'closed'
+                    (root/'remote.json').write_text(json.dumps(state))
+                if attempt.get('corrupt_body'):
+                    for issue in state['issues']:
+                        issue['body'] = issue.get('body','').replace('rules-begin -->\nreport', 'rules-begin -->\nerased')
                     (root/'remote.json').write_text(json.dumps(state))
                 notify = execute('Notify via GitHub Issues') if allows('Notify via GitHub Issues', values) else None
                 values['steps.notify.outcome'] = 'skipped' if notify is None else ('success' if notify.returncode == 0 else 'failure')
@@ -167,3 +172,10 @@ class DeliveryTests(unittest.TestCase):
         calls, result = self.run_delivery(kinds='update', fail_op='list')
         self.assertNotEqual(0, result.returncode)
         self.assertFalse(any(c[:3] == ['gh','issue','create'] or c[0] == 'git' for c in calls))
+
+    def test_sha_marker_alone_does_not_prove_same_delivered_content(self):
+        for closed in (False, True):
+            calls, result = self.run_delivery(kinds='update', attempts=[{}, {'corrupt_body':True,'close':closed}])
+            self.assertEqual(not closed, self.outcomes[-1][1])
+            self.assertEqual(not closed, result.returncode == 0, result.stderr)
+            self.assertEqual(not closed, any(c[:3] == ['gh','issue','edit'] for c in calls))

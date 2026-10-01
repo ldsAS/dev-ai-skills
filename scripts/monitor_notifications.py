@@ -13,6 +13,19 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+RULES_BEGIN = '<!-- ai-tools-monitor rules-begin -->'
+RULES_END = '<!-- ai-tools-monitor rules-end -->'
+
+
+def same_rules(issue, rules, fingerprint):
+    """Check delivered bytes too; a surviving SHA marker alone is insufficient."""
+    body = issue.get('body') or ''
+    begin, end = RULES_BEGIN + '\n', '\n' + RULES_END
+    if body.count(begin) != 1 or body.count(end) != 1:
+        return False
+    stored = body.split(begin, 1)[1].split(end, 1)[0]
+    return fingerprint in body.split('\n') and stored == rules
+
 
 def gh(*args, check=True):
     result = subprocess.run(['gh', *args], capture_output=True, text=True,
@@ -56,7 +69,10 @@ def deliver(repo, run_id, owner, report, rules):
     marker = run_marker(repo, run_id)
     digest = hashlib.sha256(rules.encode('utf-8')).hexdigest()
     fingerprint = f'<!-- ai-tools-monitor rules-sha256={digest} -->'
-    body = marker + '\n' + fingerprint + '\n\n' + report
+    if not rules or report.count(rules) != 1 or RULES_BEGIN in report or RULES_END in report:
+        raise ValueError('Display report must contain exactly one unambiguous rules report')
+    display = report.replace(rules, RULES_BEGIN + '\n' + rules + '\n' + RULES_END, 1)
+    body = marker + '\n' + fingerprint + '\n\n' + display
     issue = find_issue(repo, marker)
     with tempfile.TemporaryDirectory(prefix='monitor-notify-') as directory:
         body_file = Path(directory) / 'body.md'
@@ -73,7 +89,7 @@ def deliver(repo, run_id, owner, report, rules):
                     break
             if issue is None:
                 raise RuntimeError('Create outcome unconfirmed; inspect this run before retrying')
-        if fingerprint in (issue.get('body') or '').splitlines():
+        if same_rules(issue, rules, fingerprint):
             print(f'Update delivered to #{issue["number"]}; identical rules report')
             return
         if issue['state'] == 'closed':
@@ -81,7 +97,7 @@ def deliver(repo, run_id, owner, report, rules):
         gh('issue', 'edit', str(issue['number']), '--repo', repo, '--body-file', str(body_file))
         verified = find_issue(repo, marker)
         if (verified is None or verified['number'] != issue['number'] or
-                verified['state'] != 'open' or fingerprint not in (verified.get('body') or '').splitlines()):
+                verified['state'] != 'open' or not same_rules(verified, rules, fingerprint)):
             raise RuntimeError('Updated delivery unconfirmed or issue closed during update; manual review required')
         print(f'Updated run issue #{issue["number"]}')
 
