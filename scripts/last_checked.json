@@ -1,8 +1,8 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.286",
-    "codex": "0.159.3",
+    "claude-code": "2.1.287",
+    "codex": "0.160.0",
     "gemini-cli": "0.62.0",
     "antigravity": "2.19.1"
   },
@@ -270,6 +270,7 @@
         ".claude/settings.json",
         ".claude/settings.local.json",
         ".claude/skills/deploy",
+        ".claude/worktrees/",
         "AGENTS.local.md",
         "AGENTS.md",
         "CLAUDE.local.md",
