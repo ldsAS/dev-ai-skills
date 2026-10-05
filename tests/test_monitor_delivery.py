@@ -33,11 +33,19 @@ class DeliveryTests(unittest.TestCase):
                 'def _run(args, *a, **kw):\n'
                 '    if args[0] == "gh": args = [sys.executable, "fake.py", *args]\n'
                 '    return _original(args, *a, **kw)\n'
-                'subprocess.run = _run\n', encoding='utf-8')
+                'subprocess.run = _run\n'
+                'import time, json\nfrom pathlib import Path\n'
+                'def _sleep(seconds):\n'
+                '    p = Path("calls.json")\n'
+                '    calls = json.loads(p.read_text()) if p.exists() else []\n'
+                '    calls.append(["sleep", seconds])\n'
+                '    p.write_text(json.dumps(calls))\n'
+                'time.sleep = _sleep\n', encoding='utf-8')
             python = shlex.quote(Path(sys.executable).as_posix())
             env = dict(os.environ, OWNER='test', RUN_URL='https://github.com/test/repo/actions/runs/123',
                        ISSUE_KINDS=kinds, FAIL_OP=fail_op, PYTHONPATH=str(root),
-                       REPOSITORY='test/repo', RUN_ID='123', GITHUB_API_URL='https://api.github.com')
+                       REPOSITORY='test/repo', RUN_ID='123', GITHUB_API_URL='https://api.github.com',
+                       GITHUB_SERVER_URL='https://github.com')
             values = {'steps.mode.outputs.dry_run':mode, 'steps.check.outcome':'success',
                       'steps.check.outputs.updates':str('update' in kinds).lower(),
                       'steps.check.outputs.failure':str('failure' in kinds).lower(),
@@ -176,7 +184,8 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual(2, len(self.remote['issues']))
         self.assertEqual(1, sum(c[:3] == ['gh','issue','create'] for c in calls))
-        self.assertTrue(all('--paginate' in c and '--slurp' in c for c in calls if c[:2] == ['gh','api']))
+        self.assertTrue(all('--paginate' in c and '--slurp' in c for c in calls
+                            if c[:2] == ['gh','api'] and '?state=' in c[-1]))
 
     def test_multiple_or_wrong_repository_identity_blocks_commit(self):
         marker = '<!-- ai-tools-monitor repository=test/repo kind=update run=123 -->'
@@ -205,3 +214,89 @@ class DeliveryTests(unittest.TestCase):
             self.assertEqual(not closed, self.outcomes[-1][1])
             self.assertEqual(not closed, result.returncode == 0, result.stderr)
             self.assertEqual(not closed, any(c[:3] == ['gh','issue','edit'] for c in calls))
+
+    def test_create_url_bypasses_delayed_list(self):
+        calls, result = self.run_delivery(kinds='update', remote_options={'create_list_delay':100})
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn(['gh','api','repos/test/repo/issues/100'], calls)
+        self.assertEqual(100, self.remote['list_hidden_remaining'])
+        self.assertEqual(1, sum(c[:3] == ['gh','issue','create'] for c in calls))
+        self.assertIn(['git','push'], calls)
+
+    def test_lost_create_response_retries_delayed_list_with_backoff(self):
+        calls, result = self.run_delivery(kinds='update', remote_options={
+            'lose_create_response':True, 'create_list_delay':3})
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual([1,2,4,8,1,2,4], [c[1] for c in calls if c[0] == 'sleep'])
+        self.assertEqual(1, sum(c[:3] == ['gh','issue','create'] for c in calls))
+        self.assertEqual(1, len(self.remote['issues']))
+        self.assertIn(['git','push'], calls)
+
+    def test_existing_issue_list_delay_does_not_create_duplicate(self):
+        issue = {'number':100,'title':'existing','state':'open',
+                 'body':'<!-- ai-tools-monitor repository=test/repo kind=update run=123 -->',
+                 'repository_url':'https://api.github.com/repos/test/repo'}
+        calls, result = self.run_delivery([issue], kinds='update',
+                                          remote_options={'list_hidden_remaining':2})
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual([1,2], [c[1] for c in calls if c[0] == 'sleep'])
+        self.assertFalse(any(c[:3] == ['gh','issue','create'] for c in calls))
+        self.assertEqual(1, len(self.remote['issues']))
+
+    def test_created_issue_direct_read_retries_missing_issue(self):
+        calls, result = self.run_delivery(kinds='update', remote_options={'create_direct_delay':2})
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(3, calls.count(['gh','api','repos/test/repo/issues/100']))
+        self.assertEqual([1,2,4,8,1,2], [c[1] for c in calls if c[0] == 'sleep'])
+
+    def test_edit_confirmation_retries_stale_direct_body_not_list(self):
+        calls, result = self.run_delivery(kinds='update', attempts=[{}, {'rules':'changed rules'}],
+            remote_options={'edit_direct_delay':3, 'edit_list_delay':100})
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(100, self.remote['list_stale_remaining'])
+        self.assertEqual(1, sum(c[:3] == ['gh','issue','edit'] for c in calls))
+        self.assertEqual([1,2,4,8,1,2,4], [c[1] for c in calls if c[0] == 'sleep'])
+        self.assertTrue(all(committed for _,committed in self.outcomes))
+
+    def test_read_budget_exhaustion_never_recreates_or_commits(self):
+        for options in ({'lose_create_response':True, 'create_list_delay':100},
+                        {'create_direct_delay':100}):
+            with self.subTest(options=options):
+                calls, result = self.run_delivery(kinds='update', remote_options=options)
+                self.assertNotEqual(0, result.returncode)
+                self.assertEqual([1,2,4,8]*2, [c[1] for c in calls if c[0] == 'sleep'])
+                self.assertEqual(1, sum(c[:3] == ['gh','issue','create'] for c in calls))
+                self.assertFalse(any(c[0] == 'git' for c in calls))
+        calls, result = self.run_delivery(kinds='update', attempts=[{}, {'rules':'changed'}],
+            remote_options={'edit_direct_delay':100})
+        self.assertNotEqual(0, result.returncode)
+        self.assertFalse(self.outcomes[-1][1])
+        self.assertEqual(1, sum(c[:3] == ['gh','issue','edit'] for c in calls))
+        self.assertEqual([1,2,4,8]*2, [c[1] for c in calls if c[0] == 'sleep'])
+
+    def test_list_errors_retry_but_are_not_treated_as_empty(self):
+        calls, result = self.run_delivery(kinds='update', remote_options={'list_error_remaining':2})
+        self.assertEqual(0, result.returncode, result.stderr)
+        calls, result = self.run_delivery(kinds='update', remote_options={'list_error_remaining':100})
+        self.assertNotEqual(0, result.returncode)
+        self.assertEqual([1,2,4,8], [c[1] for c in calls if c[0] == 'sleep'])
+        self.assertFalse(any(c[:3] == ['gh','issue','create'] or c[0] == 'git' for c in calls))
+
+    def test_create_url_does_not_override_direct_identity_validation(self):
+        for overrides in ({'repository_url':'https://api.github.com/repos/other/repo'},
+                          {'number':999}, {'pull_request':{}},
+                          {'body':'<!-- ai-tools-monitor repository=test/repo kind=update run=999 -->'}):
+            with self.subTest(overrides=overrides):
+                calls, result = self.run_delivery(kinds='update', remote_options={'direct_overrides':overrides})
+                self.assertNotEqual(0, result.returncode)
+                self.assertFalse(any(c[0] == 'git' or c[:3] == ['gh','issue','edit'] for c in calls))
+
+    def test_untrusted_or_missing_create_url_uses_only_repository_list(self):
+        for output in ('not a URL', 'https://evil.example/test/repo/issues/100',
+                       'https://github.com/other/repo/issues/100',
+                       'https://github.com/test/repo/issues/100\nhttps://github.com/test/repo/issues/101'):
+            with self.subTest(output=output):
+                calls, result = self.run_delivery(kinds='update', remote_options={'create_output':output})
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertTrue(all('?state=all' in c[-1] for c in calls if c[:2] == ['gh','api']))
+                self.assertEqual(1, sum(c[:3] == ['gh','issue','create'] for c in calls))
