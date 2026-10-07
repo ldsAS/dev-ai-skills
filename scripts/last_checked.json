@@ -1,9 +1,9 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.287",
-    "codex": "0.160.0",
-    "gemini-cli": "0.62.0",
+    "claude-code": "2.1.292",
+    "codex": "0.160.1",
+    "gemini-cli": "0.63.0",
     "antigravity": "2.19.1"
   },
   "sources": {
@@ -25,6 +25,7 @@
         "~/.gemini/antigravity-cli/cache/projects.json",
         "~/.gemini/antigravity-cli/hooks.json",
         "~/.gemini/antigravity-cli/settings.json",
+        "~/.gemini/bin",
         "~/.gemini/config/",
         "~/.gemini/config/hooks.json",
         "~/.gemini/config/plugins",
@@ -134,6 +135,7 @@
         "~/.claude/history.jsonl",
         "~/.claude/keybindings.json",
         "~/.claude/plugins/known_marketplaces.json",
+        "~/.claude/seed-admin",
         "~/.claude/session-env",
         "~/.claude/sessions",
         "~/.claude/settings.json",
