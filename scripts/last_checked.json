@@ -1,14 +1,15 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.292",
-    "codex": "0.160.1",
+    "claude-code": "2.1.295",
+    "codex": "0.162.0",
     "gemini-cli": "0.63.0",
-    "antigravity": "2.19.1"
+    "antigravity": "2.21.1"
   },
   "sources": {
     "antigravity/changelog": {
       "tokens": [
+        ".agents/",
         ".agents/agents/",
         ".agents/settings.json",
         ".agents/skills/",
@@ -20,13 +21,17 @@
         "/.gemini/config.json",
         "AGENTS.md",
         "GEMINI.md",
+        "~/.gemini/AGENTS.md",
+        "~/.gemini/GEMINI.md",
         "~/.gemini/antigravity-cli/",
         "~/.gemini/antigravity-cli/cache",
         "~/.gemini/antigravity-cli/cache/projects.json",
         "~/.gemini/antigravity-cli/hooks.json",
         "~/.gemini/antigravity-cli/settings.json",
         "~/.gemini/bin",
+        "~/.gemini/config",
         "~/.gemini/config/",
+        "~/.gemini/config/config.json",
         "~/.gemini/config/hooks.json",
         "~/.gemini/config/plugins",
         "~/.gemini/config/projects/"
@@ -226,6 +231,8 @@
         "../.claude/projects/.../transcript.jsonl",
         ".claude/",
         ".claude/hooks/",
+        ".claude/hooks/answer-project-key.ps1",
+        ".claude/hooks/answer-project-key.sh",
         ".claude/hooks/block-opus-46.ps1",
         ".claude/hooks/block-rm.ps1",
         ".claude/hooks/block-rm.sh",
@@ -238,6 +245,8 @@
         ".claude/settings.local.json",
         ".claude/skills/",
         ".claude/worktrees/feature-auth",
+        "/.claude/hooks/answer-project-key.ps1",
+        "/.claude/hooks/answer-project-key.sh",
         "/.claude/hooks/audit-config-change.sh",
         "/.claude/hooks/block-opus-46.ps1",
         "/.claude/hooks/block-rm.ps1",
