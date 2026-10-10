@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.295",
-    "codex": "0.162.0",
+    "claude-code": "2.1.296",
+    "codex": "0.162.1",
     "gemini-cli": "0.63.0",
-    "antigravity": "2.21.1"
+    "antigravity": "2.22.0"
   },
   "sources": {
     "antigravity/changelog": {
@@ -236,6 +236,7 @@
         ".claude/hooks/block-opus-46.ps1",
         ".claude/hooks/block-rm.ps1",
         ".claude/hooks/block-rm.sh",
+        ".claude/hooks/check-command.js",
         ".claude/hooks/plain-display.ps1",
         ".claude/hooks/plain-display.sh",
         ".claude/hooks/run-tests-async.sh",
@@ -251,7 +252,9 @@
         "/.claude/hooks/block-opus-46.ps1",
         "/.claude/hooks/block-rm.ps1",
         "/.claude/hooks/block-rm.sh",
+        "/.claude/hooks/check-command.js",
         "/.claude/hooks/check-style.sh",
+        "/.claude/hooks/no-rm.sh",
         "/.claude/hooks/plain-display.ps1",
         "/.claude/hooks/plain-display.sh",
         "/.claude/hooks/run-tests-async.sh",
@@ -424,7 +427,6 @@
       "tokens": [
         ".agent.md",
         ".instructions.md",
-        ".mcp.json",
         ".prompt.md",
         "AGENTS.md",
         "CLAUDE.md",
