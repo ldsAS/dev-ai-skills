@@ -237,6 +237,7 @@
         ".claude/hooks/block-rm.ps1",
         ".claude/hooks/block-rm.sh",
         ".claude/hooks/check-command.js",
+        ".claude/hooks/log-write.sh",
         ".claude/hooks/plain-display.ps1",
         ".claude/hooks/plain-display.sh",
         ".claude/hooks/run-tests-async.sh",
