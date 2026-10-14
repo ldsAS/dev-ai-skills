@@ -3,7 +3,7 @@
   "versions": {
     "claude-code": "2.1.296",
     "codex": "0.162.1",
-    "gemini-cli": "0.63.0",
+    "gemini-cli": "0.64.0",
     "antigravity": "2.22.0"
   },
   "sources": {
@@ -66,6 +66,9 @@
     "antigravity/plugins": {
       "tokens": [
         ".agents/plugins/",
+        ".gemini/config/plugins/gcalendar",
+        ".gemini/config/plugins/gdocs",
+        ".gemini/config/plugins/workspace",
         "~/.gemini/antigravity-cli/plugins/",
         "~/.gemini/config/plugins/"
       ]
@@ -220,6 +223,7 @@
         "CLAUDE.local.md",
         "CLAUDE.md",
         "~/.claude",
+        "~/.claude/remote/",
         "~/.claude/settings.json",
         "~/.claude/skills/"
       ]
@@ -364,6 +368,7 @@
     },
     "codex/config-basic": {
       "tokens": [
+        ".agents",
         ".codex",
         ".codex/",
         ".codex/config.toml",
