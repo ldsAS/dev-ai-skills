@@ -1,7 +1,7 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.296",
+    "claude-code": "2.1.300",
     "codex": "0.162.1",
     "gemini-cli": "0.64.0",
     "antigravity": "2.22.0"
@@ -216,6 +216,7 @@
     },
     "claude-code/desktop": {
       "tokens": [
+        "$HOME/.claude/remote/",
         ".claude/launch.json",
         ".claude/settings.json",
         ".mcp.json",
@@ -223,9 +224,15 @@
         "CLAUDE.local.md",
         "CLAUDE.md",
         "~/.claude",
+        "~/.claude/",
         "~/.claude/remote/",
+        "~/.claude/remote/ccd-cli/",
+        "~/.claude/remote/plugins/",
+        "~/.claude/remote/run/",
+        "~/.claude/remote/srv/",
         "~/.claude/settings.json",
-        "~/.claude/skills/"
+        "~/.claude/skills/",
+        "~/.claude/uploads/"
       ]
     },
     "claude-code/hooks": {
@@ -262,7 +269,9 @@
         "/.claude/hooks/no-rm.sh",
         "/.claude/hooks/plain-display.ps1",
         "/.claude/hooks/plain-display.sh",
+        "/.claude/hooks/policy-check.sh",
         "/.claude/hooks/run-tests-async.sh",
+        "/.claude/hooks/upload-metrics.sh",
         "AGENTS.md",
         "CLAUDE.md",
         "\\.claude\\",
