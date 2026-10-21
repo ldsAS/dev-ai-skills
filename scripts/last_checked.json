@@ -1,9 +1,9 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.304",
+    "claude-code": "2.1.305",
     "codex": "0.163.0",
-    "gemini-cli": "0.64.0",
+    "gemini-cli": "0.65.0",
     "antigravity": "2.22.0"
   },
   "sources": {
@@ -160,18 +160,10 @@
       "tokens": [
         ".claude",
         ".claude/",
-        ".claude/CLAUDE.md",
-        ".claude/agent-memory-local/",
-        ".claude/agent-memory/",
         ".claude/backups",
         ".claude/history.jsonl",
         ".claude/projects/-home-user-work-my-repo",
-        ".claude/rules/",
-        ".claude/rules/frontend/react.md",
-        ".claude/settings.local.json",
-        ".claude/workflows/",
         ".mcp.json",
-        "/.claude/settings.local.json",
         "AGENTS.md",
         "CLAUDE.local.md",
         "CLAUDE.md",
@@ -179,7 +171,6 @@
         "settings.local.json",
         "~/.claude",
         "~/.claude/",
-        "~/.claude/agent-memory/",
         "~/.claude/backups/",
         "~/.claude/cache/changelog.md",
         "~/.claude/debug/",
@@ -189,7 +180,6 @@
         "~/.claude/history.jsonl",
         "~/.claude/image-cache/",
         "~/.claude/logs/",
-        "~/.claude/output-styles/",
         "~/.claude/paste-cache/",
         "~/.claude/plans/",
         "~/.claude/plugins",
@@ -210,8 +200,7 @@
         "~/.claude/tasks/",
         "~/.claude/todos/",
         "~/.claude/uploads/",
-        "~/.claude/usage-data/",
-        "~/.claude/workflows/"
+        "~/.claude/usage-data/"
       ]
     },
     "claude-code/desktop": {
@@ -321,7 +310,6 @@
         "/.claude/settings.local.json",
         "CLAUDE.md",
         "\\.claude",
-        "settings.local.json",
         "~/.claude",
         "~/.claude/backups/",
         "~/.claude/backups/.claude.json.corrupted",
