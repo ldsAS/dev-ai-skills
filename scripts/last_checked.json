@@ -1,7 +1,7 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.305",
+    "claude-code": "2.1.307",
     "codex": "0.163.0",
     "gemini-cli": "0.65.0",
     "antigravity": "2.22.0"
@@ -278,6 +278,7 @@
       "tokens": [
         "./.claude/CLAUDE.md",
         ".agents/",
+        ".claude",
         ".claude/",
         ".claude/AGENTS.md",
         ".claude/CLAUDE.md",
@@ -443,22 +444,15 @@
     },
     "copilot/hooks": {
       "tokens": [
-        ".agent.md",
-        ".claude",
         ".claude/settings.json",
         ".claude/settings.local.json",
-        ".github/agents/strict-formatter.agent.md",
         ".github/hooks/",
-        ".github/hooks/approval.json",
         ".github/hooks/audit.json",
-        ".github/hooks/context.json",
         ".github/hooks/log-tool-use.cjs",
-        ".github/hooks/project-context.cjs",
-        ".github/hooks/require-approval.cjs",
         ".github/hooks/tool-use.log",
         "settings.local.json",
-        "~/.claude/settings.json",
-        "~/.copilot/hooks/"
+        "~/.copilot/hooks/",
+        "~/.copilot/settings.json"
       ]
     },
     "copilot/prompt-files": {
