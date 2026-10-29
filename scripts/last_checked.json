@@ -1,9 +1,9 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.307",
-    "codex": "0.163.0",
-    "gemini-cli": "0.65.0",
+    "claude-code": "2.1.312",
+    "codex": "0.165.0",
+    "gemini-cli": "0.66.0",
     "antigravity": "2.22.0"
   },
   "sources": {
@@ -29,12 +29,14 @@
         "~/.gemini/antigravity-cli/hooks.json",
         "~/.gemini/antigravity-cli/settings.json",
         "~/.gemini/bin",
+        "~/.gemini/bin/agy.version.json",
         "~/.gemini/config",
         "~/.gemini/config/",
         "~/.gemini/config/config.json",
         "~/.gemini/config/hooks.json",
         "~/.gemini/config/plugins",
-        "~/.gemini/config/projects/"
+        "~/.gemini/config/projects/",
+        "~/.gemini/config/skills"
       ]
     },
     "antigravity/gcli-migration": {
