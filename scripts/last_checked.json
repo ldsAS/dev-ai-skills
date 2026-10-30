@@ -1,8 +1,8 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.312",
-    "codex": "0.165.0",
+    "claude-code": "2.1.314",
+    "codex": "0.166.0",
     "gemini-cli": "0.66.0",
     "antigravity": "2.22.0"
   },
@@ -68,11 +68,11 @@
     "antigravity/plugins": {
       "tokens": [
         ".agents/plugins/",
+        ".gemini/config/plugins/firebase",
         ".gemini/config/plugins/gcalendar",
-        ".gemini/config/plugins/gdocs",
-        ".gemini/config/plugins/workspace",
-        "~/.gemini/antigravity-cli/plugins/",
-        "~/.gemini/config/plugins/"
+        "~/.claude/plugins/",
+        "~/.gemini/config/plugins/",
+        "~/.gemini/extensions/"
       ]
     },
     "antigravity/rules": {
@@ -134,6 +134,7 @@
         ".claude/worktrees/",
         ".mcp.json",
         "AGENTS.md",
+        "CLAUDE.local.md",
         "CLAUDE.md",
         "settings.local.json",
         "~/.claude",
@@ -144,6 +145,7 @@
         "~/.claude/daemon",
         "~/.claude/history.jsonl",
         "~/.claude/keybindings.json",
+        "~/.claude/plugins/.trash",
         "~/.claude/plugins/known_marketplaces.json",
         "~/.claude/seed-admin",
         "~/.claude/session-env",
@@ -152,6 +154,7 @@
         "~/.claude/shell-snapshots/",
         "~/.claude/skills",
         "~/.claude/skills/",
+        "~/.claude/skills/.trash",
         "~/.claude/skills/.trash/",
         "~/.claude/tasks/",
         "~/.claude/themes/",
