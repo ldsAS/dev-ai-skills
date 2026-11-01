@@ -1,7 +1,7 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.314",
+    "claude-code": "2.1.316",
     "codex": "0.166.0",
     "gemini-cli": "0.66.0",
     "antigravity": "2.22.0"
@@ -77,6 +77,7 @@
     },
     "antigravity/rules": {
       "tokens": [
+        ".agents/rules",
         ".agents/rules.json",
         ".agents/rules/",
         ".agents/rules/frontend/react.md",
@@ -89,10 +90,9 @@
         "GEMINI.md",
         "~/.gemini/AGENTS.md",
         "~/.gemini/GEMINI.md",
-        "~/.gemini/antigravity-cli/plugins/",
-        "~/.gemini/antigravity-cli/rules/",
         "~/.gemini/config/AGENTS.md",
         "~/.gemini/config/GEMINI.md",
+        "~/.gemini/config/plugins/",
         "~/.gemini/config/rules/"
       ]
     },
@@ -100,11 +100,13 @@
       "tokens": [
         ".agent/skills",
         ".agents/skills",
+        ".agents/skills/",
         "/.agents/skills/",
-        "~/.gemini/antigravity-cli/plugins/",
         "~/.gemini/antigravity-cli/skills/",
         "~/.gemini/antigravity/skills/",
-        "~/.gemini/config/skills/"
+        "~/.gemini/config/plugins/",
+        "~/.gemini/config/skills/",
+        "~/.gemini/skills/"
       ]
     },
     "antigravity/subagents": {
