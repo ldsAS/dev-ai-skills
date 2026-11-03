@@ -1,7 +1,7 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.316",
+    "claude-code": "2.1.317",
     "codex": "0.166.0",
     "gemini-cli": "0.66.0",
     "antigravity": "2.22.0"
@@ -418,6 +418,7 @@
         "$HOME/.agents/skills",
         "../.agents/skills",
         ".agents/skills",
+        ".codex/config.toml",
         "AGENTS.md",
         "~/.codex/config.toml"
       ]
