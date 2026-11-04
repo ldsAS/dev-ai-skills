@@ -1,7 +1,7 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.317",
+    "claude-code": "2.1.318",
     "codex": "0.166.0",
     "gemini-cli": "0.66.0",
     "antigravity": "2.22.0"
@@ -17,6 +17,7 @@
         ".antigravitycli/",
         ".antigravityignore",
         ".gemini/",
+        ".mcp.json",
         "/.agents/hooks.json",
         "/.gemini/config.json",
         "AGENTS.md",
@@ -219,6 +220,7 @@
         "/.claude/worktrees/",
         "CLAUDE.local.md",
         "CLAUDE.md",
+        "\\.claude\\settings.json",
         "~/.claude",
         "~/.claude/",
         "~/.claude/remote/",
