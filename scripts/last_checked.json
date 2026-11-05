@@ -3,7 +3,7 @@
   "versions": {
     "claude-code": "2.1.318",
     "codex": "0.166.0",
-    "gemini-cli": "0.66.0",
+    "gemini-cli": "0.67.0",
     "antigravity": "2.22.0"
   },
   "sources": {
@@ -214,6 +214,7 @@
     "claude-code/desktop": {
       "tokens": [
         "$HOME/.claude/remote/",
+        ".claude/",
         ".claude/launch.json",
         ".claude/settings.json",
         ".mcp.json",
@@ -321,7 +322,6 @@
         "CLAUDE.md",
         "\\.claude",
         "~/.claude",
-        "~/.claude/backups/",
         "~/.claude/backups/.claude.json.corrupted",
         "~/.claude/settings.json"
       ]
@@ -439,23 +439,19 @@
     },
     "copilot/customization": {
       "tokens": [
-        ".agent.md",
-        ".instructions.md",
-        ".prompt.md",
         "AGENTS.md",
         "CLAUDE.md",
         "copilot-instructions.md",
         "review.prompt.md",
         "reviewer.agent.md",
-        "style.instructions.md",
-        "~/.claude",
-        "~/.copilot"
+        "style.instructions.md"
       ]
     },
     "copilot/hooks": {
       "tokens": [
         ".claude/settings.json",
         ".claude/settings.local.json",
+        ".github/hooks",
         ".github/hooks/",
         ".github/hooks/audit.json",
         ".github/hooks/log-tool-use.cjs",
