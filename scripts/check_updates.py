@@ -146,6 +146,8 @@ DOT_NAMES = "|".join([
     "copilot",
 ])
 
+WINDOWS_PROFILE_NAME = r"[^\\/:*?\"<>|`\x00-\x1f]{1,64}"
+
 TOKEN_RE = re.compile(
     # 前置不可為單字字元 —— 這一條 lookbehind 負責擋掉網域名，
     # 例如 docs.claude.com 的 `.claude` 前面是 `s`，直接不視為路徑。
@@ -157,7 +159,10 @@ TOKEN_RE = re.compile(
     # `%USERPROFILE%` 是 Windows 版的 `~`（官方：`~/.claude` resolves to
     # `%USERPROFILE%\.claude`）。不保留這個前綴，家目錄路徑會被截成專案路徑。
     # `C:\Users\<name>` 同理；不保留時會被誤判成專案層 `.claude/settings.json`（C-02）。
-    r"|(?:(?:~|\$HOME|%USERPROFILE%|[A-Za-z]:\\+Users\\+[\w.\-]+|\.{1,2})?(?:/|\\+))?"
+    # 帳戶目錄名可含空白等字元（`Jane Doe`），只排除 Windows 檔名禁用字元、控制字元與
+    # 反引號（Markdown code span 的邊界），長度設上限以免吞進整段行文。
+    r"|(?:(?:~|\$HOME|%USERPROFILE%|[A-Za-z]:\\+Users\\+" + WINDOWS_PROFILE_NAME
+    + r"|\.{1,2})?(?:/|\\+))?"
     rf"\.(?:{DOT_NAMES})"
     # 反斜線可連續出現：JSON 字串裡的 Windows 路徑會跳脫成 `\\`。
     r"(?:(?:/|\\+)[\w.\-]+)*(?:/|\\+)?"
@@ -209,9 +214,14 @@ def normalize(body):
         body = re.sub(r"(?s)<!--.*?-->", " ", body)
         body = re.sub(r"(?s)<[^>]+>", " ", body)
         body = html.unescape(body)
-    # Next.js 等框架會把文件內容以 JSON 字串內嵌，需還原跳脫序列
-    body = re.sub(r"\\u([0-9a-fA-F]{4})", lambda m: chr(int(m.group(1), 16)), body)
-    body = body.replace("\\n", " ").replace("\\t", " ").replace('\\"', '"').replace("\\/", "/")
+    # Next.js 等框架會把文件內容以 JSON 字串內嵌，需還原跳脫序列。
+    # 只有前面是偶數個反斜線的 `\` 才是跳脫字元的開頭：`\\name` 是跳脫後的
+    # 反斜線加上 `name`，不是 `\n` + `ame`。否則 Windows 路徑裡以 n／t／u 開頭的
+    # 目錄會被拆斷（`%USERPROFILE%\\.claude\\new.json` 曾被截成 `~/.claude/`）。
+    escape = r"(?<!\\)((?:\\\\)*)\\"
+    body = re.sub(escape + r"u([0-9a-fA-F]{4})", lambda m: m.group(1) + chr(int(m.group(2), 16)), body)
+    body = re.sub(escape + r"[nt]", lambda m: m.group(1) + " ", body)
+    body = re.sub(escape + r'(["/])', lambda m: m.group(1) + m.group(2), body)
     # class 名稱純屬版面雜訊，且改版時會整批變動
     body = re.sub(r'"className":"[^"]*"', " ", body)
     return body
@@ -263,7 +273,7 @@ def canonical_token(token):
     既對不到 C-112，還被當成單段 token 標上錯誤的 C-99 說明（2026-11-04 報告）。
     """
     token = re.sub(r"\\+", "/", token)
-    return re.sub(r"^(?:%USERPROFILE%|[A-Za-z]:/Users/[\w.\-]+)(?=/)", "~", token)
+    return re.sub(r"^(?:%USERPROFILE%|[A-Za-z]:/Users/[^/]+)(?=/)", "~", token)
 
 
 def iter_token_matches(text):

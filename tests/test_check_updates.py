@@ -292,6 +292,34 @@ class TokenExtractionTests(unittest.TestCase):
             with self.subTest(text=text):
                 self.assertEqual({expected}, MONITOR.extract_tokens(text))
 
+    def test_windows_profile_names_may_contain_spaces(self):
+        # PR #42 Codex review：帳戶目錄名含空白時曾退回專案路徑 `.claude/settings.json`（C-02）。
+        for text in (r"C:\Users\Jane Doe\.claude\settings.json",
+                     r"`C:\Users\O'Brien (Work)\.claude\settings.json`"):
+            with self.subTest(text=text):
+                self.assertEqual({"~/.claude/settings.json"}, MONITOR.extract_tokens(text))
+        # 帳戶名不可跨越 code span 或吞進行文中的專案路徑。
+        self.assertEqual({".claude/settings.json"}, MONITOR.extract_tokens(
+            r"Use `C:\Users\` for profiles and see .claude/settings.json"))
+
+    def test_normalize_keeps_json_escaped_windows_separators(self):
+        # PR #42 Codex review：`\\name`、`\\new.json`、`\\test.sh` 曾被當成 `\n`／`\t` 跳脫而拆斷。
+        cases = {
+            r'"C:\\Users\\name\\.claude\\settings.json"': "~/.claude/settings.json",
+            r'"%USERPROFILE%\\.claude\\new.json"': "~/.claude/new.json",
+            r'"$env:CLAUDE_PROJECT_DIR\\.claude\\hooks\\test.sh"': "/.claude/hooks/test.sh",
+            r'"$env:CLAUDE_PROJECT_DIR\\.claude\\hooks\\upload.ps1"': "/.claude/hooks/upload.ps1",
+        }
+        for text, expected in cases.items():
+            with self.subTest(text=text):
+                self.assertEqual({expected}, MONITOR.extract_tokens(MONITOR.normalize(text)))
+
+    def test_normalize_still_decodes_real_json_escapes(self):
+        self.assertEqual('"line next "q" a/b . \\\\ x"',
+                         MONITOR.normalize(r'"line\nnext \"q\" a\/b \u002e \\\nx"'))
+        self.assertEqual("see .claude/skills/x now",
+                         MONITOR.normalize(r"see \u002eclaude\/skills\/x\tnow"))
+
     def test_windows_home_path_maps_to_home_claim_not_project_claim(self):
         claims = [{"id": "C-02", "paths": [".claude/settings.json"], "status": "已驗證"},
                   {"id": "C-112", "paths": ["~/.claude/settings.json"], "status": "已驗證"}]
