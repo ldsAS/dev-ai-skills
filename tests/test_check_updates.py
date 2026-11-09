@@ -277,6 +277,28 @@ class TokenExtractionTests(unittest.TestCase):
         for text in cases:
             self.assertEqual({text}, MONITOR.extract_tokens(text), msg=text)
 
+    def test_windows_paths_become_the_same_canonical_token(self):
+        """Windows 寫法必須與 POSIX 寫法得到同一個 token，家目錄前綴不可遺失。"""
+        cases = {
+            # 官方原文（claude-code/desktop、settings、claude-directory）
+            r"entry in `%USERPROFILE%\.claude\settings.json` runs": "~/.claude/settings.json",
+            r"`~/.claude` resolves to `%USERPROFILE%\.claude`. If": "~/.claude",
+            r"C:\Users\you\.claude\settings.json": "~/.claude/settings.json",
+            # JSON 字串中跳脫過的反斜線（claude-code/hooks 的 PowerShell 範例）
+            r'"command": "& "$env:CLAUDE_PROJECT_DIR\\.claude\\hooks\\check.ps1"': "/.claude/hooks/check.ps1",
+            r"..\.gemini\settings.json": "../.gemini/settings.json",
+        }
+        for text, expected in cases.items():
+            with self.subTest(text=text):
+                self.assertEqual({expected}, MONITOR.extract_tokens(text))
+
+    def test_windows_home_path_maps_to_home_claim_not_project_claim(self):
+        claims = [{"id": "C-02", "paths": [".claude/settings.json"], "status": "已驗證"},
+                  {"id": "C-112", "paths": ["~/.claude/settings.json"], "status": "已驗證"}]
+        (token,) = MONITOR.extract_tokens(r"`%USERPROFILE%\.claude\settings.json`")
+        self.assertFalse(MONITOR.is_single_segment(token))
+        self.assertEqual(["C-112"], [c["id"] for c in MONITOR.claims_for_token(token, claims)])
+
     def test_context_uses_the_exact_token_match(self):
         """短 token 的上下文不可誤指向較早出現的長路徑。"""
         text = (

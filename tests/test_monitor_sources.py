@@ -106,6 +106,13 @@ class MigratedSourceTests(unittest.TestCase):
                          set(BASELINE["sources"]))
         self.assertEqual(MONITOR.SCHEMA_VERSION, BASELINE["schema"])
 
+    def test_baselines_hold_only_canonical_tokens(self):
+        # 抽取結果一律以 `/` 分隔；殘留反斜線 token 會在下一輪被誤報成「消失」。
+        for name, data in (("frozen", BASELINE), ("live", MONITOR.load_baseline())):
+            for key, entry in data["sources"].items():
+                with self.subTest(baseline=name, source=key):
+                    self.assertEqual([], [t for t in entry["tokens"] if "\\" in t])
+
     def test_all_sources_success_clears_failure_signal(self):
         self.assertNotIn("[SIGNAL: CHECK_FAILED]", self._replay()[0])
 

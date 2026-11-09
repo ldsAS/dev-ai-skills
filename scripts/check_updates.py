@@ -154,9 +154,13 @@ TOKEN_RE = re.compile(
     # Copilot 的自訂檔型別（prompt / instructions / agent）必須排在 dot-dir 之前，
     # 否則 `*.agent.md` 會先被 DOT_NAMES 的 `agent` 吃掉、只留下 `.agent`。
     r"[\w.\-]*\.(?:prompt|instructions|agent)\.md"
-    r"|(?:(?:~|\$HOME|\.{1,2})?[/\\])?"
+    # `%USERPROFILE%` 是 Windows 版的 `~`（官方：`~/.claude` resolves to
+    # `%USERPROFILE%\.claude`）。不保留這個前綴，家目錄路徑會被截成專案路徑。
+    # `C:\Users\<name>` 同理；不保留時會被誤判成專案層 `.claude/settings.json`（C-02）。
+    r"|(?:(?:~|\$HOME|%USERPROFILE%|[A-Za-z]:\\+Users\\+[\w.\-]+|\.{1,2})?(?:/|\\+))?"
     rf"\.(?:{DOT_NAMES})"
-    r"(?:[/\\][\w.\-]+)*[/\\]?"
+    # 反斜線可連續出現：JSON 字串裡的 Windows 路徑會跳脫成 `\\`。
+    r"(?:(?:/|\\+)[\w.\-]+)*(?:/|\\+)?"
     # 右側不可緊接檔名字元：否則 `.agentsfoo` 會被誤抓成 `.agents`，
     # `.antigravityignore.bak` 也會被誤當成 `.antigravityignore`。
     # 單獨的句尾 `.` 可接在 token 後；但 `.` 後若還有檔名字元（如 `.bak`）則阻擋。
@@ -251,10 +255,21 @@ def redirect_diagnostic(body, source_url):
     return '；文件宣告的導向目標（未另行取證）：' + status + '、'.join(targets)
 
 
+def canonical_token(token):
+    """Windows 寫法統一成 POSIX 寫法，讓同一路徑只有一種 token。
+
+    `%USERPROFILE%\\.claude\\settings.json` 與 `~/.claude/settings.json` 是同一個
+    家目錄檔案。舊版直接保存 `\\.claude\\settings.json`：前綴被切掉、分隔符又不是 `/`，
+    既對不到 C-112，還被當成單段 token 標上錯誤的 C-99 說明（2026-11-04 報告）。
+    """
+    token = re.sub(r"\\+", "/", token)
+    return re.sub(r"^(?:%USERPROFILE%|[A-Za-z]:/Users/[\w.\-]+)(?=/)", "~", token)
+
+
 def iter_token_matches(text):
     """逐一回傳清理後的 token 與原文 match span。"""
     for match in TOKEN_RE.finditer(text):
-        token = match.group(0).strip().rstrip("`\"'.,;:!?)]}")
+        token = canonical_token(match.group(0).strip().rstrip("`\"'.,;:!?)]}"))
         if len(token) <= 2 or "://" in token:
             continue
         yield token, match.start(), match.end()
