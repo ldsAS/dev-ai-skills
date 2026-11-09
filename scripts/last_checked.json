@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.318",
-    "codex": "0.166.0",
+    "claude-code": "2.1.319",
+    "codex": "0.167.0",
     "gemini-cli": "0.67.0",
-    "antigravity": "2.22.0"
+    "antigravity": "2.29.1"
   },
   "sources": {
     "antigravity/changelog": {
@@ -355,6 +355,28 @@
         "~/.claude/skills/synced/"
       ]
     },
+    "claude-code/sub-agents": {
+      "tokens": [
+        ".claude/agent-memory-local/",
+        ".claude/agent-memory/",
+        ".claude/agents",
+        ".claude/agents/",
+        ".claude/agents/code-reviewer.md",
+        ".claude/settings.json",
+        ".mcp.json",
+        "AGENTS.md",
+        "CLAUDE.local.md",
+        "CLAUDE.md",
+        "settings.local.json",
+        "~/.claude/CLAUDE.md",
+        "~/.claude/agent-memory/",
+        "~/.claude/agents",
+        "~/.claude/agents/",
+        "~/.claude/agents/code-improver.md",
+        "~/.claude/debug/",
+        "~/.claude/projects/"
+      ]
+    },
     "codex/changelog": {
       "tokens": [
         ".agents/plugins/marketplace.json",
@@ -432,6 +454,12 @@
         "~/.agents/skills/",
         "~/.claude/skills/",
         "~/.copilot/skills/"
+      ]
+    },
+    "copilot/custom-agents": {
+      "tokens": [
+        ".github/agents/planner.agent.md",
+        ".github/agents/reviewer.agent.md"
       ]
     },
     "copilot/customization": {
