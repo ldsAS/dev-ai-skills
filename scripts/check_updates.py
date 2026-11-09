@@ -57,6 +57,12 @@ RETRIES = 3
 
 # 路徑監控與產品版本共用當輪此 URL 的原文／失敗結果。
 ANTIGRAVITY_CHANGELOG = "https://antigravity.google/docs/changelog.md"
+# 產品（hub）發行記錄所在的 H2 區段名稱，現行名稱排第一。
+# 2026-10-14 官方把「Antigravity 2.0」改名為「Antigravity App」（當天為小寫 app，
+# 其後改為 App）；版本號由 2.22.0 接續到 2.29.x、release link 仍是 tab=hub，
+# 證明是同一條產品線改名，不是主版本更替。舊名保留，讓歷史快照仍可解析。
+# 只列已取證的名稱：出現清單外的名稱（例如 Antigravity 3.0）仍必須可見失敗。
+ANTIGRAVITY_PRODUCT_SECTIONS = ("Antigravity App", "Antigravity 2.0")
 
 # --------------------------------------------------------------------------
 # 監控來源：每一筆都是「技能引用過的路徑事實」的權威出處
@@ -69,6 +75,9 @@ SOURCES = [
     ("claude-code", "hooks", "https://code.claude.com/docs/en/hooks.md"),
     ("claude-code", "desktop", "https://code.claude.com/docs/en/desktop.md"),
     ("claude-code", "claude-directory", "https://code.claude.com/docs/en/claude-directory.md"),
+    # 2026-10-21 起 claude-directory 的檔案表改用不帶 `.claude/` 前綴的相對名稱，
+    # C-105 的兩個 agent-memory 路徑因此失去見證；sub-agents 頁的 memory scope 表仍逐字列出。
+    ("claude-code", "sub-agents", "https://code.claude.com/docs/en/sub-agents.md"),
     ("claude-code", "changelog", "https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md"),
     # Codex — repo 內的 docs/*.md 多已改為導向連結；官方文件已自
     # developers.openai.com 搬遷至 learn.chatgpt.com（舊網址仍 302 導向，
@@ -86,7 +95,8 @@ SOURCES = [
     # Antigravity — 官方文件站在 /docs/<section> 之下（索引頁 /docs 只是 stub，
     # 2026-07-30 曾因此誤判為「沒有公開文件站」）。
     # skills.md 包含 2.0、CLI、IDE 三個 surface（C-110／C-111）。
-    # 舊 ide/skills 與 /changelog 已成 meta-refresh 空殼；changelog.md 含四個 surface。
+    # 舊 ide/skills 與 /changelog 已成 meta-refresh 空殼；changelog.md 含五個 surface
+    # （App／CLI／IDE Extensions／SDK／IDE；產品版本只取 App 區段，見 ANTIGRAVITY_PRODUCT_SECTIONS）。
     ("antigravity", "changelog", ANTIGRAVITY_CHANGELOG),
     ("antigravity", "skills", "https://antigravity.google/docs/skills.md"),
     ("antigravity", "subagents", "https://antigravity.google/docs/subagents.md"),
@@ -98,6 +108,9 @@ SOURCES = [
     ("copilot", "customization", "https://code.visualstudio.com/docs/copilot/customization/overview"),
     ("copilot", "prompt-files", "https://code.visualstudio.com/docs/copilot/customization/prompt-files"),
     ("copilot", "agent-skills", "https://code.visualstudio.com/docs/copilot/customization/agent-skills"),
+    # 2026-11-05 起 customization 總覽頁不再列出 `*.agent.md`，C-73 成為盲區；
+    # custom-agents 頁仍以 `.github/agents/<name>.agent.md` 範例說明。
+    ("copilot", "custom-agents", "https://code.visualstudio.com/docs/copilot/customization/custom-agents"),
     ("copilot", "hooks", "https://code.visualstudio.com/docs/copilot/customization/hooks"),
     ("copilot", "repo-instructions",
      "https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions"),
@@ -133,6 +146,8 @@ DOT_NAMES = "|".join([
     "copilot",
 ])
 
+WINDOWS_PROFILE_NAME = r"[^\\/:*?\"<>|`\x00-\x1f]{1,64}"
+
 TOKEN_RE = re.compile(
     # 前置不可為單字字元 —— 這一條 lookbehind 負責擋掉網域名，
     # 例如 docs.claude.com 的 `.claude` 前面是 `s`，直接不視為路徑。
@@ -141,9 +156,16 @@ TOKEN_RE = re.compile(
     # Copilot 的自訂檔型別（prompt / instructions / agent）必須排在 dot-dir 之前，
     # 否則 `*.agent.md` 會先被 DOT_NAMES 的 `agent` 吃掉、只留下 `.agent`。
     r"[\w.\-]*\.(?:prompt|instructions|agent)\.md"
-    r"|(?:(?:~|\$HOME|\.{1,2})?[/\\])?"
+    # `%USERPROFILE%` 是 Windows 版的 `~`（官方：`~/.claude` resolves to
+    # `%USERPROFILE%\.claude`）。不保留這個前綴，家目錄路徑會被截成專案路徑。
+    # `C:\Users\<name>` 同理；不保留時會被誤判成專案層 `.claude/settings.json`（C-02）。
+    # 帳戶目錄名可含空白等字元（`Jane Doe`），只排除 Windows 檔名禁用字元、控制字元與
+    # 反引號（Markdown code span 的邊界），長度設上限以免吞進整段行文。
+    r"|(?:(?:~|\$HOME|%USERPROFILE%|[A-Za-z]:\\+Users\\+" + WINDOWS_PROFILE_NAME
+    + r"|\.{1,2})?(?:/|\\+))?"
     rf"\.(?:{DOT_NAMES})"
-    r"(?:[/\\][\w.\-]+)*[/\\]?"
+    # 反斜線可連續出現：JSON 字串裡的 Windows 路徑會跳脫成 `\\`。
+    r"(?:(?:/|\\+)[\w.\-]+)*(?:/|\\+)?"
     # 右側不可緊接檔名字元：否則 `.agentsfoo` 會被誤抓成 `.agents`，
     # `.antigravityignore.bak` 也會被誤當成 `.antigravityignore`。
     # 單獨的句尾 `.` 可接在 token 後；但 `.` 後若還有檔名字元（如 `.bak`）則阻擋。
@@ -192,9 +214,14 @@ def normalize(body):
         body = re.sub(r"(?s)<!--.*?-->", " ", body)
         body = re.sub(r"(?s)<[^>]+>", " ", body)
         body = html.unescape(body)
-    # Next.js 等框架會把文件內容以 JSON 字串內嵌，需還原跳脫序列
-    body = re.sub(r"\\u([0-9a-fA-F]{4})", lambda m: chr(int(m.group(1), 16)), body)
-    body = body.replace("\\n", " ").replace("\\t", " ").replace('\\"', '"').replace("\\/", "/")
+    # Next.js 等框架會把文件內容以 JSON 字串內嵌，需還原跳脫序列。
+    # 只有前面是偶數個反斜線的 `\` 才是跳脫字元的開頭：`\\name` 是跳脫後的
+    # 反斜線加上 `name`，不是 `\n` + `ame`。否則 Windows 路徑裡以 n／t／u 開頭的
+    # 目錄會被拆斷（`%USERPROFILE%\\.claude\\new.json` 曾被截成 `~/.claude/`）。
+    escape = r"(?<!\\)((?:\\\\)*)\\"
+    body = re.sub(escape + r"u([0-9a-fA-F]{4})", lambda m: m.group(1) + chr(int(m.group(2), 16)), body)
+    body = re.sub(escape + r"[nt]", lambda m: m.group(1) + " ", body)
+    body = re.sub(escape + r'(["/])', lambda m: m.group(1) + m.group(2), body)
     # class 名稱純屬版面雜訊，且改版時會整批變動
     body = re.sub(r'"className":"[^"]*"', " ", body)
     return body
@@ -238,10 +265,21 @@ def redirect_diagnostic(body, source_url):
     return '；文件宣告的導向目標（未另行取證）：' + status + '、'.join(targets)
 
 
+def canonical_token(token):
+    """Windows 寫法統一成 POSIX 寫法，讓同一路徑只有一種 token。
+
+    `%USERPROFILE%\\.claude\\settings.json` 與 `~/.claude/settings.json` 是同一個
+    家目錄檔案。舊版直接保存 `\\.claude\\settings.json`：前綴被切掉、分隔符又不是 `/`，
+    既對不到 C-112，還被當成單段 token 標上錯誤的 C-99 說明（2026-11-04 報告）。
+    """
+    token = re.sub(r"\\+", "/", token)
+    return re.sub(r"^(?:%USERPROFILE%|[A-Za-z]:/Users/[^/]+)(?=/)", "~", token)
+
+
 def iter_token_matches(text):
     """逐一回傳清理後的 token 與原文 match span。"""
     for match in TOKEN_RE.finditer(text):
-        token = match.group(0).strip().rstrip("`\"'.,;:!?)]}")
+        token = canonical_token(match.group(0).strip().rstrip("`\"'.,;:!?)]}"))
         if len(token) <= 2 or "://" in token:
             continue
         yield token, match.start(), match.end()
@@ -473,12 +511,15 @@ def parse_antigravity_changelog(body):
         heading = re.fullmatch(r" {0,3}##[ \t]+(.+?)\s*", line)
         if heading:
             sections.append((number, heading.group(1), line))
-    products = [item for item in sections if item[1] == "Antigravity 2.0"]
+    # 大小寫不構成改名（官方曾在數日內由 app 改為 App）；其餘必須逐字相符。
+    accepted = {name.casefold() for name in ANTIGRAVITY_PRODUCT_SECTIONS}
+    products = [item for item in sections if " ".join(item[1].split()).casefold() in accepted]
     if len(products) != 1:
         seen = "、".join(f"第 {number} 行 {report_text(raw)}"
                         for number, _name, raw in sections) or "無"
+        current, *former = ANTIGRAVITY_PRODUCT_SECTIONS
         raise _changelog_error(
-            f"預期唯一產品區段 Antigravity 2.0，實得 {len(products)} 個；"
+            f"預期唯一產品區段 {current}（舊名 {'、'.join(former)}），實得 {len(products)} 個；"
             f"實際 H2：{seen}。區段可能改名，需核對是否涉及產品主版本更名")
     start, section, section_heading = products[0]
     end = next((number for number, _name, _raw in sections if number > start), len(lines) + 1)

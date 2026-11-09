@@ -15,6 +15,10 @@ SPEC = importlib.util.spec_from_file_location("monitor", ROOT / "scripts/check_u
 MONITOR = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MONITOR)
 FIXTURES = ROOT / "tests/fixtures"
+# 凍結的 baseline 快照。scripts/last_checked.json 由機器人每日改寫，且機器人的 push
+# 不會觸發 CI；測試若讀 live baseline，上游改版就會讓 main 靜默變紅（2026-10-21 起
+# claude-directory 改版即是如此）。新增監控來源時，請一併在此快照補上該來源。
+BASELINE = json.loads((FIXTURES / "monitor-baseline.json").read_text(encoding="utf-8"))
 
 
 class MigratedSourceTests(unittest.TestCase):
@@ -25,7 +29,7 @@ class MigratedSourceTests(unittest.TestCase):
 
     def test_source_endpoints_and_precise_memory_tokens(self):
         sources = {f"{tool}/{name}": url for tool, name, url in MONITOR.SOURCES}
-        self.assertEqual(28, len(MONITOR.SOURCES))
+        self.assertEqual(30, len(MONITOR.SOURCES))
         self.assertEqual(len(MONITOR.SOURCES), len(sources))
         self.assertNotIn("antigravity/ide-skills", sources)
         self.assertEqual("https://antigravity.google/docs/changelog.md", sources["antigravity/changelog"])
@@ -33,14 +37,19 @@ class MigratedSourceTests(unittest.TestCase):
         self.assertEqual("https://antigravity.google/docs/skills.md", sources["antigravity/skills"])
         self.assertNotIn("antigravity/rules-workflows", sources)
         self.assertEqual("https://antigravity.google/docs/rules.md", sources["antigravity/rules"])
-        for name in ("settings", "memory", "skills", "hooks", "desktop", "claude-directory"):
+        for name in ("settings", "memory", "skills", "hooks", "desktop", "claude-directory", "sub-agents"):
             self.assertEqual(f"https://code.claude.com/docs/en/{name}.md", sources[f"claude-code/{name}"])
         fixtures = json.loads((FIXTURES / "monitor-migrated-sources.json").read_text(encoding="utf-8"))
-        baseline = MONITOR.load_baseline()["sources"]
+        self.assertEqual("https://code.visualstudio.com/docs/copilot/customization/custom-agents",
+                         sources["copilot/custom-agents"])
+        baseline = BASELINE["sources"]
         expected = {
             "antigravity/skills": {"~/.gemini/config/skills/", "~/.gemini/antigravity-cli/skills/",
                                    "~/.gemini/antigravity/skills/"},
-            "claude-code/claude-directory": {".claude/agent-memory/", ".claude/agent-memory-local/"},
+            # C-105 的見證自 claude-directory 移到 sub-agents（2026-10-21 官方改版）。
+            "claude-code/sub-agents": {".claude/agent-memory/", ".claude/agent-memory-local/"},
+            # C-73 的見證自 customization 總覽移到 custom-agents（2026-11-05 官方改版）。
+            "copilot/custom-agents": {".github/agents/planner.agent.md"},
             "claude-code/desktop": {".claude/launch.json"},
         }
         for key, paths in expected.items():
@@ -53,14 +62,14 @@ class MigratedSourceTests(unittest.TestCase):
         tokens = MONITOR.extract_tokens(MONITOR.normalize(text))
         precise_paths = {"/.agents/AGENTS.md", "/.agents/GEMINI.md", ".agents/rules.json"}
         self.assertTrue(precise_paths <= tokens)
-        sources = MONITOR.load_baseline()["sources"]
+        sources = BASELINE["sources"]
         self.assertNotIn("antigravity/rules-workflows", sources)
         self.assertTrue(precise_paths <= set(sources["antigravity/rules"]["tokens"]))
         redirect = (FIXTURES / "antigravity-rules-redirect.html").read_text(encoding="utf-8")
         self.assertEqual(set(), MONITOR.extract_tokens(MONITOR.normalize(redirect)))
 
     def _replay(self, redirect_key=None, *, http_error=False, dry_run=True, update_other=False):
-        baseline = MONITOR.load_baseline()
+        baseline = json.loads(json.dumps(BASELINE))
         by_url = {url: f"{tool}/{name}" for tool, name, url in MONITOR.SOURCES}
         fixture = "antigravity-rules-redirect.html" if redirect_key == "antigravity/rules" else "antigravity-ide-skills-redirect.html"
         redirect = (FIXTURES / fixture).read_text(encoding="utf-8")
@@ -91,6 +100,19 @@ class MigratedSourceTests(unittest.TestCase):
             after = json.loads(path.read_text(encoding="utf-8"))
         return out.getvalue(), after
 
+    def test_frozen_baseline_covers_exactly_the_monitored_sources(self):
+        # 新增或移除來源時，快照必須同步更新；否則 replay 測試會在缺少來源時誤報失敗。
+        self.assertEqual({f"{tool}/{name}" for tool, name, _url in MONITOR.SOURCES},
+                         set(BASELINE["sources"]))
+        self.assertEqual(MONITOR.SCHEMA_VERSION, BASELINE["schema"])
+
+    def test_baselines_hold_only_canonical_tokens(self):
+        # 抽取結果一律以 `/` 分隔；殘留反斜線 token 會在下一輪被誤報成「消失」。
+        for name, data in (("frozen", BASELINE), ("live", MONITOR.load_baseline())):
+            for key, entry in data["sources"].items():
+                with self.subTest(baseline=name, source=key):
+                    self.assertEqual([], [t for t in entry["tokens"] if "\\" in t])
+
     def test_all_sources_success_clears_failure_signal(self):
         self.assertNotIn("[SIGNAL: CHECK_FAILED]", self._replay()[0])
 
@@ -101,7 +123,7 @@ class MigratedSourceTests(unittest.TestCase):
         self.assertNotIn("**消失**", report)
 
     def test_rules_failure_preserves_entry_when_successful_source_is_written(self):
-        before = MONITOR.load_baseline()
+        before = BASELINE
         for http_error in (False, True):
             with self.subTest(http_error=http_error):
                 report, after = self._replay("antigravity/rules", http_error=http_error,

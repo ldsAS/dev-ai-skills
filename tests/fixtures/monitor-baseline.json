@@ -1,0 +1,538 @@
+{
+  "schema": 2,
+  "versions": {
+    "claude-code": "2.1.318",
+    "codex": "0.166.0",
+    "gemini-cli": "0.67.0",
+    "antigravity": "2.22.0"
+  },
+  "sources": {
+    "antigravity/changelog": {
+      "tokens": [
+        ".agents/",
+        ".agents/agents/",
+        ".agents/settings.json",
+        ".agents/skills/",
+        ".antigravitycli",
+        ".antigravitycli/",
+        ".antigravityignore",
+        ".gemini/",
+        ".mcp.json",
+        "/.agents/hooks.json",
+        "/.gemini/config.json",
+        "AGENTS.md",
+        "GEMINI.md",
+        "~/.gemini/AGENTS.md",
+        "~/.gemini/GEMINI.md",
+        "~/.gemini/antigravity-cli/",
+        "~/.gemini/antigravity-cli/cache",
+        "~/.gemini/antigravity-cli/cache/projects.json",
+        "~/.gemini/antigravity-cli/hooks.json",
+        "~/.gemini/antigravity-cli/settings.json",
+        "~/.gemini/bin",
+        "~/.gemini/bin/agy.version.json",
+        "~/.gemini/config",
+        "~/.gemini/config/",
+        "~/.gemini/config/config.json",
+        "~/.gemini/config/hooks.json",
+        "~/.gemini/config/plugins",
+        "~/.gemini/config/projects/",
+        "~/.gemini/config/skills"
+      ]
+    },
+    "antigravity/gcli-migration": {
+      "tokens": [
+        ".agents/mcp_config.json",
+        ".agents/skills/",
+        ".gemini/skills/",
+        "AGENTS.md",
+        "GEMINI.md",
+        "~/.gemini/GEMINI.md",
+        "~/.gemini/antigravity-cli/skills/",
+        "~/.gemini/config/mcp_config.json",
+        "~/.gemini/settings.json",
+        "~/.gemini/skills/"
+      ]
+    },
+    "antigravity/hooks": {
+      "tokens": [
+        ".agents/hooks.json",
+        "~/.gemini/antigravity",
+        "~/.gemini/antigravity-cli",
+        "~/.gemini/antigravity-cli/settings.json",
+        "~/.gemini/antigravity-ide",
+        "~/.gemini/antigravity/brain/ec33ebf9-0cba-4100-8142-c61503f6c587",
+        "~/.gemini/antigravity/brain/ec33ebf9-0cba-4100-8142-c61503f6c587/.system_generated/logs/transcript.jsonl",
+        "~/.gemini/config/hooks.json"
+      ]
+    },
+    "antigravity/plugins": {
+      "tokens": [
+        ".agents/plugins/",
+        ".gemini/config/plugins/firebase",
+        ".gemini/config/plugins/gcalendar",
+        "~/.claude/plugins/",
+        "~/.gemini/config/plugins/",
+        "~/.gemini/extensions/"
+      ]
+    },
+    "antigravity/rules": {
+      "tokens": [
+        ".agents/rules",
+        ".agents/rules.json",
+        ".agents/rules/",
+        ".agents/rules/frontend/react.md",
+        ".agents/rules/typescript.md",
+        "/.agent/rules/",
+        "/.agents/AGENTS.md",
+        "/.agents/GEMINI.md",
+        "/.agents/rules/",
+        "AGENTS.md",
+        "GEMINI.md",
+        "~/.gemini/AGENTS.md",
+        "~/.gemini/GEMINI.md",
+        "~/.gemini/config/AGENTS.md",
+        "~/.gemini/config/GEMINI.md",
+        "~/.gemini/config/plugins/",
+        "~/.gemini/config/rules/"
+      ]
+    },
+    "antigravity/skills": {
+      "tokens": [
+        ".agent/skills",
+        ".agents/skills",
+        ".agents/skills/",
+        "/.agents/skills/",
+        "~/.gemini/antigravity-cli/skills/",
+        "~/.gemini/antigravity/skills/",
+        "~/.gemini/config/plugins/",
+        "~/.gemini/config/skills/",
+        "~/.gemini/skills/"
+      ]
+    },
+    "antigravity/subagents": {
+      "tokens": [
+        ".agents/agents/",
+        "~/.gemini/config/agents/"
+      ]
+    },
+    "claude-code/changelog": {
+      "tokens": [
+        ".claude",
+        ".claude-plugin/marketplace.json",
+        ".claude/",
+        ".claude/agents/",
+        ".claude/commands/",
+        ".claude/commands/frontend/component.md",
+        ".claude/hooks",
+        ".claude/rules",
+        ".claude/rules/",
+        ".claude/scheduled_tasks.json",
+        ".claude/settings.json",
+        ".claude/settings.local.json",
+        ".claude/skills",
+        ".claude/skills/",
+        ".claude/workflows/",
+        ".claude/worktrees",
+        ".claude/worktrees/",
+        ".mcp.json",
+        "AGENTS.md",
+        "CLAUDE.local.md",
+        "CLAUDE.md",
+        "settings.local.json",
+        "~/.claude",
+        "~/.claude/",
+        "~/.claude/.credentials.json",
+        "~/.claude/CLAUDE.md",
+        "~/.claude/backups/",
+        "~/.claude/daemon",
+        "~/.claude/history.jsonl",
+        "~/.claude/keybindings.json",
+        "~/.claude/plugins/.trash",
+        "~/.claude/plugins/known_marketplaces.json",
+        "~/.claude/seed-admin",
+        "~/.claude/session-env",
+        "~/.claude/sessions",
+        "~/.claude/settings.json",
+        "~/.claude/shell-snapshots/",
+        "~/.claude/skills",
+        "~/.claude/skills/",
+        "~/.claude/skills/.trash",
+        "~/.claude/skills/.trash/",
+        "~/.claude/tasks/",
+        "~/.claude/themes/",
+        "~/.claude/workflows/"
+      ]
+    },
+    "claude-code/claude-directory": {
+      "tokens": [
+        ".claude",
+        ".claude/",
+        ".claude/backups",
+        ".claude/history.jsonl",
+        ".claude/projects/-home-user-work-my-repo",
+        ".mcp.json",
+        "AGENTS.md",
+        "CLAUDE.local.md",
+        "CLAUDE.md",
+        "settings.local.json",
+        "~/.claude",
+        "~/.claude/",
+        "~/.claude/backups/",
+        "~/.claude/cache/changelog.md",
+        "~/.claude/debug/",
+        "~/.claude/feedback-bundles/",
+        "~/.claude/feedback/drafts/",
+        "~/.claude/file-history/",
+        "~/.claude/history.jsonl",
+        "~/.claude/image-cache/",
+        "~/.claude/logs/",
+        "~/.claude/paste-cache/",
+        "~/.claude/plans/",
+        "~/.claude/plugins",
+        "~/.claude/plugins/",
+        "~/.claude/plugins/.trash/",
+        "~/.claude/plugins/installed_plugins.set-aside",
+        "~/.claude/plugins/installed_plugins.unreadable",
+        "~/.claude/plugins/synced/",
+        "~/.claude/policy-limits.json",
+        "~/.claude/projects/",
+        "~/.claude/remote-settings.json",
+        "~/.claude/session-env/",
+        "~/.claude/settings.json",
+        "~/.claude/shell-snapshots/",
+        "~/.claude/skills/.trash/",
+        "~/.claude/stats-cache.json",
+        "~/.claude/statsig/",
+        "~/.claude/tasks/",
+        "~/.claude/todos/",
+        "~/.claude/uploads/",
+        "~/.claude/usage-data/"
+      ]
+    },
+    "claude-code/desktop": {
+      "tokens": [
+        "$HOME/.claude/remote/",
+        ".claude/",
+        ".claude/launch.json",
+        ".claude/settings.json",
+        ".mcp.json",
+        "/.claude/worktrees/",
+        "CLAUDE.local.md",
+        "CLAUDE.md",
+        "~/.claude",
+        "~/.claude/",
+        "~/.claude/remote/",
+        "~/.claude/remote/ccd-cli/",
+        "~/.claude/remote/plugins/",
+        "~/.claude/remote/run/",
+        "~/.claude/remote/srv/",
+        "~/.claude/settings.json",
+        "~/.claude/skills/",
+        "~/.claude/uploads/"
+      ]
+    },
+    "claude-code/hooks": {
+      "tokens": [
+        "$HOME/.claude/worktrees/",
+        "../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+        "../.claude/projects/.../transcript.jsonl",
+        ".claude/",
+        ".claude/hooks/",
+        ".claude/hooks/answer-project-key.ps1",
+        ".claude/hooks/answer-project-key.sh",
+        ".claude/hooks/block-opus-46.ps1",
+        ".claude/hooks/block-rm.ps1",
+        ".claude/hooks/block-rm.sh",
+        ".claude/hooks/check-command.js",
+        ".claude/hooks/log-write.sh",
+        ".claude/hooks/plain-display.ps1",
+        ".claude/hooks/plain-display.sh",
+        ".claude/hooks/run-tests-async.sh",
+        ".claude/projects/.../transcript.jsonl",
+        ".claude/rules/",
+        ".claude/settings.json",
+        ".claude/settings.local.json",
+        ".claude/skills/",
+        ".claude/worktrees/feature-auth",
+        "/.claude/hooks/answer-project-key.ps1",
+        "/.claude/hooks/answer-project-key.sh",
+        "/.claude/hooks/audit-config-change.sh",
+        "/.claude/hooks/block-opus-46.ps1",
+        "/.claude/hooks/block-rm.ps1",
+        "/.claude/hooks/block-rm.sh",
+        "/.claude/hooks/check-command.js",
+        "/.claude/hooks/check-style.sh",
+        "/.claude/hooks/check.ps1",
+        "/.claude/hooks/no-rm.sh",
+        "/.claude/hooks/plain-display.ps1",
+        "/.claude/hooks/plain-display.sh",
+        "/.claude/hooks/policy-check.sh",
+        "/.claude/hooks/run-tests-async.sh",
+        "/.claude/hooks/upload-metrics.sh",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "~/.claude/",
+        "~/.claude/debug/",
+        "~/.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+        "~/.claude/projects/.../abc123.jsonl",
+        "~/.claude/projects/.../abc123/subagents/agent-def456.jsonl",
+        "~/.claude/settings.json",
+        "~/.claude/skills/",
+        "~/.claude/skills/team-skills"
+      ]
+    },
+    "claude-code/memory": {
+      "tokens": [
+        "./.claude/CLAUDE.md",
+        ".agents/",
+        ".claude",
+        ".claude/",
+        ".claude/AGENTS.md",
+        ".claude/CLAUDE.md",
+        ".claude/rules/",
+        ".claude/rules/security.md",
+        ".claude/rules/shared",
+        ".claude/settings.json",
+        ".claude/settings.local.json",
+        ".claude/skills/deploy",
+        ".claude/worktrees/",
+        "AGENTS.local.md",
+        "AGENTS.md",
+        "CLAUDE.local.md",
+        "CLAUDE.md",
+        "copilot-instructions.md",
+        "~/.claude/",
+        "~/.claude/CLAUDE.md",
+        "~/.claude/my-project-instructions.md",
+        "~/.claude/projects/",
+        "~/.claude/rules/",
+        "~/.claude/settings.json"
+      ]
+    },
+    "claude-code/settings": {
+      "tokens": [
+        ".claude",
+        ".claude/",
+        ".claude/settings.json",
+        ".claude/settings.local.json",
+        "/.claude/settings.local.json",
+        "CLAUDE.md",
+        "~/.claude",
+        "~/.claude/backups/.claude.json.corrupted",
+        "~/.claude/settings.json"
+      ]
+    },
+    "claude-code/skills": {
+      "tokens": [
+        ".claude-plugin/plugin.json",
+        ".claude/agents/",
+        ".claude/commands/",
+        ".claude/commands/deploy.md",
+        ".claude/commands/frontend/component.md",
+        ".claude/settings.json",
+        ".claude/settings.local.json",
+        ".claude/skills",
+        ".claude/skills/",
+        ".claude/skills/deploy-staging/SKILL.md",
+        ".claude/skills/deploy/SKILL.md",
+        ".claude/skills/run-",
+        ".claude/skills/verify/SKILL.md",
+        ".mcp.json",
+        "/.claude/hooks/helper.sh",
+        "/.claude/skills/",
+        "CLAUDE.md",
+        "~/.claude/",
+        "~/.claude/skills",
+        "~/.claude/skills/",
+        "~/.claude/skills/.trash/",
+        "~/.claude/skills/codebase-visualizer/SKILL.md",
+        "~/.claude/skills/codebase-visualizer/scripts",
+        "~/.claude/skills/codebase-visualizer/scripts/visualize.py",
+        "~/.claude/skills/render-chart/",
+        "~/.claude/skills/summarize-changes",
+        "~/.claude/skills/summarize-changes/SKILL.md",
+        "~/.claude/skills/synced/"
+      ]
+    },
+    "claude-code/sub-agents": {
+      "tokens": [
+        ".claude/agent-memory-local/",
+        ".claude/agent-memory/",
+        ".claude/agents",
+        ".claude/agents/",
+        ".claude/agents/code-reviewer.md",
+        ".claude/settings.json",
+        ".mcp.json",
+        "AGENTS.md",
+        "CLAUDE.local.md",
+        "CLAUDE.md",
+        "settings.local.json",
+        "~/.claude/CLAUDE.md",
+        "~/.claude/agent-memory/",
+        "~/.claude/agents",
+        "~/.claude/agents/",
+        "~/.claude/agents/code-improver.md",
+        "~/.claude/debug/",
+        "~/.claude/projects/"
+      ]
+    },
+    "codex/changelog": {
+      "tokens": [
+        ".agents/plugins/marketplace.json",
+        ".codex-plugin/",
+        ".codex-plugin/plugin.json",
+        ".codex/",
+        ".codex/skills",
+        ".mcp.json",
+        "AGENTS.md",
+        "~/.agents/plugins/marketplace.json",
+        "~/.codex/",
+        "~/.codex/plugins/",
+        "~/.codex/skills"
+      ]
+    },
+    "codex/config-basic": {
+      "tokens": [
+        ".agents",
+        ".codex",
+        ".codex/",
+        ".codex/config.toml",
+        "AGENTS.md",
+        "~/.codex/config.toml",
+        "~/.codex/profile-name.config.toml"
+      ]
+    },
+    "codex/config-reference": {
+      "tokens": [
+        ".agents/plugins/marketplace.json",
+        ".codex/",
+        ".codex/config.toml",
+        "AGENTS.md",
+        "~/.codex/config.toml"
+      ]
+    },
+    "codex/hooks": {
+      "tokens": [
+        ".codex-plugin/plugin.json",
+        ".codex/",
+        ".codex/hooks/",
+        ".codex/rollout.jsonl",
+        "/.codex/config.toml",
+        "/.codex/hooks.json",
+        "/.codex/hooks/permission_request.py",
+        "/.codex/hooks/post_tool_use_review.py",
+        "/.codex/hooks/pre_tool_use_policy.py",
+        "/.codex/hooks/session_start.py",
+        "/.codex/hooks/stop_continue.py",
+        "/.codex/hooks/user_prompt_submit_data_flywheel.py",
+        "AGENTS.md",
+        "~/.codex/config.toml",
+        "~/.codex/hooks.json",
+        "~/.codex/hooks/post_tool_use.py",
+        "~/.codex/hooks/session_end.py",
+        "~/.codex/hooks/session_start.py"
+      ]
+    },
+    "codex/skills": {
+      "tokens": [
+        "$HOME/.agents/skills",
+        "../.agents/skills",
+        ".agents/skills",
+        ".codex/config.toml",
+        "AGENTS.md",
+        "~/.codex/config.toml"
+      ]
+    },
+    "copilot/agent-skills": {
+      "tokens": [
+        ".agents/skills/",
+        ".claude/skills/",
+        ".github/skills/",
+        "AGENTS.md",
+        "copilot-instructions.md",
+        "~/.agents/skills/",
+        "~/.claude/skills/",
+        "~/.copilot/skills/"
+      ]
+    },
+    "copilot/custom-agents": {
+      "tokens": [
+        ".github/agents/planner.agent.md",
+        ".github/agents/reviewer.agent.md"
+      ]
+    },
+    "copilot/customization": {
+      "tokens": [
+        "AGENTS.md",
+        "CLAUDE.md",
+        "copilot-instructions.md",
+        "review.prompt.md",
+        "reviewer.agent.md",
+        "style.instructions.md"
+      ]
+    },
+    "copilot/hooks": {
+      "tokens": [
+        ".claude/settings.json",
+        ".claude/settings.local.json",
+        ".github/hooks",
+        ".github/hooks/",
+        ".github/hooks/audit.json",
+        ".github/hooks/log-tool-use.cjs",
+        ".github/hooks/tool-use.log",
+        "settings.local.json",
+        "~/.copilot/hooks/",
+        "~/.copilot/settings.json"
+      ]
+    },
+    "copilot/prompt-files": {
+      "tokens": [
+        ".github/prompts",
+        ".prompt.md",
+        "coding.instructions.md"
+      ]
+    },
+    "copilot/repo-instructions": {
+      "tokens": [
+        ".github/instructions",
+        ".instructions.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "GEMINI.md",
+        "NAME.instructions.md",
+        "copilot-instructions.md"
+      ]
+    },
+    "gemini-cli/gemini-md": {
+      "tokens": [
+        "AGENTS.md",
+        "GEMINI.md",
+        "~/.gemini/GEMINI.md"
+      ]
+    },
+    "gemini-cli/ignore": {
+      "tokens": [
+        ".aiexclude",
+        ".geminiignore"
+      ]
+    },
+    "gemini-cli/settings": {
+      "tokens": [
+        ".gemini/settings.json",
+        ".geminiignore",
+        "GEMINI.md",
+        "~/.gemini/settings.json"
+      ]
+    },
+    "gemini-cli/skills": {
+      "tokens": [
+        ".agents/skills/",
+        ".gemini/skills/",
+        "GEMINI.md",
+        "~/.agents/skills/",
+        "~/.gemini/skills/"
+      ]
+    }
+  }
+}

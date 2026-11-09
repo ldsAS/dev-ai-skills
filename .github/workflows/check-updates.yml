@@ -188,18 +188,22 @@ jobs:
 
           # updates 與 failure 是獨立狀態；同時發生時兩類 issue 都必須收到報告。
           # 此函式在條件中呼叫，bash -e 不會替它中止；每個必要命令明確傳回失敗。
+          # 失敗 issue 只收失敗資訊；同輪的異動內容已送進該 run 專屬的異動 issue，
+          # 不再把同一份完整報告寄兩次。
           notify_failure() {
             TITLE="⚠️ AI 工具異動檢查失敗"
+            python scripts/monitor_ci_policy.py failure-report \
+              --report report.md --run-id "$RUN_ID" > failure-report.md || return $?
             gh issue list --state open --limit 1000 --json number,title,state > open-issues.json || return $?
             python scripts/monitor_ci_policy.py targets \
               --issues open-issues.json --title "$TITLE" > matching-issues.txt || return $?
             EXISTING=$(head -n 1 matching-issues.txt) || return $?
 
             if [ -n "$EXISTING" ]; then
-              gh issue comment "$EXISTING" --body-file report.md || return $?
+              gh issue comment "$EXISTING" --body-file failure-report.md || return $?
               echo "已在既有 issue #$EXISTING 追加留言"
             else
-              gh issue create --title "$TITLE" --body-file report.md --assignee "$OWNER" || return $?
+              gh issue create --title "$TITLE" --body-file failure-report.md --assignee "$OWNER" || return $?
             fi
           }
 
