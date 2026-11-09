@@ -57,6 +57,12 @@ RETRIES = 3
 
 # 路徑監控與產品版本共用當輪此 URL 的原文／失敗結果。
 ANTIGRAVITY_CHANGELOG = "https://antigravity.google/docs/changelog.md"
+# 產品（hub）發行記錄所在的 H2 區段名稱，現行名稱排第一。
+# 2026-10-14 官方把「Antigravity 2.0」改名為「Antigravity App」（當天為小寫 app，
+# 其後改為 App）；版本號由 2.22.0 接續到 2.29.x、release link 仍是 tab=hub，
+# 證明是同一條產品線改名，不是主版本更替。舊名保留，讓歷史快照仍可解析。
+# 只列已取證的名稱：出現清單外的名稱（例如 Antigravity 3.0）仍必須可見失敗。
+ANTIGRAVITY_PRODUCT_SECTIONS = ("Antigravity App", "Antigravity 2.0")
 
 # --------------------------------------------------------------------------
 # 監控來源：每一筆都是「技能引用過的路徑事實」的權威出處
@@ -86,7 +92,8 @@ SOURCES = [
     # Antigravity — 官方文件站在 /docs/<section> 之下（索引頁 /docs 只是 stub，
     # 2026-07-30 曾因此誤判為「沒有公開文件站」）。
     # skills.md 包含 2.0、CLI、IDE 三個 surface（C-110／C-111）。
-    # 舊 ide/skills 與 /changelog 已成 meta-refresh 空殼；changelog.md 含四個 surface。
+    # 舊 ide/skills 與 /changelog 已成 meta-refresh 空殼；changelog.md 含五個 surface
+    # （App／CLI／IDE Extensions／SDK／IDE；產品版本只取 App 區段，見 ANTIGRAVITY_PRODUCT_SECTIONS）。
     ("antigravity", "changelog", ANTIGRAVITY_CHANGELOG),
     ("antigravity", "skills", "https://antigravity.google/docs/skills.md"),
     ("antigravity", "subagents", "https://antigravity.google/docs/subagents.md"),
@@ -473,12 +480,15 @@ def parse_antigravity_changelog(body):
         heading = re.fullmatch(r" {0,3}##[ \t]+(.+?)\s*", line)
         if heading:
             sections.append((number, heading.group(1), line))
-    products = [item for item in sections if item[1] == "Antigravity 2.0"]
+    # 大小寫不構成改名（官方曾在數日內由 app 改為 App）；其餘必須逐字相符。
+    accepted = {name.casefold() for name in ANTIGRAVITY_PRODUCT_SECTIONS}
+    products = [item for item in sections if " ".join(item[1].split()).casefold() in accepted]
     if len(products) != 1:
         seen = "、".join(f"第 {number} 行 {report_text(raw)}"
                         for number, _name, raw in sections) or "無"
+        current, *former = ANTIGRAVITY_PRODUCT_SECTIONS
         raise _changelog_error(
-            f"預期唯一產品區段 Antigravity 2.0，實得 {len(products)} 個；"
+            f"預期唯一產品區段 {current}（舊名 {'、'.join(former)}），實得 {len(products)} 個；"
             f"實際 H2：{seen}。區段可能改名，需核對是否涉及產品主版本更名")
     start, section, section_heading = products[0]
     end = next((number for number, _name, _raw in sections if number > start), len(lines) + 1)

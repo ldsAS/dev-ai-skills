@@ -24,6 +24,7 @@ def load(name, filename):
 M = load("changelog_monitor", "check_updates.py")
 POLICY = load("changelog_policy", "monitor_ci_policy.py")
 FIXTURE = (ROOT / "tests/fixtures/antigravity-changelog.md").read_text(encoding="utf-8")
+CURRENT_FIXTURE = (ROOT / "tests/fixtures/antigravity-changelog-2026-11.md").read_text(encoding="utf-8")
 REDIRECT = (ROOT / "tests/fixtures/antigravity-changelog-redirect.html").read_text(encoding="utf-8")
 HEADER = "## Antigravity 2.0\n\n"
 
@@ -43,6 +44,30 @@ class ChangelogParserTests(unittest.TestCase):
         self.assertEqual(10, parsed.line)
         self.assertTrue({".agents/agents/", ".agents/skills/", "~/.gemini/config/plugins"}
                         <= M.extract_tokens(M.normalize(FIXTURE)))
+
+    def test_current_app_layout_selects_product_section(self):
+        # 2026-10-14 起官方把產品區段改名為 Antigravity App，並新增 IDE Extensions。
+        # 舊解析器只認 Antigravity 2.0，因此連續 26 天每日 CHECK_FAILED。
+        parsed = M.parse_antigravity_changelog(CURRENT_FIXTURE)
+        self.assertEqual("2.29.1", parsed.version)
+        self.assertEqual("Antigravity App", parsed.section)
+        self.assertEqual("November 6, 2026", parsed.released_on)
+        self.assertEqual(14, parsed.line)
+        # IDE 區段的 v2.6.0 是真實的他面版本，不能被誤選。
+        self.assertNotEqual("2.6.0", parsed.version)
+
+    def test_product_section_name_case_is_not_a_rename(self):
+        for heading in ("## Antigravity app\n\n", "## antigravity APP\n\n", "## Antigravity  App\n\n"):
+            with self.subTest(heading=heading):
+                parsed = M.parse_antigravity_changelog(heading + record())
+                self.assertEqual("2.18.1", parsed.version)
+
+    def test_old_and_new_product_names_together_are_ambiguous(self):
+        body = HEADER + record() + "## Antigravity App\n\n" + record("2.29.1", "November 6, 2026")
+        with self.assertRaises(ValueError) as raised:
+            M.parse_antigravity_changelog(body)
+        self.assertIn("實得 2 個", str(raised.exception))
+        self.assertIn("Antigravity App", str(raised.exception))
 
     def test_ide_high_version_cannot_override_product(self):
         body = HEADER + record() + "## Antigravity IDE\n\n" + record("2.99.0").replace("tab=hub", "tab=ide")
