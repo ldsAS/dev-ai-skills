@@ -101,6 +101,17 @@ class DeliveryTests(unittest.TestCase):
                 self.assertNotEqual(0, result.returncode)
                 self.assertFalse(any(c[0] == 'git' for c in calls), calls)
 
+    def test_dual_run_sends_update_once_and_failure_only_to_failure_issue(self):
+        display = ('AI summary\n\n## 🚨 偵測到 AI 工具路徑異動\n\n- ✅ **新增**：`x`\n\n'
+                   '## ⚠️ 檢查失敗的來源\n\n- `version/x`：失敗原因\n\n')
+        self.run_delivery(attempts=[{'display': display}])
+        update, failure = self.remote['issues']
+        self.assertIn('## 🚨 偵測到 AI 工具路徑異動', update['body'])
+        self.assertEqual('⚠️ AI 工具異動檢查失敗', failure['title'])
+        self.assertNotIn('## 🚨 偵測到 AI 工具路徑異動', failure['body'])
+        self.assertIn('失敗原因', failure['body'])
+        self.assertIn('· run 123」issue', failure['body'])
+
     def test_success_and_no_notification_bootstrap_can_commit(self):
         for kinds in ('update failure',''):
             calls, _ = self.run_delivery(kinds=kinds)

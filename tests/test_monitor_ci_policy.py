@@ -78,6 +78,107 @@ class AnalyzeReportTests(unittest.TestCase):
         self.assertEqual("update", values["issue_kinds"])
 
 
+DUAL_REPORT = """> 🤖 以下摘要由 AI 生成，僅供快速理解。
+> 摘要內容
+
+## 🚨 偵測到 AI 工具路徑異動
+
+偵測到官方來源中的候選路徑變動。
+
+### `claude-code` — desktop
+
+- ✅ **新增**：`.claude/` → `C-62`
+  > context with ## inside and --- inside
+
+## 📒 受影響的帳本主張
+
+- **C-62** `.claude` — 狀態 已驗證
+
+## 🆕 帳本中查無對應主張的新路徑
+
+- claude-code/desktop: `x`
+
+## ⬆️ 版本跳動（機制可能重構）
+
+- **antigravity**：`2.0.0` → `3.0.0`
+
+## ⚠️ 檢查失敗的來源
+
+- `version/x`：真正的失敗原因
+
+<details><summary>本輪版本取得結果</summary>
+
+- claude-code: `2.1.318`
+
+</details>
+
+[SIGNAL: BASELINE_CHANGED]
+[SIGNAL: UPDATE_DETECTED]
+[SIGNAL: CHECK_FAILED]
+
+## ❌ 檢查腳本以非 0 狀態結束 (exit 1)
+
+---
+由 check-updates.yml 產生。
+
+CC: @owner
+"""
+
+
+class FailureReportTests(unittest.TestCase):
+    def test_dual_report_keeps_failure_and_drops_update_sections(self):
+        result = POLICY.failure_report(DUAL_REPORT, "41792831833")
+        for heading in POLICY.UPDATE_ONLY_HEADINGS:
+            self.assertNotIn(heading, result)
+        for gone in ("### `claude-code`", "C-62", "context with", "`2.0.0` → `3.0.0`"):
+            self.assertNotIn(gone, result)
+        for kept in ("> 🤖 以下摘要由 AI 生成", "## ⚠️ 檢查失敗的來源", "真正的失敗原因",
+                     "<summary>本輪版本取得結果</summary>", "## ❌ 檢查腳本以非 0 狀態結束",
+                     "CC: @owner", "· run 41792831833」issue"):
+            self.assertIn(kept, result)
+        self.assertEqual(1, result.count("完整內容已送至"))
+        # 訊號行原樣保留，下游解析結果不變。
+        self.assertEqual(POLICY.analyze_report(DUAL_REPORT), POLICY.analyze_report(result))
+
+    def test_failure_only_report_is_returned_unchanged(self):
+        report = DUAL_REPORT.split("## 🚨", 1)[0] + "## ⚠️" + DUAL_REPORT.split("## ⚠️", 1)[1]
+        self.assertEqual(report, POLICY.failure_report(report, "1"))
+
+    def test_unknown_heading_is_kept(self):
+        report = "## 🚨 偵測到 AI 工具路徑異動\n\nx\n\n## 🔍 未來新增的區段\n\ny\n"
+        self.assertIn("## 🔍 未來新增的區段\n\ny", POLICY.failure_report(report, "1"))
+
+    def test_crlf_report_is_filtered(self):
+        result = POLICY.failure_report(DUAL_REPORT.replace("\n", "\r\n"), "1")
+        self.assertNotIn("C-62", result)
+        self.assertIn("真正的失敗原因", result)
+
+    def test_run_id_must_be_digits(self):
+        for bad in ("", "12a", "1 2", "../1"):
+            with self.subTest(run_id=bad), self.assertRaises(ValueError):
+                POLICY.failure_report(DUAL_REPORT, bad)
+
+    def test_headings_match_checker_source_verbatim(self):
+        # 標題若在 check_updates.py 改字，denylist 會靜默失效（只會重複，不會漏報）。
+        source = (ROOT / "scripts" / "check_updates.py").read_text(encoding="utf-8")
+        for heading in POLICY.UPDATE_ONLY_HEADINGS:
+            with self.subTest(heading=heading):
+                self.assertIn(f'"{heading}"', source)
+
+    def test_failure_report_cli_writes_filtered_report(self):
+        from contextlib import redirect_stdout
+        from io import StringIO
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            report = Path(temp_dir) / "report.md"
+            report.write_text(DUAL_REPORT, encoding="utf-8")
+            output = StringIO()
+            with redirect_stdout(output):
+                exit_code = POLICY.main(["failure-report", "--report", str(report), "--run-id", "7"])
+        self.assertEqual(0, exit_code)
+        self.assertEqual(POLICY.failure_report(DUAL_REPORT, "7"), output.getvalue())
+
+
 class RecoveryTargetTests(unittest.TestCase):
     def setUp(self):
         self.title = "⚠️ AI 工具異動檢查失敗"
