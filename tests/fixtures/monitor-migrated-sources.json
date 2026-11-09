@@ -1,5 +1,7 @@
 {
   "antigravity/skills": "Synthetic reduced fixture. Antigravity 2.0: .agents/skills/ ~/.gemini/config/skills/ . CLI: .agents/skills/ ~/.gemini/antigravity-cli/skills/ . IDE: .agents/skills/ ~/.gemini/config/skills/ (legacy ~/.gemini/antigravity/skills/). Compatibility: .agent/skills/.",
   "claude-code/claude-directory": "Synthetic reduced fixture. Project memory: <C>.claude/agent-memory/</C>. The memory: local option uses <C>.claude/agent-memory-local/</C> in a sentence, without its own heading.",
-  "claude-code/desktop": "Synthetic reduced fixture. Preview configuration: `.claude/launch.json`."
+  "claude-code/desktop": "Synthetic reduced fixture. Preview configuration: `.claude/launch.json`.",
+  "claude-code/sub-agents": "Synthetic reduced fixture. Memory scope table: user <C>~/.claude/agent-memory/<name-of-agent>/</C>; project <C>.claude/agent-memory/<name-of-agent>/</C> is shareable via version control; local <C>.claude/agent-memory-local/<name-of-agent>/</C> shouldn't be checked into version control.",
+  "copilot/custom-agents": "Synthetic reduced fixture. Workspace custom agents are Markdown files such as <code>.github/agents/planner.agent.md</code> and <code>.github/agents/reviewer.agent.md</code>."
 }

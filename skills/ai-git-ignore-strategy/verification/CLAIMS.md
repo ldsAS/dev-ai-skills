@@ -321,6 +321,13 @@
 - **C-44 補充** — [Antigravity hooks](https://antigravity.google/docs/hooks.md) 三個 surface 均列 `.agents/hooks.json`，原文 “Workspace level”。這直接佐證位置，不拿它補證尚未檢查的合併優先順序；範本仍按專案決策維持註解白名單。
 - **C-110／C-111** — [Antigravity skills](https://antigravity.google/docs/skills.md)：CLI 列 `~/.gemini/antigravity-cli/skills/`；IDE 列 `~/.gemini/config/skills/` 並註 “legacy `~/.gemini/antigravity/skills/` is also supported”。[CLI CHANGELOG](https://github.com/google-antigravity/antigravity-cli/blob/main/CHANGELOG.md) 1.1.0 的 agents 修復與 1.0.2 的 plugin 修復則指向 `~/.gemini/config/`；保留子系統、版本與文件三者的差異，不定論為文件寫錯。
 
+### 2026-11-09 監控見證來源轉移（主張與範本不變）
+
+官方改版後，原依據頁不再逐字列出下列路徑；機制本身仍在官方文件中，故只轉移監控來源，不改判定。
+
+- **C-105** — 2026-10-21 起 [Claude directory](https://code.claude.com/docs/en/claude-directory.md) 的檔案表改寫為不帶 `.claude/` 前綴的 `agent-memory/<name>/`，且不再提及 `agent-memory-local`。[Claude sub-agents](https://code.claude.com/docs/en/sub-agents.md) 的 memory scope 表仍逐字列出：`project` → `.claude/agent-memory/<name-of-agent>/`，原文 “shareable via version control”；`local` → `.claude/agent-memory-local/<name-of-agent>/`，原文 “shouldn't be checked into version control”。與五版範本（前者放行、後者排除）一致；已加入監控來源 `claude-code/sub-agents`。
+- **C-73** — 2026-11-05 起 [Copilot customization 總覽](https://code.visualstudio.com/docs/copilot/customization/overview) 不再列出 `*.agent.md`。[Custom agents](https://code.visualstudio.com/docs/copilot/customization/custom-agents) 頁仍以 `.github/agents/planner.agent.md` 等範例說明工作區自訂 agent；已加入監控來源 `copilot/custom-agents`。
+
 ## 交接輪次紀錄
 
 | 日期 | 工具 | 涵蓋項目 | 交接包 | 回覆 |

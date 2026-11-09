@@ -75,6 +75,9 @@ SOURCES = [
     ("claude-code", "hooks", "https://code.claude.com/docs/en/hooks.md"),
     ("claude-code", "desktop", "https://code.claude.com/docs/en/desktop.md"),
     ("claude-code", "claude-directory", "https://code.claude.com/docs/en/claude-directory.md"),
+    # 2026-10-21 起 claude-directory 的檔案表改用不帶 `.claude/` 前綴的相對名稱，
+    # C-105 的兩個 agent-memory 路徑因此失去見證；sub-agents 頁的 memory scope 表仍逐字列出。
+    ("claude-code", "sub-agents", "https://code.claude.com/docs/en/sub-agents.md"),
     ("claude-code", "changelog", "https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md"),
     # Codex — repo 內的 docs/*.md 多已改為導向連結；官方文件已自
     # developers.openai.com 搬遷至 learn.chatgpt.com（舊網址仍 302 導向，
@@ -105,6 +108,9 @@ SOURCES = [
     ("copilot", "customization", "https://code.visualstudio.com/docs/copilot/customization/overview"),
     ("copilot", "prompt-files", "https://code.visualstudio.com/docs/copilot/customization/prompt-files"),
     ("copilot", "agent-skills", "https://code.visualstudio.com/docs/copilot/customization/agent-skills"),
+    # 2026-11-05 起 customization 總覽頁不再列出 `*.agent.md`，C-73 成為盲區；
+    # custom-agents 頁仍以 `.github/agents/<name>.agent.md` 範例說明。
+    ("copilot", "custom-agents", "https://code.visualstudio.com/docs/copilot/customization/custom-agents"),
     ("copilot", "hooks", "https://code.visualstudio.com/docs/copilot/customization/hooks"),
     ("copilot", "repo-instructions",
      "https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions"),
