@@ -1,17 +1,19 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.319",
+    "claude-code": "2.1.322",
     "codex": "0.167.0",
     "gemini-cli": "0.67.0",
-    "antigravity": "2.29.1"
+    "antigravity": "2.30.0"
   },
   "sources": {
     "antigravity/changelog": {
       "tokens": [
         ".agents/",
         ".agents/agents/",
+        ".agents/plugins.json",
         ".agents/settings.json",
+        ".agents/skills.json",
         ".agents/skills/",
         ".antigravitycli",
         ".antigravitycli/",
@@ -148,6 +150,7 @@
         "~/.claude/daemon",
         "~/.claude/history.jsonl",
         "~/.claude/keybindings.json",
+        "~/.claude/plugins",
         "~/.claude/plugins/.trash",
         "~/.claude/plugins/known_marketplaces.json",
         "~/.claude/seed-admin",
