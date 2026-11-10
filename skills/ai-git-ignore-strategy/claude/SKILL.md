@@ -67,7 +67,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 
 - **Claude Code 專案指令**：`.claude/CLAUDE.md` 與 `.claude/AGENTS.md` 同屬團隊指令，範本精準放行（C-103、C-109）。後者從 2.1.277 起、且功能可用時才支援；預設在目前目錄與上層沒有 `CLAUDE.md`、`.claude/CLAUDE.md` 或 `CLAUDE.local.md` 時載入，可用 Project instructions 改變選擇，不能假設所有 session 都會讀。
 - **Claude Code 團隊 hook 與記憶**：`.claude/hooks/` 放置團隊設定引用的腳本；`.claude/agent-memory/` 是 `memory: project` 的共享記憶。範本預設放行，提交前仍須逐檔審查可執行內容及敏感資訊。私人 hook 應另列精準排除；不共享的記憶使用 `memory: local`，寫入 `.claude/agent-memory-local/`（C-104、C-105）。
-- **Antigravity 團隊規則與技能登記**：`.agents/AGENTS.md`、`.agents/GEMINI.md`、`.agents/rules.json` 依現行官方文件精準放行（C-115；文件證據，未經本輪實機驗證）；`.agents/skills.json` 也精準放行（C-119；agy CLI 1.2.14 文件及 repo 相對登記的隔離實測）。`rules.json` 可登記巢狀規則及引用共用規則，`skills.json` 的 `entries.path` 可指向 repo 內團隊技能目錄；提交前核對引用的解析位置與團隊可用性，私人絕對／家目錄參照另行處理。
+- **Antigravity 團隊規則與技能登記**：`.agents/AGENTS.md`、`.agents/GEMINI.md`、`.agents/rules.json` 依現行官方文件精準放行（C-115；文件證據，未經本輪實機驗證）；`.agents/skills.json` 也精準放行（C-119；agy CLI 1.2.14 文件及 repo 相對登記的隔離實測）。`rules.json` 可登記巢狀規則及引用共用規則，`skills.json` 的 `entries.path` 可指向 repo 內團隊技能目錄；提交前核對引用的解析位置與團隊可用性，私人絕對／家目錄參照另行處理。`.agents/agents.json` 與 `.agents/plugins.json` 是同一套登記機制的 agent／外掛版本，同樣精準放行（C-120、C-121；官方文件證據）；它們指向的 agent 與外掛目錄不因此放行，外掛可含 hooks 與 MCP server，提交前逐項審查。
 - **專案原始碼**：`.py`, `.html`, `.css`, `.js`, `.ts`, `.sh`, `.bat`, `.ps1` 等開發者撰寫的程式碼。
 - **設計系統藍圖**：`design-system/MASTER.md` 等記錄專案色票、字型、元件規格的檔案。AI 依此量身定製視覺風格，刪除後 AI 無法維持一致性。
 - **部署與維運文件**：`DEPLOY.md`, `README.md`, `CHANGELOG.md`, `docs/`。
@@ -501,6 +501,11 @@ CLAUDE.local.md
 # path 可用 repo 相對、絕對或 ~/ 參照；分享前確認解析位置及隊友可用性。
 # 放行不代表所有內容適合共享；實際載入需另看 CLI 版本與驗證範圍。
 !.agents/skills.json
+# 自訂 agent 與外掛的登記檔，與 skills.json／rules.json 同一套機制；官方：工作區 .agents/
+# 的檔案「Commit these files to share them with your team」（C-120、C-121）。
+# 只放行登記檔本身：entries 指向的 agent／外掛目錄仍依各自規則決定，外掛可含 hooks 與 MCP server。
+!.agents/agents.json
+!.agents/plugins.json
 # agent 會把使用者訊息逐字寫入下列檔案（含 UTC 時間戳），可能含對話中貼過的敏感資訊。
 # 已被上方 .agents/* 涵蓋，仍 explicit 列名一次 —— 廣域規則日後若被放寬仍有保護
 .agents/ORIGINAL_REQUEST.md

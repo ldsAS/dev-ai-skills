@@ -29,7 +29,7 @@ class MigratedSourceTests(unittest.TestCase):
 
     def test_source_endpoints_and_precise_memory_tokens(self):
         sources = {f"{tool}/{name}": url for tool, name, url in MONITOR.SOURCES}
-        self.assertEqual(30, len(MONITOR.SOURCES))
+        self.assertEqual(31, len(MONITOR.SOURCES))
         self.assertEqual(len(MONITOR.SOURCES), len(sources))
         self.assertNotIn("antigravity/ide-skills", sources)
         self.assertEqual("https://antigravity.google/docs/changelog.md", sources["antigravity/changelog"])
@@ -137,6 +137,115 @@ class MigratedSourceTests(unittest.TestCase):
                 expected["sources"]["antigravity/skills"]["tokens"] = sorted(
                     before["sources"]["antigravity/skills"]["tokens"] + [".agents/skills/migration-probe/SKILL.md"])
                 self.assertEqual(expected, after)
+
+
+class DiscoveryManifestTests(unittest.TestCase):
+    """來源專屬的推導見證（C-120／C-121；PR #44 review）。"""
+
+    KEY = MONITOR.DISCOVERY_MANIFEST_SOURCE
+    PAGE = json.loads((FIXTURES / "monitor-migrated-sources.json").read_text(encoding="utf-8"))[KEY]
+    MANIFESTS = {".agents/skills.json", ".agents/rules.json", ".agents/agents.json", ".agents/plugins.json"}
+
+    def tokens(self, page, key=KEY):
+        text = MONITOR.normalize(page)
+        return MONITOR.extract_tokens(text + MONITOR.derived_path_notes(key, text))
+
+    def test_source_is_monitored_and_page_yields_all_four_manifest_paths(self):
+        self.assertIn(self.KEY, {f"{tool}/{name}" for tool, name, _url in MONITOR.SOURCES})
+        # 逐字抽取得不到這些完整路徑：頁面把位置與檔名分兩句寫。
+        self.assertFalse(self.MANIFESTS & MONITOR.extract_tokens(MONITOR.normalize(self.PAGE)))
+        self.assertTrue(self.MANIFESTS <= self.tokens(self.PAGE))
+        self.assertTrue(self.MANIFESTS <= set(BASELINE["sources"][self.KEY]["tokens"]))
+
+    def test_notes_add_only_the_derived_paths(self):
+        text = MONITOR.normalize(self.PAGE)
+        notes = MONITOR.derived_path_notes(self.KEY, text)
+        self.assertEqual(self.MANIFESTS, MONITOR.extract_tokens(notes))
+        # 同頁表格裡的 hooks.json／mcp_config.json 不在 manifest 清單內，各有自己的主張與見證。
+        for other in ("hooks.json", "mcp_config.json"):
+            self.assertIn(f"`{other}`", self.PAGE)
+            self.assertNotIn(other, notes)
+        self.assertEqual(4, notes.count(MONITOR.DERIVED_NOTE))
+
+    def test_no_placement_sentence_means_no_derivation(self):
+        page = self.PAGE.replace("Put a manifest in a `.agents/` folder", "Keep a manifest next to your code")
+        self.assertNotEqual(page, self.PAGE)
+        self.assertEqual("", MONITOR.derived_path_notes(self.KEY, MONITOR.normalize(page)))
+        self.assertFalse(self.MANIFESTS & self.tokens(page))
+
+    def test_no_manifest_list_means_no_derivation(self):
+        page = self.PAGE.replace("each have their own manifest:", "can each be listed, for example in")
+        self.assertNotEqual(page, self.PAGE)
+        self.assertFalse(self.MANIFESTS & self.tokens(page))
+
+    def test_renamed_or_removed_manifest_changes_the_token_set(self):
+        renamed = self.tokens(self.PAGE.replace("`agents.json`", "`subagents.json`"))
+        self.assertIn(".agents/subagents.json", renamed)
+        self.assertNotIn(".agents/agents.json", renamed)
+        removed = self.tokens(self.PAGE.replace("`agents.json`, and `plugins.json`", "and `plugins.json`"))
+        self.assertEqual(self.MANIFESTS - {".agents/agents.json"}, removed & self.MANIFESTS)
+
+    def test_other_sources_never_derive(self):
+        for tool, name, _url in MONITOR.SOURCES:
+            key = f"{tool}/{name}"
+            if key != self.KEY:
+                with self.subTest(source=key):
+                    self.assertEqual("", MONITOR.derived_path_notes(key, MONITOR.normalize(self.PAGE)))
+
+    def test_plugin_root_manifests_are_not_workspace_manifests(self):
+        # 官方 changelog 原句：外掛根目錄的 agents.json 是另一個檔案，即使出現在本頁也不得推導。
+        page = ("Put a manifest in a `.agents/` folder for one project.\n"
+                "Added support for a root-level `agents.json` in plugins, so a plugin can declare its "
+                "subagents the same way it declares skills and rules with `skills.json` and `rules.json`.")
+        self.assertEqual("", MONITOR.derived_path_notes(self.KEY, MONITOR.normalize(page)))
+
+    def run_monitor(self, page, baseline_tokens):
+        baseline = {"schema": MONITOR.SCHEMA_VERSION, "versions": {},
+                    "sources": {self.KEY: {"tokens": sorted(baseline_tokens)}}}
+        tool, name = self.KEY.split("/", 1)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "baseline.json"
+            path.write_text(json.dumps(baseline), encoding="utf-8")
+            out = StringIO()
+            with (mock.patch.object(MONITOR, "BASELINE_PATH", str(path)),
+                  mock.patch.object(MONITOR, "SOURCES", [(tool, name, "https://example.invalid/discovery")]),
+                  mock.patch.object(MONITOR, "fetch", return_value=page),
+                  mock.patch.object(MONITOR, "NPM_PACKAGES", {}),
+                  mock.patch.object(MONITOR, "fetch_antigravity_version", return_value=None),
+                  mock.patch.object(sys, "argv", ["check_updates.py", "--dry-run"]), redirect_stdout(out)):
+                MONITOR.main()
+        return out.getvalue()
+
+    def test_unchanged_page_raises_no_alert(self):
+        report = self.run_monitor(self.PAGE, self.tokens(self.PAGE))
+        self.assertIn("## ✅ 無異動", report)
+        self.assertNotIn("[SIGNAL:", report)
+
+    def test_removed_manifest_alerts_against_its_ledger_claim(self):
+        # 使用正式帳本：這正是 PR #44 review 指出原本不會告警的情境。
+        page = self.PAGE.replace("`agents.json`, and `plugins.json`", "and `plugins.json`")
+        report = self.run_monitor(page, self.tokens(self.PAGE))
+        self.assertIn("- ❌ **消失**：`.agents/agents.json` → `C-121`", report)
+        self.assertNotIn("`.agents/plugins.json`", report)
+        self.assertIn("[SIGNAL: UPDATE_DETECTED]", report)
+
+    def test_added_derived_path_is_labelled_in_the_report(self):
+        report = self.run_monitor(self.PAGE, self.tokens(self.PAGE) - {".agents/plugins.json"})
+        self.assertIn("- ✅ **新增**：`.agents/plugins.json` → `C-120`", report)
+        added = report.split("`.agents/plugins.json` → `C-120`", 1)[1].split("\n", 2)[1]
+        self.assertIn(MONITOR.DERIVED_NOTE, added)
+
+    def test_coverage_counts_both_manifest_claims_as_witnessed(self):
+        out = StringIO()
+        with (mock.patch.object(MONITOR, "BASELINE_PATH", str(FIXTURES / "monitor-baseline.json")),
+              redirect_stdout(out)):
+            MONITOR.report_coverage()
+        blind, covered = out.getvalue().split("## ✅ 有監控涵蓋", 1)
+        for claim in ("C-120", "C-121"):
+            with self.subTest(claim=claim):
+                self.assertNotIn(f"**{claim}**", blind)
+                line = next(l for l in covered.splitlines() if f"**{claim}**" in l)
+                self.assertIn(self.KEY, line)
 
 
 if __name__ == "__main__":

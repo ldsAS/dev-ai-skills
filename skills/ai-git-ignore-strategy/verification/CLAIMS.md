@@ -3,18 +3,18 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-10-01（G5 CLI 實測確認 C-110／C-119 的版本限定行為；C 批：七列恢復表格，C 批摘要同步 99 列；D 批新增 C-119 後為 100 列；被取代 status 不參與現行候選比對，C-117 政策範例移到主張欄，所有歷史證據保留。）
+**最後更新**：2026-11-10（Issue #43：新增 C-120／C-121，五版精準放行 `.agents/agents.json`／`.agents/plugins.json`，共 102 列；新增監控來源 `antigravity/customization-discovery`，其 manifest 完整路徑為推導見證（PR #44 review）。前次：G5 CLI 實測確認 C-110／C-119 的版本限定行為；C 批：七列恢復表格，C 批摘要同步 99 列；D 批新增 C-119 後為 100 列；被取代 status 不參與現行候選比對，C-117 政策範例移到主張欄，所有歷史證據保留。）
 
 **整合來源**：M0／M1（PR #18）、Rules（PR #19）及 changelog（PR #22）已合併 main；本輪基底 `d49a0d6`。C 批修復在獨立分支，尚未合併。各輪歷史交接的當時狀態保留。
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 87 |
+| 已驗證 | 89 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
 | 被取代 | 6 |
 | 有疑 | 0 |
-| **總計** | **100** |
+| **總計** | **102** |
 
 ---
 
@@ -188,6 +188,8 @@
 | ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-119 | `.agents/skills.json` | agy 1.2.14 內嵌官方文件明示此為團隊可提交的技能登記檔，entries 的 path 可指 repo 內共用技能目錄。五版精準放行此檔；不類推 agents.json／plugins.json。path 可為絕對、家目錄或 repo 相對參照，分享前逐一核對解析後位置與隊友可用性；允許追蹤不等於自動適合分享。此列先確認版本限定的文件定位／分享依據；實際載入另見 G5 CLI 實验，不推論 app／IDE 或跨版本。 **G5 補證（CLI 1.2.14）**：暫存 Git repo 的非預設 `tools/probe-skills/` 內探針，未登記時不可用；依上述 schema 登記後回傳唯一隨機碼並 view_file 該 repo 內 SKILL.md；移除 registry 後不可用。只驗 repo 相對 entries.path 的此案例，未驗 `include_only`、絕對／家目錄參照或其他 surface。 | agy update 官方更新器驗證成功；agy.exe SHA256 `07f7ed55654b7066886c7390d3f5e245dbe4ede425c005909342cfc90333f2f8`；完整路徑 byte offsets 58359752、58360081，見 [D1 紀錄](./rounds/2026-10-01-codex.batch-d-implementation.md)；[G5 實測](./rounds/2026-10-01-codex.c110-runtime.md) | 2026-10-01 | agy CLI 1.2.14 文件／Git 邊界／repo 相對 registry runtime | 已驗證 |
+| C-120 | `.agents/plugins.json` | **補上 C-119 當時刻意不類推的另外兩個登記檔。** 官方 Customization discovery 頁把四種 discovery manifest（`skills.json`、`rules.json`、`agents.json`、`plugins.json`）並列，說明可放在專案的 `.agents/` 資料夾，並明示工作區 `.agents/` 的檔案應提交以與團隊共享 → 五版比照 `skills.json` 精準放行這兩個檔名；`.bak` 等變形仍排除。CLI 1.5.2 公告另指出 `.agents/plugins.json`／`.agents/skills.json` 的 entries 只從工作區或 repo root 內載入，以絕對路徑、`../` 或 symlink 指向外部者會被略過。放行的是登記檔本身：entries 指向的 agent／外掛目錄（外掛可含 hooks 與 MCP server）不因此放行，`.agents/agents/` 與 `.agents/plugins/*` 的既有 opt-in 不變；提交前仍須核對 entries 的解析位置與內容。僅文件證據，未執行 App／CLI 驗證載入行為。**監控見證**：changelog 逐字寫出完整路徑；Customization discovery 頁把 `.agents/` 與檔名分兩句寫，由 `check_updates.py` 的 `derived_path_notes()` 推導出完整路徑（條件與限制見 C-121） | [Customization discovery](https://antigravity.google/docs/customization-discovery.md)；[官方 changelog CLI 1.5.2](https://antigravity.google/docs/changelog.md)；下方 2026-11-10 摘錄；Issue #43 | 2026-11-10 | 官方文件（App／CLI）；CLI 1.5.2 公告；非 runtime | 已驗證 |
+| C-121 | `.agents/agents.json` | 與 C-120 同一依據、同一判定（五版精準放行；只放行登記檔本身，`.agents/agents/` 的既有 opt-in 不變），獨立成列是因為見證方式不同。**監控見證為推導，非官方逐字路徑**：官方頁面只以單獨檔名 `agents.json` 書寫，沒有任何來源逐字含此完整路徑。`derived_path_notes()` 只在 Customization discovery 頁**同時**出現「manifest 放在 `.agents/` 資料夾」與 manifest 檔名清單這兩句時，才把清單內的檔名接到 `.agents/` 之下；任一句被改寫或移除、或檔名自清單消失，token 即以「消失」告警，交人工複核。與 C-118「單獨檔名不推導成完整路徑」不衝突：C-118 針對未交代位置的公告，此處位置為同頁明文。推導限定此單一來源：changelog 中外掛根目錄的 `agents.json` 是另一個檔案，不可當作見證。僅文件證據，未執行 App／CLI 驗證載入行為 | [Customization discovery](https://antigravity.google/docs/customization-discovery.md)；下方 2026-11-10 摘錄；Issue #43；PR #44 review | 2026-11-10 | 官方文件（App／CLI）；非 runtime | 已驗證 |
 
 ### 2026-09-30 changelog 補證（保留歷史與未決項）
 
@@ -327,6 +329,11 @@
 
 - **C-105** — 2026-10-21 起 [Claude directory](https://code.claude.com/docs/en/claude-directory.md) 的檔案表改寫為不帶 `.claude/` 前綴的 `agent-memory/<name>/`，且不再提及 `agent-memory-local`。[Claude sub-agents](https://code.claude.com/docs/en/sub-agents.md) 的 memory scope 表仍逐字列出：`project` → `.claude/agent-memory/<name-of-agent>/`，原文 “shareable via version control”；`local` → `.claude/agent-memory-local/<name-of-agent>/`，原文 “shouldn't be checked into version control”。與五版範本（前者放行、後者排除）一致；已加入監控來源 `claude-code/sub-agents`。
 - **C-73** — 2026-11-05 起 [Copilot customization 總覽](https://code.visualstudio.com/docs/copilot/customization/overview) 不再列出 `*.agent.md`。[Custom agents](https://code.visualstudio.com/docs/copilot/customization/custom-agents) 頁仍以 `.github/agents/planner.agent.md` 等範例說明工作區自訂 agent；已加入監控來源 `copilot/custom-agents`。
+
+### 2026-11-10 discovery manifest 取證（Issue #43）
+
+- **C-120／C-121** — [Customization discovery](https://antigravity.google/docs/customization-discovery.md)（Available on: Antigravity App, Antigravity CLI）：scope 說明原文 “**Workspace**: the `.agents/` folder in your project, plus `AGENTS.md` and `GEMINI.md` files. Commit these files to share them with your team.”；manifest 說明原文 “Skills, rules, custom agents, and plugins each have their own manifest: `skills.json`, `rules.json`, `agents.json`, and `plugins.json`.” 與 “Put a manifest in a `.agents/` folder for one project, or in `~/.gemini/config/` for all your projects.”。[changelog](https://antigravity.google/docs/changelog.md) CLI 1.5.2（2026-11-06）原文 “plugins and skills listed in a workspace's `.agents/plugins.json` or `.agents/skills.json` now load only from inside the workspace or its repository root”。同頁也佐證 C-119 與 C-115 的 `rules.json`；C-119 的版本限定實測紀錄不變。
+- **推導見證的範圍** — 上述第二、三句是 `derived_path_notes()` 的兩個必要條件，測試 fixture 逐字保存這兩句。推導結果為 `.agents/skills.json`、`.agents/rules.json`、`.agents/agents.json`、`.agents/plugins.json`；同頁表格中的 `hooks.json`、`mcp_config.json` 不在 manifest 清單內，不推導（另見 C-44、C-58）。報告中新增的推導 token，前後文會標示「推導見證」。
 
 ## 交接輪次紀錄
 
