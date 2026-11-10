@@ -44,6 +44,9 @@
       "tokens": [
         ".agent/",
         ".agents/",
+        ".agents/agents.json",
+        ".agents/plugins.json",
+        ".agents/rules.json",
         ".agents/skills",
         ".agents/skills.json",
         ".agents/skills/",

@@ -105,8 +105,8 @@ SOURCES = [
     ("antigravity", "plugins", "https://antigravity.google/docs/plugins.md"),
     ("antigravity", "gcli-migration", "https://antigravity.google/docs/cli/gcli-migration.md"),
     # 四種 discovery manifest 與「工作區 .agents/ 應提交」的政策出處（C-120／C-121）。
-    # 本頁把 `.agents/` 與檔名分開書寫，能抽出的完整路徑只有 `.agents/skills.json`（見證 C-119）；
-    # 它不見證 agents.json／plugins.json 的完整路徑，C-121 因此仍是盲區（--coverage 會列出）。
+    # 本頁把 `.agents/` 與檔名分開書寫，逐字能抽出的完整路徑只有 `.agents/skills.json`；
+    # 其餘 manifest 的完整路徑由 derived_path_notes() 依本頁的兩句明文推導。
     ("antigravity", "customization-discovery", "https://antigravity.google/docs/customization-discovery.md"),
     # VS Code / GitHub Copilot
     ("copilot", "customization", "https://code.visualstudio.com/docs/copilot/customization/overview"),
@@ -292,6 +292,43 @@ def iter_token_matches(text):
 def extract_tokens(text):
     """從正規化後的文字抽出路徑 token 集合。"""
     return {token for token, _start, _end in iter_token_matches(text)}
+
+
+# --------------------------------------------------------------------------
+# 來源專屬的推導見證
+# --------------------------------------------------------------------------
+# Customization discovery 頁把位置與檔名分兩句寫：
+#   「... each have their own manifest: `skills.json`, `rules.json`, `agents.json`, and `plugins.json`.」
+#   「Put a manifest in a `.agents/` folder for one project, ...」
+# 逐字抽取因此得不到 `.agents/agents.json`、`.agents/plugins.json`（C-120／C-121），
+# 官方日後把某個 manifest 改名或移除時監控不會響（PR #44 review）。
+#
+# 這裡只在**同一頁同時出現這兩句**時，才把清單裡的檔名接到 `.agents/` 之下。
+# 與 C-118「單獨檔名不推導成完整路徑」不衝突：那一條針對沒有交代位置的公告，
+# 這裡的位置是本頁明文。限定單一來源，是因為別處的同名檔另有所指 ——
+# changelog 裡外掛根目錄的 `agents.json` 就不是工作區 manifest。
+# 任一句被改寫或移除，推導即停止，對應 token 會以「消失」告警，交由人工複核。
+DISCOVERY_MANIFEST_SOURCE = "antigravity/customization-discovery"
+MANIFEST_PLACEMENT_RE = re.compile(r"(?i)\bput\s+a\s+manifest\s+in\s+an?\s+`\.agents/`\s+folder\b")
+MANIFEST_LIST_RE = re.compile(r"(?i)\bmanifest:\s*((?:(?:and\s+)?`[\w.\-]+\.json`[\s,]*)+)")
+DERIVED_NOTE = "推導見證"
+
+
+def derived_path_notes(key, text):
+    """回傳要附加到來源文字後面的推導說明；不適用時回傳空字串。
+
+    以文字而非 token 的形式附加，抽取流程不需要特例，報告中新增 token 的
+    前後文也會直接顯示「推導見證」，讀者不會把它誤認為官方逐字寫出的路徑。
+    說明文字刻意不含任何其他路徑寫法，以免自己製造 token。
+    """
+    if key != DISCOVERY_MANIFEST_SOURCE or not MANIFEST_PLACEMENT_RE.search(text):
+        return ""
+    names = sorted({name for listing in MANIFEST_LIST_RE.findall(text)
+                    for name in re.findall(r"`([\w.\-]+\.json)`", listing)})
+    return "".join(
+        f"\n〔{DERIVED_NOTE}〕 .agents/{name} ：本頁明示 manifest 放在專案的工作區資料夾，"
+        "且 manifest 清單列有此檔名。"
+        for name in names)
 
 
 def token_comparison_key(token):
@@ -686,6 +723,7 @@ def main():
         try:
             raw = source_body(url)
             text = normalize(raw)
+            text += derived_path_notes(key, text)
         except Exception as exc:  # noqa: BLE001
             failures.append((key, str(exc)))
             # 抓取失敗時保留舊基準，下次再檢查，避免誤判為「路徑消失」
