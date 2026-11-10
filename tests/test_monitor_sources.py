@@ -29,7 +29,7 @@ class MigratedSourceTests(unittest.TestCase):
 
     def test_source_endpoints_and_precise_memory_tokens(self):
         sources = {f"{tool}/{name}": url for tool, name, url in MONITOR.SOURCES}
-        self.assertEqual(30, len(MONITOR.SOURCES))
+        self.assertEqual(31, len(MONITOR.SOURCES))
         self.assertEqual(len(MONITOR.SOURCES), len(sources))
         self.assertNotIn("antigravity/ide-skills", sources)
         self.assertEqual("https://antigravity.google/docs/changelog.md", sources["antigravity/changelog"])

@@ -60,8 +60,11 @@ CASES = [
     (".agents/rules.json", False),
     (".agents/skills.json", False),                    # C-119 精準團隊登記檔
     (".agents/skills.json.bak", True),
-    (".agents/agents.json", True),
-    (".agents/plugins.json", True),
+    (".agents/agents.json", False),                    # C-120 與 skills.json 同一套登記機制
+    (".agents/plugins.json", False),
+    (".agents/agents.json.bak", True),
+    (".agents/plugins.json.bak", True),
+    (".agents/plugins/plugins.json", True),             # 只放行 .agents/ 直下的登記檔
     ("apps/web/.agents/skills.json", False),            # 既有子目錄行為，不是 runtime 證據
     (".agents/AGENTS.md.bak", True),
     (".agents/settings.json", True),

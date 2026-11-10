@@ -104,6 +104,8 @@ SOURCES = [
     ("antigravity", "rules", "https://antigravity.google/docs/rules.md"),
     ("antigravity", "plugins", "https://antigravity.google/docs/plugins.md"),
     ("antigravity", "gcli-migration", "https://antigravity.google/docs/cli/gcli-migration.md"),
+    # 四種 discovery manifest 與「工作區 .agents/ 應提交」的權威出處（C-120，並佐證 C-119）。
+    ("antigravity", "customization-discovery", "https://antigravity.google/docs/customization-discovery.md"),
     # VS Code / GitHub Copilot
     ("copilot", "customization", "https://code.visualstudio.com/docs/copilot/customization/overview"),
     ("copilot", "prompt-files", "https://code.visualstudio.com/docs/copilot/customization/prompt-files"),

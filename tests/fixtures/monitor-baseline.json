@@ -40,6 +40,27 @@
         "~/.gemini/config/skills"
       ]
     },
+    "antigravity/customization-discovery": {
+      "tokens": [
+        ".agent/",
+        ".agents/",
+        ".agents/skills",
+        ".agents/skills.json",
+        ".agents/skills/",
+        ".gemini/config.json",
+        "AGENTS.md",
+        "GEMINI.md",
+        "~/.gemini/AGENTS.md",
+        "~/.gemini/GEMINI.md",
+        "~/.gemini/antigravity-cli/skills/",
+        "~/.gemini/config/",
+        "~/.gemini/config/rules/",
+        "~/.gemini/config/skills",
+        "~/.gemini/config/skills.json",
+        "~/.gemini/config/skills/",
+        "~/.gemini/skills/"
+      ]
+    },
     "antigravity/gcli-migration": {
       "tokens": [
         ".agents/mcp_config.json",
