@@ -60,7 +60,7 @@ CASES = [
     (".agents/rules.json", False),
     (".agents/skills.json", False),                    # C-119 精準團隊登記檔
     (".agents/skills.json.bak", True),
-    (".agents/agents.json", False),                    # C-120 與 skills.json 同一套登記機制
+    (".agents/agents.json", False),                    # C-120／C-121 與 skills.json 同一套登記機制
     (".agents/plugins.json", False),
     (".agents/agents.json.bak", True),
     (".agents/plugins.json.bak", True),

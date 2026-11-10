@@ -104,7 +104,9 @@ SOURCES = [
     ("antigravity", "rules", "https://antigravity.google/docs/rules.md"),
     ("antigravity", "plugins", "https://antigravity.google/docs/plugins.md"),
     ("antigravity", "gcli-migration", "https://antigravity.google/docs/cli/gcli-migration.md"),
-    # 四種 discovery manifest 與「工作區 .agents/ 應提交」的權威出處（C-120，並佐證 C-119）。
+    # 四種 discovery manifest 與「工作區 .agents/ 應提交」的政策出處（C-120／C-121）。
+    # 本頁把 `.agents/` 與檔名分開書寫，能抽出的完整路徑只有 `.agents/skills.json`（見證 C-119）；
+    # 它不見證 agents.json／plugins.json 的完整路徑，C-121 因此仍是盲區（--coverage 會列出）。
     ("antigravity", "customization-discovery", "https://antigravity.google/docs/customization-discovery.md"),
     # VS Code / GitHub Copilot
     ("copilot", "customization", "https://code.visualstudio.com/docs/copilot/customization/overview"),
