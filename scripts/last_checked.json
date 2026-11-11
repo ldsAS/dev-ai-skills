@@ -2,9 +2,9 @@
   "schema": 2,
   "versions": {
     "claude-code": "2.1.322",
-    "codex": "0.167.0",
-    "gemini-cli": "0.67.0",
-    "antigravity": "2.30.0"
+    "codex": "0.167.1",
+    "gemini-cli": "0.68.0",
+    "antigravity": "2.31.0"
   },
   "sources": {
     "antigravity/changelog": {
@@ -40,6 +40,30 @@
         "~/.gemini/config/plugins",
         "~/.gemini/config/projects/",
         "~/.gemini/config/skills"
+      ]
+    },
+    "antigravity/customization-discovery": {
+      "tokens": [
+        ".agent/",
+        ".agents/",
+        ".agents/agents.json",
+        ".agents/plugins.json",
+        ".agents/rules.json",
+        ".agents/skills",
+        ".agents/skills.json",
+        ".agents/skills/",
+        ".gemini/config.json",
+        "AGENTS.md",
+        "GEMINI.md",
+        "~/.gemini/AGENTS.md",
+        "~/.gemini/GEMINI.md",
+        "~/.gemini/antigravity-cli/skills/",
+        "~/.gemini/config/",
+        "~/.gemini/config/rules/",
+        "~/.gemini/config/skills",
+        "~/.gemini/config/skills.json",
+        "~/.gemini/config/skills/",
+        "~/.gemini/skills/"
       ]
     },
     "antigravity/gcli-migration": {
