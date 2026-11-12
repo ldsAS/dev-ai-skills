@@ -2,7 +2,7 @@
   "schema": 2,
   "versions": {
     "claude-code": "2.1.322",
-    "codex": "0.167.1",
+    "codex": "0.167.2",
     "gemini-cli": "0.68.0",
     "antigravity": "2.31.0"
   },
@@ -15,6 +15,7 @@
         ".agents/settings.json",
         ".agents/skills.json",
         ".agents/skills/",
+        ".agents/teamwork/",
         ".antigravitycli",
         ".antigravitycli/",
         ".antigravityignore",
