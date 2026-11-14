@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.322",
-    "codex": "0.167.2",
+    "claude-code": "2.1.325",
+    "codex": "0.169.0",
     "gemini-cli": "0.68.0",
-    "antigravity": "2.31.0"
+    "antigravity": "2.32.0"
   },
   "sources": {
     "antigravity/changelog": {
@@ -98,6 +98,8 @@
         ".agents/plugins/",
         ".gemini/config/plugins/firebase",
         ".gemini/config/plugins/gcalendar",
+        ".mcp.json",
+        "AGENTS.md",
         "~/.claude/plugins/",
         "~/.gemini/config/plugins/",
         "~/.gemini/extensions/"
