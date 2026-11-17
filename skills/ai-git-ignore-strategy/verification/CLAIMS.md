@@ -3,18 +3,18 @@
 本 skill 對外部工具行為所做的每一條路徑主張，及其依據、取證時間與狀態。
 狀態定義與維護規則見 [`README.md`](./README.md)。
 
-**最後更新**：2026-11-10（Issue #43：新增 C-120／C-121，五版精準放行 `.agents/agents.json`／`.agents/plugins.json`，共 102 列；新增監控來源 `antigravity/customization-discovery`，其 manifest 完整路徑為推導見證（PR #44 review）。前次：G5 CLI 實測確認 C-110／C-119 的版本限定行為；C 批：七列恢復表格，C 批摘要同步 99 列；D 批新增 C-119 後為 100 列；被取代 status 不參與現行候選比對，C-117 政策範例移到主張欄，所有歷史證據保留。）
+**最後更新**：2026-11-17（Issue #47：新增 C-122，五版放行 `.claude/output-styles/`，共 103 列；新增監控來源 `claude-code/output-styles`。前次 2026-11-10：Issue #43：新增 C-120／C-121，五版精準放行 `.agents/agents.json`／`.agents/plugins.json`，共 102 列；新增監控來源 `antigravity/customization-discovery`，其 manifest 完整路徑為推導見證（PR #44 review）。前次：G5 CLI 實測確認 C-110／C-119 的版本限定行為；C 批：七列恢復表格，C 批摘要同步 99 列；D 批新增 C-119 後為 100 列；被取代 status 不參與現行候選比對，C-117 政策範例移到主張欄，所有歷史證據保留。）
 
 **整合來源**：M0／M1（PR #18）、Rules（PR #19）及 changelog（PR #22）已合併 main；本輪基底 `d49a0d6`。C 批修復在獨立分支，尚未合併。各輪歷史交接的當時狀態保留。
 
 | 狀態 | 數量 |
 | :--- | ---: |
-| 已驗證 | 89 |
+| 已驗證 | 90 |
 | 結構性 | 4 |
 | 移出範圍 | 3 |
 | 被取代 | 6 |
 | 有疑 | 0 |
-| **總計** | **102** |
+| **總計** | **103** |
 
 ---
 
@@ -51,6 +51,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | C-112 | `~/.claude/settings.json`、`~/.claude/skills/`、`~/.claude/agent-memory/`、`~/.claude/workflows/`、`~/.claude/output-styles/`、`~/.claude/plugins/`、`~/.claude/plugins/synced/` | 新接 hooks／desktop／claude-directory 來源中的使用者層設定、技能、subagent 記憶、workflow、output style 與外掛資產；預設位於家目錄，不能把同尾名推導成專案產物。這是人工位置分類，並非全都可刪或全都應忽略；`CLAUDE_CONFIG_DIR` 可改變根目錄，重定位至 repo 時需重新檢核。專案同名路徑仍依各自既有主張判定，不新增 ignore 規則 | [官方 directory](https://code.claude.com/docs/en/claude-directory.md)＋[hooks](https://code.claude.com/docs/en/hooks.md)＋[desktop](https://code.claude.com/docs/en/desktop.md)；[逐 token 分類](./rounds/2026-09-22-codex.m1.md) | 2026-09-22 | 文件快照；未執行 runtime | 已驗證 |
 | C-113 | `~/.claude/debug/`、`~/.claude/history.jsonl`、`~/.claude/file-history/`、`~/.claude/paste-cache/`、`~/.claude/uploads/`、`~/.claude/plans/`、`~/.claude/session-env/`、`~/.claude/shell-snapshots/`、`~/.claude/cache/changelog.md`、`~/.claude/policy-limits.json`、`~/.claude/remote-settings.json`、`~/.claude/stats-cache.json`、`~/.claude/tasks/`、`~/.claude/usage-data/`、`~/.claude/feedback-bundles/`、`~/.claude/feedback/drafts/`、`~/.claude/plugins/.trash/`、`~/.claude/todos/`、`~/.claude/statsig/`、`~/.claude/logs/`、`~/.claude/image-cache/` | directory 頁列出的家目錄狀態、紀錄、快取、回饋與已移除外掛暫存位置；todos／statsig／logs／image-cache 明列為舊版遺留，不宣稱現行版本仍會產生。僅登記預設位置及人工分類，不推導清理安全性、保存期限或專案 ignore 規則；路徑 root 可受 `CLAUDE_CONFIG_DIR` 影響。backups、projects、skills/.trash 仍分別依 C-90、C-07、C-108 **09-23 佐證**：官方 CHANGELOG 2.1.280 記錄 Windows 背景清理對重定位此類家目錄的 symlink／junction 修正；不新增專案 ignore 規則。 | [官方 directory](https://code.claude.com/docs/en/claude-directory.md)；[逐 token 分類](./rounds/2026-09-22-codex.m1.md) | 2026-09-22 | 文件快照；未執行 runtime | 已驗證 |
+| C-122 | `.claude/output-styles/` | **專案層 output style 屬團隊共用 → 應提交。** 官方 claude-directory 頁的 `.claude/output-styles/` 一節：“Put a style here if your team shares it, like a review mode everyone uses.”，同頁檔案表 `output-styles/*.md` 的 Scope 為 Project and global、Commit 欄為 ✓；output-styles 頁列出 “Project: `.claude/output-styles`”，並說明 working directory 到 repository root 之間每一層的 `.claude/output-styles/` 都會載入。五版原本只因 `.claude/*` 而排除此目錄，帳本僅登記家目錄版本（C-112），現比照 `rules/`、`agents/` 放行；名稱相近的目錄不放行。個人 style 放 `~/.claude/output-styles/`；每個人選用哪個 style 由選單寫入 `.claude/settings.local.json`（C-03，仍排除）。output style 會改寫 Claude 的指令，放行不代表內容免審。**缺口早於本次偵測**：官方表格先前即列出此項，但以不帶 `.claude/` 的相對名稱書寫，監控抽不到完整路徑；2026-11-17 頁面改寫出完整路徑才被偵測（Issue #47）。僅文件證據，未執行 Claude runtime | [claude-directory](https://code.claude.com/docs/en/claude-directory.md)；[output-styles](https://code.claude.com/docs/en/output-styles.md)；下方 2026-11-17 摘錄；五版 Git 邊界實測；Issue #47 | 2026-11-17 | 文件快照；未執行 Claude runtime | 已驗證 |
 
 ## Codex
 
@@ -334,6 +335,11 @@
 
 - **C-120／C-121** — [Customization discovery](https://antigravity.google/docs/customization-discovery.md)（Available on: Antigravity App, Antigravity CLI）：scope 說明原文 “**Workspace**: the `.agents/` folder in your project, plus `AGENTS.md` and `GEMINI.md` files. Commit these files to share them with your team.”；manifest 說明原文 “Skills, rules, custom agents, and plugins each have their own manifest: `skills.json`, `rules.json`, `agents.json`, and `plugins.json`.” 與 “Put a manifest in a `.agents/` folder for one project, or in `~/.gemini/config/` for all your projects.”。[changelog](https://antigravity.google/docs/changelog.md) CLI 1.5.2（2026-11-06）原文 “plugins and skills listed in a workspace's `.agents/plugins.json` or `.agents/skills.json` now load only from inside the workspace or its repository root”。同頁也佐證 C-119 與 C-115 的 `rules.json`；C-119 的版本限定實測紀錄不變。
 - **推導見證的範圍** — 上述第二、三句是 `derived_path_notes()` 的兩個必要條件，測試 fixture 逐字保存這兩句。推導結果為 `.agents/skills.json`、`.agents/rules.json`、`.agents/agents.json`、`.agents/plugins.json`；同頁表格中的 `hooks.json`、`mcp_config.json` 不在 manifest 清單內，不推導（另見 C-44、C-58）。報告中新增的推導 token，前後文會標示「推導見證」。
+
+### 2026-11-17 專案層 output style 取證（Issue #47）
+
+- **C-122** — [claude-directory](https://code.claude.com/docs/en/claude-directory.md) 的 `.claude/output-styles/` 一節原文 “Each Markdown file defines an output style, a set of instructions that adjusts how Claude works. Put a style here if your team shares it, like a review mode everyone uses.”；同頁檔案表列 `output-styles/*.md`｜Project and global｜Commit ✓。[output-styles](https://code.claude.com/docs/en/output-styles.md) 原文 “Project: `.claude/output-styles`” 與 “Project output styles load from every `.claude/output-styles/` between the working directory and the repository root.”；同頁說明選用的 style 由指令與選單存入 `.claude/settings.local.json`。
+- **同一次改版的其他路徑** — claude-directory 頁於 2026-11-17 把完整路徑寫回各節標題，一次新增 20 個 token。其中專案層的 `agents/`、`commands/`、`rules/`、`settings.json`、`settings.local.json`、`skills/`、`workflows/`、`agent-memory/` 都是既有主張（C-02～C-06、C-09、C-105），五版 Git 邊界實測與帳本判定一致；其餘為家目錄路徑。C-105 因此在 claude-directory 與 sub-agents 兩個來源都有見證。
 
 ## 交接輪次紀錄
 

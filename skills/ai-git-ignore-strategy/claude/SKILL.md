@@ -67,6 +67,7 @@ description: 建立並套用針對各式 AI 代理工具 (Antigravity, Claude Co
 
 - **Claude Code 專案指令**：`.claude/CLAUDE.md` 與 `.claude/AGENTS.md` 同屬團隊指令，範本精準放行（C-103、C-109）。後者從 2.1.277 起、且功能可用時才支援；預設在目前目錄與上層沒有 `CLAUDE.md`、`.claude/CLAUDE.md` 或 `CLAUDE.local.md` 時載入，可用 Project instructions 改變選擇，不能假設所有 session 都會讀。
 - **Claude Code 團隊 hook 與記憶**：`.claude/hooks/` 放置團隊設定引用的腳本；`.claude/agent-memory/` 是 `memory: project` 的共享記憶。範本預設放行，提交前仍須逐檔審查可執行內容及敏感資訊。私人 hook 應另列精準排除；不共享的記憶使用 `memory: local`，寫入 `.claude/agent-memory-local/`（C-104、C-105）。
+- **Claude Code 團隊 output style**：`.claude/output-styles/` 放團隊共用的 output style，官方定位為 “Put a style here if your team shares it”，範本放行（C-122）。個人的 style 放家目錄 `~/.claude/output-styles/`；每個人選用哪個 style 記在 `.claude/settings.local.json`，仍然排除。output style 會改寫 Claude 的指令，提交前比照規則檔審查內容。
 - **Antigravity 團隊規則與技能登記**：`.agents/AGENTS.md`、`.agents/GEMINI.md`、`.agents/rules.json` 依現行官方文件精準放行（C-115；文件證據，未經本輪實機驗證）；`.agents/skills.json` 也精準放行（C-119；agy CLI 1.2.14 文件及 repo 相對登記的隔離實測）。`rules.json` 可登記巢狀規則及引用共用規則，`skills.json` 的 `entries.path` 可指向 repo 內團隊技能目錄；提交前核對引用的解析位置與團隊可用性，私人絕對／家目錄參照另行處理。`.agents/agents.json` 與 `.agents/plugins.json` 是同一套登記機制的 agent／外掛版本，同樣精準放行（C-120、C-121；官方文件證據）；它們指向的 agent 與外掛目錄不因此放行，外掛可含 hooks 與 MCP server，提交前逐項審查。
 - **專案原始碼**：`.py`, `.html`, `.css`, `.js`, `.ts`, `.sh`, `.bat`, `.ps1` 等開發者撰寫的程式碼。
 - **設計系統藍圖**：`design-system/MASTER.md` 等記錄專案色票、字型、元件規格的檔案。AI 依此量身定製視覺風格，刪除後 AI 無法維持一致性。
@@ -425,6 +426,10 @@ Thumbs.db
 !.claude/skills/verify/
 # 專案層 workflow；對應 user-scope 的 ~/.claude/workflows/，屬團隊共用（C-09）
 !.claude/workflows/
+# 團隊共用的 output style；官方：「Put a style here if your team shares it」（C-122）。
+# 個人的 style 放家目錄 ~/.claude/output-styles/；「目前選用哪個 style」寫在
+# settings.local.json，下方已排除。style 會改寫 Claude 的指令，提交前比照規則檔審查。
+!.claude/output-styles/
 # 團隊專案指令；AGENTS.md 的 Claude 載入條件見 C-109（C-103、C-109）
 !.claude/CLAUDE.md
 !.claude/AGENTS.md

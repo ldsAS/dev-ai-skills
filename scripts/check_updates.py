@@ -78,6 +78,9 @@ SOURCES = [
     # 2026-10-21 起 claude-directory 的檔案表改用不帶 `.claude/` 前綴的相對名稱，
     # C-105 的兩個 agent-memory 路徑因此失去見證；sub-agents 頁的 memory scope 表仍逐字列出。
     ("claude-code", "sub-agents", "https://code.claude.com/docs/en/sub-agents.md"),
+    # 專案層 output style 的專頁（C-122）：逐字列出 Project: `.claude/output-styles`。
+    # claude-directory 頁的寫法反覆在完整路徑與相對名稱之間切換，不能只靠它見證。
+    ("claude-code", "output-styles", "https://code.claude.com/docs/en/output-styles.md"),
     ("claude-code", "changelog", "https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md"),
     # Codex — repo 內的 docs/*.md 多已改為導向連結；官方文件已自
     # developers.openai.com 搬遷至 learn.chatgpt.com（舊網址仍 302 導向，
