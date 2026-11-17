@@ -334,6 +334,16 @@
         "~/.claude/settings.json"
       ]
     },
+    "claude-code/output-styles": {
+      "tokens": [
+        ".claude/output-styles",
+        ".claude/output-styles/",
+        ".claude/settings.local.json",
+        "CLAUDE.md",
+        "~/.claude/output-styles",
+        "~/.claude/settings.json"
+      ]
+    },
     "claude-code/settings": {
       "tokens": [
         ".claude",

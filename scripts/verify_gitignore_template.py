@@ -118,6 +118,8 @@ CASES = [
     (".claude/skills/thirdparty/SKILL.md", True),        # C-06 第三方技能
     (".claude/skills/verify/SKILL.md", False),           # C-53 自動產生但官方定位為共享
     (".claude/workflows/deploy.md", False),              # C-09 專案層 workflow
+    (".claude/output-styles/review.md", False),          # C-122 團隊共用 output style
+    (".claude/output-styles-local/mine.md", True),       # 不放行名稱相近的目錄
     (".claude/worktrees/feat-x/main.py", True),          # C-09 git worktree，且有逃逸風險
     (".claude-plugin/plugin.json", False),               # C-08
     # --- monorepo 子目錄的 .claude/（C-97）---
@@ -127,6 +129,7 @@ CASES = [
     ("apps/web/.claude/settings.json", False),           # C-97 團隊共用設定
     ("apps/web/.claude/skills/deploy/SKILL.md", False),  # C-97 nested 專案技能（官方 Nested 位置）
     ("apps/web/.claude/commands/deploy.md", False),      # C-97 nested 團隊共用指令
+    ("apps/web/.claude/output-styles/review.md", False), # C-122 官方：repo root 以下每一層都載入
     (".claude-plugin/marketplace.json", False),          # C-08
     (".mcp.json", False),                                # C-61 專案層 MCP 設定
     # --- Claude 團隊指令、hooks 與記憶（C-103～C-109）---

@@ -29,7 +29,7 @@ class MigratedSourceTests(unittest.TestCase):
 
     def test_source_endpoints_and_precise_memory_tokens(self):
         sources = {f"{tool}/{name}": url for tool, name, url in MONITOR.SOURCES}
-        self.assertEqual(31, len(MONITOR.SOURCES))
+        self.assertEqual(32, len(MONITOR.SOURCES))
         self.assertEqual(len(MONITOR.SOURCES), len(sources))
         self.assertNotIn("antigravity/ide-skills", sources)
         self.assertEqual("https://antigravity.google/docs/changelog.md", sources["antigravity/changelog"])
@@ -37,7 +37,8 @@ class MigratedSourceTests(unittest.TestCase):
         self.assertEqual("https://antigravity.google/docs/skills.md", sources["antigravity/skills"])
         self.assertNotIn("antigravity/rules-workflows", sources)
         self.assertEqual("https://antigravity.google/docs/rules.md", sources["antigravity/rules"])
-        for name in ("settings", "memory", "skills", "hooks", "desktop", "claude-directory", "sub-agents"):
+        for name in ("settings", "memory", "skills", "hooks", "desktop", "claude-directory", "sub-agents",
+                     "output-styles"):
             self.assertEqual(f"https://code.claude.com/docs/en/{name}.md", sources[f"claude-code/{name}"])
         fixtures = json.loads((FIXTURES / "monitor-migrated-sources.json").read_text(encoding="utf-8"))
         self.assertEqual("https://code.visualstudio.com/docs/copilot/customization/custom-agents",
@@ -51,6 +52,8 @@ class MigratedSourceTests(unittest.TestCase):
             # C-73 的見證自 customization 總覽移到 custom-agents（2026-11-05 官方改版）。
             "copilot/custom-agents": {".github/agents/planner.agent.md"},
             "claude-code/desktop": {".claude/launch.json"},
+            # C-122 的專頁見證；claude-directory 的寫法會在完整路徑與相對名稱之間切換。
+            "claude-code/output-styles": {".claude/output-styles", ".claude/output-styles/"},
         }
         for key, paths in expected.items():
             with self.subTest(source=key):
