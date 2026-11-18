@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.326",
-    "codex": "0.169.0",
+    "claude-code": "2.1.327",
+    "codex": "0.169.1",
     "gemini-cli": "0.68.0",
-    "antigravity": "2.32.0"
+    "antigravity": "2.33.0"
   },
   "sources": {
     "antigravity/changelog": {
@@ -361,6 +361,16 @@
         "~/.claude/settings.json"
       ]
     },
+    "claude-code/output-styles": {
+      "tokens": [
+        ".claude/output-styles",
+        ".claude/output-styles/",
+        ".claude/settings.local.json",
+        "CLAUDE.md",
+        "~/.claude/output-styles",
+        "~/.claude/settings.json"
+      ]
+    },
     "claude-code/settings": {
       "tokens": [
         ".claude",
@@ -465,12 +475,11 @@
     },
     "codex/hooks": {
       "tokens": [
+        ".codex",
         ".codex-plugin/plugin.json",
-        ".codex/",
+        ".codex/hooks.json",
         ".codex/hooks/",
         ".codex/rollout.jsonl",
-        "/.codex/config.toml",
-        "/.codex/hooks.json",
         "/.codex/hooks/permission_request.py",
         "/.codex/hooks/post_tool_use_review.py",
         "/.codex/hooks/pre_tool_use_policy.py",
@@ -478,7 +487,6 @@
         "/.codex/hooks/stop_continue.py",
         "/.codex/hooks/user_prompt_submit_data_flywheel.py",
         "AGENTS.md",
-        "~/.codex/config.toml",
         "~/.codex/hooks.json",
         "~/.codex/hooks/post_tool_use.py",
         "~/.codex/hooks/session_end.py",
