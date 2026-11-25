@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.330",
-    "codex": "0.171.0",
-    "gemini-cli": "0.70.0",
-    "antigravity": "2.34.0"
+    "claude-code": "2.1.331",
+    "codex": "0.172.0",
+    "gemini-cli": "0.71.1",
+    "antigravity": "2.35.1"
   },
   "sources": {
     "antigravity/changelog": {
@@ -25,11 +25,14 @@
         "/.gemini/config.json",
         "AGENTS.md",
         "GEMINI.md",
+        "~/.agents/skills",
+        "~/.gemini",
         "~/.gemini/AGENTS.md",
         "~/.gemini/GEMINI.md",
         "~/.gemini/antigravity-cli/",
         "~/.gemini/antigravity-cli/cache",
         "~/.gemini/antigravity-cli/cache/projects.json",
+        "~/.gemini/antigravity-cli/conversations",
         "~/.gemini/antigravity-cli/hooks.json",
         "~/.gemini/antigravity-cli/settings.json",
         "~/.gemini/bin",
@@ -267,6 +270,7 @@
         ".claude/",
         ".claude/launch.json",
         ".claude/settings.json",
+        ".claude/skills/",
         ".mcp.json",
         "/.claude/worktrees/",
         "CLAUDE.local.md",
