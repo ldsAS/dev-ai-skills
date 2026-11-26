@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "versions": {
-    "claude-code": "2.1.331",
+    "claude-code": "2.1.332",
     "codex": "0.172.0",
     "gemini-cli": "0.71.1",
-    "antigravity": "2.35.1"
+    "antigravity": "2.35.2"
   },
   "sources": {
     "antigravity/changelog": {
@@ -183,6 +183,7 @@
         "~/.claude/keybindings.json",
         "~/.claude/plugins",
         "~/.claude/plugins/.trash",
+        "~/.claude/plugins/cache",
         "~/.claude/plugins/known_marketplaces.json",
         "~/.claude/seed-admin",
         "~/.claude/session-env",
@@ -309,6 +310,7 @@
         ".claude/settings.json",
         ".claude/settings.local.json",
         ".claude/skills/",
+        ".claude/skills/hook-test/SKILL.md",
         ".claude/worktrees/feature-auth",
         "/.claude/hooks/answer-project-key.ps1",
         "/.claude/hooks/answer-project-key.sh",
