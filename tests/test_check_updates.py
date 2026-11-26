@@ -472,6 +472,110 @@ class ClaimPathDirectionTests(ClaimFixtureMixin, unittest.TestCase):
         self.assertEqual(["C-23"], self._ids(".geminiignore"))
 
 
+HOME_CLAIMS_FIXTURE = """
+| ID | 路徑 | 主張 | 依據 | 取證日 | 版本 | 狀態 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| C-24 | `~/.gemini/tmp/` | session 在家目錄 | 官方文件 | 2026-07-30 | — | 已驗證 |
+| C-110 | `~/.gemini/config/skills/` | CLI 全域技能 | 官方文件 | 2026-10-01 | — | 已驗證 |
+| C-112 | `~/.claude/settings.json`、`~/.claude/plugins/` | 使用者層設定 | 官方文件 | 2026-09-22 | — | 已驗證 |
+| C-90 | `~/.claude/sessions/` | 家目錄執行期狀態 | 官方文件 | 2026-08-26 | — | 已驗證 |
+| C-901 | `~/.gemini` | 家目錄本身（測試用單段主張） | 測試 | 2026-11-26 | — | 已驗證 |
+"""
+
+
+class HomePrefixSegmentTests(unittest.TestCase):
+    """C-123：家目錄前綴不算一段，裸家目錄 token 與裸專案目錄一樣不向下扇出。"""
+
+    def setUp(self):
+        temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(temp_dir.cleanup)
+        path = Path(temp_dir.name) / "CLAIMS.md"
+        path.write_text(HOME_CLAIMS_FIXTURE, encoding="utf-8", newline="\n")
+        patcher = mock.patch.object(MONITOR, "CLAIMS_PATH", str(path))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.claims = MONITOR.load_claims()
+
+    def _ids(self, token):
+        return [c["id"] for c in MONITOR.claims_for_token(token, self.claims)]
+
+    def test_bare_home_directories_are_single_segment(self):
+        for token in ("~/.gemini", "~/.gemini/", "~/.claude", "$HOME/.claude", "~/.codex/"):
+            with self.subTest(token=token):
+                self.assertTrue(MONITOR.is_single_segment(token))
+        for token in ("~/.gemini/tmp", "$HOME/.claude/remote/", "~/.claude/plugins/cache"):
+            with self.subTest(token=token):
+                self.assertFalse(MONITOR.is_single_segment(token))
+
+    def test_bare_home_token_does_not_fan_out_to_child_claims(self):
+        """#51 的假陽性：只因 changelog 提到 `~/.gemini`，底下的主張全被標成受影響。
+
+        把 `_is_single_segment_path()` 還原成只看 `/`，本測試轉紅。
+        """
+        self.assertEqual(["C-901"], self._ids("~/.gemini"))
+        self.assertEqual(["C-901"], self._ids("~/.gemini/"))
+        self.assertEqual([], self._ids("~/.claude"))
+        self.assertEqual([], self._ids("$HOME/.claude/"))
+
+    def test_deeper_home_tokens_keep_prefix_matching(self):
+        self.assertEqual(["C-24"], self._ids("~/.gemini/tmp/abc123/chats/"))
+        self.assertEqual(["C-110"], self._ids("~/.gemini/config/skills/my-skill/SKILL.md"))
+        self.assertEqual(["C-112"], self._ids("~/.claude/plugins/cache"))
+
+    def test_single_segment_home_claim_is_not_hit_by_deeper_tokens(self):
+        """C-100 的鏡像：`~/.gemini/tmp` 的變動不是「`~/.gemini` 本身」的證據。"""
+        self.assertNotIn("C-901", self._ids("~/.gemini/tmp"))
+        self.assertNotIn("C-901", self._ids("~/.gemini/config/skills/"))
+
+    def test_windows_home_paths_follow_the_same_rule(self):
+        (token,) = MONITOR.extract_tokens(r"`%USERPROFILE%\.gemini`")
+        self.assertEqual("~/.gemini", token)
+        self.assertTrue(MONITOR.is_single_segment(token))
+        self.assertEqual(["C-901"], self._ids(token))
+
+
+class HomePrefixReportTests(MonitorRunMixin, unittest.TestCase):
+    """C-123 放回完整報告流程與涵蓋率報表（沿用 MonitorRunMixin 的來源）。"""
+
+    def test_bare_home_token_alert_lists_no_child_claims(self):
+        baseline = self._baseline()
+        baseline["sources"][self.source_key]["tokens"] = ["~/.claude/sessions/"]
+        report, _, _ = self._run(
+            baseline=baseline,
+            claims_text=HOME_CLAIMS_FIXTURE,
+            source_text="skills in `~/.gemini` take precedence; state in `~/.claude/sessions/`",
+        )
+        self.assertIn("- ✅ **新增**：`~/.gemini` → `C-901`", report)
+        self.assertIn("單段目錄語彙訊號", report)
+        for child in ("**C-24**", "**C-110**"):
+            self.assertNotIn(child, report)
+        self.assertIn("[SIGNAL: UPDATE_DETECTED]", report)
+
+    def test_bare_home_token_does_not_count_as_coverage(self):
+        """修正前，現行 baseline 只因裸 `~/.gemini` 就把 C-24 算成有涵蓋（C-102 型假涵蓋）。"""
+        temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(temp_dir.cleanup)
+        claims_path = Path(temp_dir.name) / "CLAIMS.md"
+        claims_path.write_text(HOME_CLAIMS_FIXTURE, encoding="utf-8", newline="\n")
+        baseline_path = Path(temp_dir.name) / "last_checked.json"
+        baseline_path.write_text(json.dumps({
+            "schema": MONITOR.SCHEMA_VERSION, "versions": {},
+            "sources": {self.source_key: {"tokens": ["~/.gemini", "~/.claude/sessions/"]}},
+        }), encoding="utf-8", newline="\n")
+        output = StringIO()
+        with (mock.patch.object(MONITOR, "CLAIMS_PATH", str(claims_path)),
+              mock.patch.object(MONITOR, "BASELINE_PATH", str(baseline_path)),
+              redirect_stdout(output)):
+            MONITOR.report_coverage()
+        blind, covered = output.getvalue().split("## ✅ 有監控涵蓋", 1)
+        for claim in ("C-24", "C-110", "C-112"):
+            with self.subTest(claim=claim):
+                self.assertIn(f"**{claim}**", blind)
+        for claim in ("C-901", "C-90"):
+            with self.subTest(claim=claim):
+                self.assertIn(f"**{claim}**", covered)
+
+
 class CrossSourceNoteTests(MonitorRunMixin, unittest.TestCase):
     """C-101：逐來源比對會把「同一段說明換頁」讀成新增／消失。"""
 

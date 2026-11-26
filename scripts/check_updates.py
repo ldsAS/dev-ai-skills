@@ -450,9 +450,25 @@ def load_claims():
     return claims
 
 
+# 家目錄前綴是位置標記，不是路徑段。`canonical_token()` 已把 Windows 的
+# `%USERPROFILE%` 與 `C:\Users\<name>` 轉成 `~`。
+HOME_PREFIX_RE = re.compile(r"^(?:~|\$HOME)/")
+
+
+def _is_single_segment_path(value):
+    """正規化後的路徑是否只有一段；家目錄前綴算進第一段。
+
+    `~/.gemini` 與 `.gemini/` 一樣只是一個目錄。若把 `~/` 當成一段，
+    裸家目錄 token 會往下擴散到底下每一條主張（C-123）：2026-11-25 的 #51 只因
+    changelog 提到 `~/.gemini`，就把 C-24、C-59、C-110、C-111 全標成受影響；
+    涵蓋率也把只有裸 `~/.gemini` 見證的 C-24（`~/.gemini/tmp`）算成有涵蓋。
+    """
+    return "/" not in HOME_PREFIX_RE.sub("", value)
+
+
 def is_single_segment(token):
-    """token 正規化後是否只剩單一路徑段（如 `.claude/`、`.codex`）。"""
-    return "/" not in _norm_path(token)
+    """token 正規化後是否只剩單一路徑段（如 `.claude/`、`.codex`、`~/.gemini`）。"""
+    return _is_single_segment_path(_norm_path(token))
 
 
 def claims_for_token(token, claims):
@@ -480,7 +496,8 @@ def claims_for_token(token, claims):
             #   * 主張路徑單段（C-100）：`.claude/skills/` 的變動不構成「`.claude`
             #     這個路徑本身可否為 symlink」(C-62) 的證據。實測 baseline 156 個
             #     token 中有 26 個命中 C-62，其中 24 個純屬這種往上擴散的噪音
-            if "/" not in value or "/" not in path:
+            #   * 家目錄前綴不算一段（C-123）：`~/.gemini` 同樣是單段
+            if _is_single_segment_path(value) or _is_single_segment_path(path):
                 continue
             if value.startswith(path + "/") or path.startswith(value + "/"):
                 hits.append(claim)
