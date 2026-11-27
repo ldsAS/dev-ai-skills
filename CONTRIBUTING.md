@@ -85,6 +85,7 @@ description: 一段清楚說明這個 skill 的用途與觸發時機的描述。
 - [ ] 撰寫 `skills/<skill-name>/README.md` 說明各版本差異與使用時機
 - [ ] 在 repo 根目錄的 [`README.md`](./README.md) 「目前提供的技能」表格中新增一行
 - [ ] **改過 `.gitignore` 範本規則的話**，跑過 `python scripts/verify_gitignore_template.py`（全綠才算數）—— 行尾註解與白名單邊界都是靜默失效，肉眼審不出來；push 後 CI 也會再跑一次
+- [ ] **改過範本的 AI 規則或機密規則的話**，把同樣的變動套到 repo 根目錄的 `.gitignore`。本 repo 也套用自己的範本，上面那支腳本會檢查兩者是否同步（建 repo 時這裡整包排除 `.claude/`，走樣了七個月才被發現）
 - [ ] **完成最後一次 source 修改後**，本機跑過 `./install.sh` 或 Windows 的 `powershell -ExecutionPolicy Bypass -File .\install.ps1` auto 模式，驗證安裝器能正確鋪到所有目標目錄
 - [ ] 安裝後比對各來源 variant 與實際全域副本的 SHA256；若安裝後又改過任何 `SKILL.md`，必須重新安裝再比對，不能沿用先前的成功結果
 
