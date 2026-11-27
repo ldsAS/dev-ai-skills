@@ -6,15 +6,166 @@ Thumbs.db
 .vscode/
 .idea/
 
-# AI workspaces (本 repo 是管理 skills 的，不提交任何 AI 工具本機暫存)
-.agent/
-# .agents/ 是 Codex / Gemini CLI / Antigravity 共用的跨工具目錄，非 Antigravity 專屬
-.agents/
-.claude/
-.codex/
-.gemini/
-.cursor/
-# .github/prompts/ contains shareable Copilot prompt files; keep it trackable by default.
+# 機密與環境 —— 與範本相同。下方 AI 白名單會放行 .claude/hooks/ 等目錄，
+# 目錄裡的 .env、金鑰仍要靠這段擋住（範本把兩段配對使用，只搬白名單會漏掉保護）。
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# AI Agent 工作區與快取 —— 直接套用本 repo 自己的 skill 範本
+# 2026-04-25 建 repo 時這裡整包排除 .agent/ .agents/ .claude/ .codex/ .gemini/ .cursor/，
+# 理由是「本 repo 是管理 skills 的，不提交任何 AI 工具本機暫存」。之後的校正得出相反結論
+# （專案內的 dot 資料夾以刻意共享的內容為主，不要整包封殺），卻只改了五版範本，
+# 沒有回頭套用到這裡。規則行與 skills/ai-git-ignore-strategy/generic/SKILL.md 的範本同步，
+# 由 scripts/verify_gitignore_template.py 檢查；改範本時這裡要一起改。
+#
+# 本 repo 的決定（2026-08-04 Codex 回覆）：技能原始檔在 skills/ 底下，不在 .agents/skills/
+# 另放同名的專案層副本。範本預設的 .agents/skills/* 已排除它，不需額外規則。
+# Cursor 已移出 skill 維護範圍，維護者也不使用，依範本說明不另加 .cursor/ 規則。
+.claude/*
+!.claude/settings.json
+# 開發伺服器啟動設定：Claude Code 依此啟動專案（等同 .vscode/launch.json 的地位）。
+# 內容是具名的執行指令（runtimeExecutable／runtimeArgs／port），屬專案層級；
+# Claude Code 的個人檔一律走 .local.json 後綴，此檔沒有該後綴。
+# ⚠️ 預設不啟用 —— 它可能寫入個人絕對路徑，且「要不要公開建置方式」是專案決定，不是路徑事實。
+# 看過內容、確認是相對路徑後再取消註解（C-83）
+# !.claude/launch.json
+!.claude/commands/
+!.claude/agents/
+!.claude/rules/
+!.claude/skills/
+.claude/skills/*
+# !.claude/skills/<project-skill>/
+# !.claude/skills/<project-skill>/**
+# /verify 會把可用的建置指令自動寫進此處，官方定位為「so later runs and other
+# agents follow the same steps」＝設計上要共享。屬「自動產生但意圖共享」的第三類（C-53）
+!.claude/skills/verify/
+# 專案層 workflow；對應 user-scope 的 ~/.claude/workflows/，屬團隊共用（C-09）
+!.claude/workflows/
+# 團隊共用的 output style；官方：「Put a style here if your team shares it」（C-122）。
+# 個人的 style 放家目錄 ~/.claude/output-styles/；「目前選用哪個 style」寫在
+# settings.local.json，下方已排除。style 會改寫 Claude 的指令，提交前比照規則檔審查。
+!.claude/output-styles/
+# 團隊專案指令；AGENTS.md 的 Claude 載入條件見 C-109（C-103、C-109）
+!.claude/CLAUDE.md
+!.claude/AGENTS.md
+# 團隊 hook 腳本；提交前審查內容，私人腳本需另列精準排除（C-104）
+!.claude/hooks/
+# project 記憶可共享；local 記憶在任何層級都排除（C-105）
+!.claude/agent-memory/
+**/.claude/agent-memory-local/
+# 個人指令不加斜線，涵蓋根目錄與子目錄（C-106）
+CLAUDE.local.md
+# 用 **/ 前綴而非 .claude/settings.local.json：含中段 / 的規則會錨定在 .gitignore
+# 所在層級，monorepo 子目錄的 apps/web/.claude/settings.local.json 就擋不到。
+# 官方自己寫進 global git excludes 的也是 **/.claude/settings.local.json，
+# 且明示「手動建立的那一份要自行加進 .gitignore」（C-97）
+**/.claude/settings.local.json
+# git worktree 的實體工作目錄，執行期產物。官方修過兩條相關的 symlink 逃逸：
+#   1. .claude/worktrees 的 committed symlink 可在 repo 外建檔（C-09）
+#   2. .claude 這個路徑本身若是 symlink，workflow 儲存與排程任務的寫入
+#      都可能被導向專案之外（C-62）—— 範圍比 1 更廣
+# 兩者官方皆已修復，但舊版仍受影響：**不要提交 .claude 或 .claude/worktrees 的 symlink**
+.claude/worktrees/
+# Cursor 已於 2026-08-03 移出本 skill 的維護範圍（維護者未使用該工具）。
+# 若你的專案有用 Cursor，需自行補上 .cursor/* 與 !.cursor/rules/ 規則。
+.agent/*
+# 官方 skills 文件現已明載 `.agent/skills` 向後相容（C-114）；
+# C-81 保留舊版實查歷史，不代表現行各 surface 的載入優先序。
+# 此處保留既有逐案放行規則；專案若無此目錄，本組可整組刪除
+!.agent/skills/
+.agent/skills/*
+# !.agent/skills/<project-skill>/
+# !.agent/skills/<project-skill>/**
+# 舊佈局的工作區規則；官方：「now defaults to .agents/rules, but still maintains
+# backward support for .agent/rules」（C-57）
+!.agent/rules/
+# .agents/ 為跨工具共用目錄，非 Antigravity 專屬：
+# Codex 從 CWD 逐層往上掃 .agents/skills，且 .agents/plugins/marketplace.json 屬團隊共用；
+# Gemini CLI 以 .agents/skills/ 為 .gemini/skills/ 的高優先別名；
+# Antigravity 讀 .agents/hooks.json
+.agents/*
+!.agents/skills/
+.agents/skills/*
+# !.agents/skills/<project-skill>/
+# !.agents/skills/<project-skill>/**
+# 工作區規則。官方：「Workspace rules live in the .agents/rules folder of your
+# workspace or git root」，性質同 .claude/rules/，屬團隊共用（C-57）
+!.agents/rules/
+# 工作區層級的 MCP server 定義。官方：「Workspace servers: .agents/mcp_config.json」
+# （全域版在 ~/.gemini/config/mcp_config.json），屬團隊共用（C-58）
+!.agents/mcp_config.json
+# 先放行 plugins 父目錄，否則下方 marketplace.json 白名單無效
+# 專案層自訂子代理定義。agy 1.0.13 二進位有明確路徑模板
+# {workspace}/.agents/agents/{agent_name}/agent.json，且執行期狀態另有去處
+# （.agents/<type>_<milestone>/ 與家目錄 brain/）。
+# ⚠️ 預設不啟用 —— 尚無人目視過實體檔案內容。確認是角色宣告而非執行狀態後再取消註解（C-54）
+# !.agents/agents/
+!.agents/plugins/
+.agents/plugins/*
+!.agents/plugins/marketplace.json
+# 目錄層團隊規則；依 2026-09-24 官方 rules 文件，未經本輪實機驗證（C-115）。
+# C-41 的 1.0.13 否定觀察保留為歷史，不能外推至現行文件。
+!.agents/AGENTS.md
+!.agents/GEMINI.md
+# 登記巢狀規則檔；只提交 .agents/rules/<sub>/*.md 而未登記，文件說不會載入。
+# 官方範例以 ../ 引用共用規則：提交前核對實際解析位置及隊友環境的可用性。
+# 若內容含私人絕對路徑，請先調整或精準排除；白名單不表示整份都適合分享。
+!.agents/rules.json
+# agy 1.2.14 內嵌文件明示把此登記檔與團隊技能一起提交（C-119）。
+# path 可用 repo 相對、絕對或 ~/ 參照；分享前確認解析位置及隊友可用性。
+# 放行不代表所有內容適合共享；實際載入需另看 CLI 版本與驗證範圍。
+!.agents/skills.json
+# 自訂 agent 與外掛的登記檔，與 skills.json／rules.json 同一套機制；官方：工作區 .agents/
+# 的檔案「Commit these files to share them with your team」（C-120、C-121）。
+# 只放行登記檔本身：entries 指向的 agent／外掛目錄仍依各自規則決定，外掛可含 hooks 與 MCP server。
+!.agents/agents.json
+!.agents/plugins.json
+# agent 會把使用者訊息逐字寫入下列檔案（含 UTC 時間戳），可能含對話中貼過的敏感資訊。
+# 已被上方 .agents/* 涵蓋，仍 explicit 列名一次 —— 廣域規則日後若被放寬仍有保護
+.agents/ORIGINAL_REQUEST.md
+.agents/**/ORIGINAL_REQUEST.md
+# 子目錄 .agents/ 的同名 prompt 檔防禦；尚未驗證工具會在此寫入（C-117）。
+**/.agents/**/ORIGINAL_REQUEST.md
+# .agents/settings.local.json 的否定觀察僅限 agy 1.0.13；本輪無新證據（C-43）。
+# 工作區 hooks 位置已有官方文件佐證；內含可執行指令，依專案決定是否放行（C-44）
+# !.agents/hooks.json
+# Antigravity CLI 舊版工作區對應檔（新版已淘汰，舊專案仍可能殘留）
+.antigravitycli/
+.codex/*
+!.codex/config.toml
+# 專案層 lifecycle hooks 與其腳本；官方將 <repo>/.codex/hooks.json 列為
+# 主要的 hooks 位置之一，屬團隊共用（C-17）
+!.codex/hooks.json
+!.codex/hooks/
+# 沙箱指令規則（experimental）：控制哪些指令可在沙箱外執行，屬專案層政策（C-17）
+!.codex/rules/
+# ⚠️ .codex/skills 未見於官方 skills scope 表（REPO 為 .agents/skills、
+# USER 為 $HOME/.agents/skills、ADMIN 為 /etc/codex/skills）。
+# 保留為舊版相容路徑；專案技能請優先用上方的 .agents/skills/。見 C-12
+!.codex/skills/
+.codex/skills/*
+# !.codex/skills/<project-skill>/
+# !.codex/skills/<project-skill>/**
+# ⚠️ 2026-08-03 移除誤植規則：先前依官方 hooks 文件中的一段 token 判定
+# .codex/rollout.jsonl 是專案層 session 紀錄 —— 那其實是傳給 hook 的
+# 範例 payload（"transcript_path": "/workspace/.codex/rollout.jsonl"），
+# 不是真實預設路徑。實際 rollout 在 $CODEX_HOME/sessions/YYYY/MM/DD/
+# （CODEX_HOME 預設 ~/.codex），不寫入專案。見 C-17。
+.gemini/*
+!.gemini/settings.json
+# Antigravity 產品 2.17.0 的專案 customization 設定，不能直接外推 CLI（C-116）。
+# 可能含 personal_customization_dir 等個人路徑；先檢視內容及專案分享政策再啟用。
+# !.gemini/config.json
+!.gemini/skills/
+.gemini/skills/*
+# !.gemini/skills/<project-skill>/
+# !.gemini/skills/<project-skill>/**
+# .github/prompts/ 是共享 prompt files (*.prompt.md)，預設應提交；確認為個人暫存才取消註解：
+# .github/prompts/
 
 # Python (scripts/check_updates.py 執行後產生)
 __pycache__/

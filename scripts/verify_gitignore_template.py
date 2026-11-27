@@ -20,7 +20,10 @@
 再對下方 CASES 的每個路徑跑 `git check-ignore --no-index -q --`，比對「擋／放行」是否符合預期。
 `--no-index` 讓結果只反映 ignore 規則，不會因探測檔已被 Git 追蹤而得到假放行。
 
-不碰本 repo、不連網。暫時目錄用完即刪。
+另外檢查本 repo 根目錄的 `.gitignore`：AI 規則行必須與 generic 範本同步，
+AI 相關案例也必須成立（2026-11-27 起；先前這裡長期整包排除 `.claude/` 而無人察覺）。
+
+不修改本 repo、不連網。暫時目錄用完即刪。
 
 用法
 ----
@@ -168,6 +171,85 @@ CASES = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# 本 repo 自己的 .gitignore（dogfooding）
+# ---------------------------------------------------------------------------
+# 2026-04-25 建 repo 時根目錄 .gitignore 整包排除 .claude/ 等 AI 資料夾；之後的校正
+# 只改了五版範本，這裡一直沒跟上，因為本腳本從不檢查它（2026-11-27 才發現）。
+# 現在兩道檢查：① AI 規則行與範本同步；② AI 相關案例對根目錄 .gitignore 也成立。
+REPO_GITIGNORE = os.path.join(HERE, os.pardir, ".gitignore")
+SYNC_VARIANT = "generic"
+# 規則行的分組依據：第一個出現的 AI 工具 dot 目錄。各組互不影響，所以只比對組內順序；
+# antigravity 版把自家工具排在最前面，組間順序不同不算走樣。
+AI_GROUP_RE = re.compile(r"\.(claude|agents?|codex|gemini|antigravitycli|cursor)(?=/|$)")
+# 這幾個 AI 相關檔名不在 dot 目錄裡，歸入對應工具組。
+AI_FILE_GROUPS = {"CLAUDE.local.md": "claude"}
+# 範本的白名單會放行 .claude/hooks/ 等目錄，裡面的機密檔要靠這幾條擋；只搬白名單會漏掉保護。
+SHARED_SECRET_RULES = [".env", ".env.*", "!.env.example", "*.pem", "*.key", "credentials.json"]
+# 本 repo 特有的決定，範本本身不涵蓋。
+REPO_CASES = [
+    (".claude/hooks/.env", True),
+    (".claude/hooks/deploy.key", True),
+    (".env.example", False),
+    # 2026-08-04 Codex 回覆：技能原始檔在 skills/，不在 .agents/skills/ 另放同名副本
+    (".agents/skills/ai-git-ignore-strategy/SKILL.md", True),
+    ("skills/ai-git-ignore-strategy/claude/SKILL.md", False),
+    ("scripts/last_checked.json", False),
+    (".venv/lib/python3.11/site.py", True),
+    ("scripts/__pycache__/check_updates.cpython-311.pyc", True),
+]
+
+
+def ai_rule_groups(text):
+    """依工具分組回傳 AI 規則行（去除註解與空行，組內保留順序）。"""
+    groups = {}
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        match = AI_GROUP_RE.search(line)
+        group = match.group(1) if match else AI_FILE_GROUPS.get(line.lstrip("!/*"))
+        if group:
+            groups.setdefault(group, []).append(line)
+    return groups
+
+
+def ai_case(path):
+    """CASES 中與 AI 工具路徑相關、因此也要對本 repo 成立的案例。"""
+    return bool(AI_GROUP_RE.search(path)) or os.path.basename(path) in AI_FILE_GROUPS
+
+
+def check_repo_gitignore(repo_text=None, template_text=None):
+    """回傳本 repo .gitignore 的問題清單；空清單代表與範本一致。"""
+    if repo_text is None:
+        with open(REPO_GITIGNORE, encoding="utf-8") as handle:
+            repo_text = handle.read()
+    if template_text is None:
+        template_text = extract_template(SYNC_VARIANT)
+    problems = []
+    want, have = ai_rule_groups(template_text), ai_rule_groups(repo_text)
+    for group in sorted(set(want) | set(have)):
+        if want.get(group) != have.get(group):
+            missing = [r for r in want.get(group, []) if r not in have.get(group, [])]
+            extra = [r for r in have.get(group, []) if r not in want.get(group, [])]
+            detail = "；".join(filter(None, [
+                f"缺少 {missing}" if missing else "",
+                f"多出 {extra}" if extra else "",
+                "順序不同" if not missing and not extra else "",
+            ]))
+            problems.append(f".{group} 規則與 {SYNC_VARIANT} 範本不同步：{detail}")
+    repo_rules = {line.strip() for line in repo_text.splitlines()}
+    template_rules = {line.strip() for line in template_text.splitlines()}
+    for rule in SHARED_SECRET_RULES:
+        if rule not in template_rules:
+            problems.append(f"範本已不含機密規則 {rule}：請更新 SHARED_SECRET_RULES")
+        elif rule not in repo_rules:
+            problems.append(f"缺少範本的機密規則 {rule}：AI 白名單放行的目錄會失去保護")
+    cases = [case for case in CASES if ai_case(case[0])] + REPO_CASES
+    problems.extend(check_text(repo_text, cases, "repo"))
+    return problems
+
+
 def variants():
     if not os.path.isdir(SKILL_ROOT):
         return []
@@ -193,8 +275,12 @@ def check_variant(variant):
     template = extract_template(variant)
     if template is None:
         return None
+    return check_text(template, CASES, variant)
 
-    tmp = tempfile.mkdtemp(prefix=f"gitignore-{variant}-")
+
+def check_text(gitignore_text, cases, label):
+    """把 gitignore_text 寫進暫時 repo，回傳 cases 中不符預期的項目。"""
+    tmp = tempfile.mkdtemp(prefix=f"gitignore-{label}-")
     try:
         # 驗證範本本身，避免個人 global excludes 掩蓋漏掉的排除規則。
         git_env = os.environ.copy()
@@ -205,10 +291,10 @@ def check_variant(variant):
                        env=git_env)
         with open(os.path.join(tmp, ".gitignore"), "w",
                   encoding="utf-8", newline="\n") as handle:
-            handle.write(template)
+            handle.write(gitignore_text)
 
         mismatches = []
-        for path, expect_blocked in CASES:
+        for path, expect_blocked in cases:
             result = subprocess.run(
                 ["git", "-c", f"core.excludesFile={os.devnull}",
                  "check-ignore", "--no-index", "-q", "--", path],
@@ -261,6 +347,16 @@ def main():
                 print(f"     {item}")
         else:
             print(f"✅ {variant}：{len(CASES)} 個邊界案例全部符合預期")
+
+    repo_problems = check_repo_gitignore()
+    if repo_problems:
+        failed = True
+        print(f"❌ 本 repo 的 .gitignore（{len(repo_problems)} 項問題）")
+        for item in repo_problems:
+            print(f"     {item}")
+    else:
+        repo_cases = sum(1 for case in CASES if ai_case(case[0])) + len(REPO_CASES)
+        print(f"✅ 本 repo 的 .gitignore：AI 規則與 {SYNC_VARIANT} 範本同步，{repo_cases} 個案例全部符合預期")
 
     if failed:
         print("\n提示：`git check-ignore --no-index -v -- <path>` 可看命中哪一條規則；"
